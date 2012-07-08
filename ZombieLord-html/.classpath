@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" combineaccessrules="false" path="/ZombieLord"/>
+	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/bodyeditor-loader.jar" sourcepath="/ZombieLord/libs/bodyeditor-loader-sources.jar"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/bodyeditor-loader-sources.jar"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/gdx.jar" sourcepath="/ZombieLord/libs/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/gdx-sources.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gdx-backend-gwt.jar" sourcepath="war/WEB-INF/lib/gdx-backend-gwt-sources.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gdx-backend-gwt-sources.jar"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/tween-engine-api.jar" sourcepath="/ZombieLord/libs/tween-engine-api-sources.jar"/>
+	<classpathentry kind="lib" path="/ZombieLord/libs/tween-engine-api-sources.jar"/>
+	<classpathentry kind="output" path="war/WEB-INF/classes"/>
+</classpath>
