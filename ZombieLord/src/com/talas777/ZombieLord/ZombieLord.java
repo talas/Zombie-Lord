@@ -29,18 +29,18 @@ import com.badlogic.gdx.physics.box2d.World;
 public class ZombieLord implements ApplicationListener {
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
-	private Texture texture;
+	//private Texture texture;
 	private Texture texture2;
-	private Sprite sprite;
+	//private Sprite sprite;
 	private LinkedList<Sprite> drawSprites;
 	private Sprite princess;
 	private float w;
 	private float h;
 	private Sprite background;
 	private Texture backgroundTexture;
-	private Sprite collisionLayer;
-	public float posx = 1745;
-	public float posy = 310;
+	//private Sprite collisionLayer;
+	public float posx = -1;
+	public float posy = -1;
 	public float currentWalkFrame = 0;
 	public float stillTime = 0;
 	public int lastDirection = 0; // 0 = south, 1 = north, 2 = east, 3 = west
@@ -51,9 +51,17 @@ public class ZombieLord implements ApplicationListener {
 	
 	private Box2DDebugRenderer debugRenderer;
 	
-	private float moveSpeed = 0.014f;
+	private float moveSpeed = 0.003f;
 	
 	public static final float PIXELS_PER_METER = 60.0f;
+	
+	
+	public static final String[] backgrounds = new String[]{
+		"hometown.png",
+		"myhouse.png",
+		"church.png"
+	};
+	
 	
 	/*TileMapRenderer tileMapRenderer;
     TiledMap map;
@@ -65,7 +73,6 @@ public class ZombieLord implements ApplicationListener {
 		h = Gdx.graphics.getHeight();
 		
 		
-		
 		/*camera = new OrthographicCamera();
 		camera.setToOrtho(false, w, h);*/
 		camera = new OrthographicCamera(w, h);
@@ -73,28 +80,62 @@ public class ZombieLord implements ApplicationListener {
 		batch = new SpriteBatch();
 		drawSprites = new LinkedList<Sprite>();
 		
-		// Load the tmx file into map
-		/*FileHandle fi = Gdx.files.internal("data/hometown.tmx");
-		if(!fi.exists())
-			System.err.println("no file here!");
-        map = TiledLoader.createMap(fi);
 
-        // Load the tiles into atlas
-        atlas = new TileAtlas(map, Gdx.files.internal("data/"));
+		
+		loadLevel(0);
 
-        // Create the renderer
-        tileMapRenderer = new TileMapRenderer(map, atlas, 32, 32, 5, 5);
+		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
+		debugRenderer = new Box2DDebugRenderer();
+		
+		
+	}
+	/**
+	 * create a vector array from the given positions
+	 * @param xValues x values
+	 * @param yValues y values
+	 * @return array of vector2 points
+	 */
+	public Vector2[] vectorize(float[] xValues, float[] yValues){
+		Vector2[] vec = new Vector2[xValues.length];
+		for(int i = 0; i < xValues.length; i++){
+			vec[i] = new Vector2(xValues[i]/PIXELS_PER_METER, yValues[i]/PIXELS_PER_METER);
+		}
+		return vec;
+	}
 
-	    */
-		backgroundTexture = new Texture(Gdx.files.internal("data/hometown.png"));
+	@Override
+	public void dispose() {
+		batch.dispose();
+		backgroundTexture.dispose();
+		//texture.dispose();
+		texture2.dispose();
+	}
+	
+	public void loadLevel(int levelCode){
+		if(backgroundTexture != null)
+			backgroundTexture.dispose();
+		backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
-		background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+		
+		switch (levelCode) {
+		case 0:
+			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+			lastDirection = 1;
+			posx = 1775;
+			posy = 305;
+			break;
+		default:
+			System.err.println("Case Switched, Learn2Code talas!");
+		}
+		
 		drawSprites.add(background);
+		/*
 		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
 		collisionLayer = new Sprite(texture, 0, 0, 3200, 3200);
 		drawSprites.add(collisionLayer);
+		*/
 		
-		{
+		/*{
 			texture = new Texture(Gdx.files.internal("data/libgdx.png"));
 			//texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
@@ -105,7 +146,7 @@ public class ZombieLord implements ApplicationListener {
 			sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 			sprite.setPosition(20, 20);
 			drawSprites.add(sprite);
-		}
+		}*/
 		{
 			texture2 = new Texture(Gdx.files.internal("data/princess.png"));
 			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
@@ -127,8 +168,8 @@ public class ZombieLord implements ApplicationListener {
 		jumper = world.createBody(jumperBodyDef);
 		
 		PolygonShape jumperShape = new PolygonShape();
-		jumperShape.setAsBox(princess.getWidth() / (4 * PIXELS_PER_METER),
-				princess.getHeight() / (2 * PIXELS_PER_METER));
+		jumperShape.setAsBox(princess.getWidth() / (6 * PIXELS_PER_METER),
+				princess.getHeight() / (6 * PIXELS_PER_METER));
 		
 		jumper.setFixedRotation(true);
 		
@@ -141,33 +182,24 @@ public class ZombieLord implements ApplicationListener {
 		jumper.setLinearDamping(9.0f);
 		jumperShape.dispose();
 		
-		
 		BodyDef groundBodyDef = new BodyDef();
 		groundBodyDef.type = BodyDef.BodyType.StaticBody;
 		Body groundBody = world.createBody(groundBodyDef);
 		{
 			ChainShape environmentShape = new ChainShape();
 			
-			Vector2[] vertices = new Vector2[3];
-			vertices[0] = new Vector2(1,2);
-			vertices[1] = new Vector2(4,8);
-			vertices[2] = new Vector2(8,4);
+			Vector2[] vertices = vectorize(
+					new float[]{1473,1473,1507,1700,1775,1861,1950,1985,1985,1795,1795,1758,1758},
+					new float[]{322,450,480,480,565,480,480,450,322,322,342,342,322});
+			/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
+			vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
+			vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
+			vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
 
 			environmentShape.createLoop(vertices);
 			groundBody.createFixture(environmentShape, 0);
 			environmentShape.dispose();
 		}
-		
-		debugRenderer = new Box2DDebugRenderer();
-		
-		
-	}
-
-	@Override
-	public void dispose() {
-		batch.dispose();
-		texture.dispose();
-		texture2.dispose();
 	}
 
 	@Override
@@ -210,9 +242,7 @@ public class ZombieLord implements ApplicationListener {
 			right = true;
 		}
 		
-		if(Gdx.input.isKeyPressed(Keys.B)){
-			System.out.println("position: x="+posx+", y="+posy);
-		}
+
 		
 		if(Gdx.input.isKeyPressed(Keys.ESCAPE))
 			Gdx.app.exit();
@@ -232,11 +262,14 @@ public class ZombieLord implements ApplicationListener {
 		posx = jumper.getPosition().x*this.PIXELS_PER_METER;
 		posy = jumper.getPosition().y*this.PIXELS_PER_METER;
 		princess.setX(posx-32);
-		princess.setY(posy-32);
+		princess.setY(posy-10);
 		
 		camera.position.x = princess.getX()+32;
 		camera.position.y = princess.getY()+16;
 		
+		if(Gdx.input.isKeyPressed(Keys.B)){
+			System.out.println("position: x="+posx+", y="+posy);
+		}
 		
 		
 		if(camera.position.y <= h/2)
@@ -307,7 +340,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		//background = new Sprite(backgroundTexture, (int)(posx-w), (int)(posy-h), (int)(posx+w), (int)(posy+h));
 		
-		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		
 		batch.setProjectionMatrix(camera.combined);
