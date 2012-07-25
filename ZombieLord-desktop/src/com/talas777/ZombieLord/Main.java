@@ -10,6 +10,7 @@ public class Main {
 		cfg.useGL20 = false;
 		cfg.width = 480;
 		cfg.height = 320;
+		cfg.fullscreen = false;
 		
 		new LwjglApplication(new ZombieLord(), cfg);
 	}
