@@ -57,9 +57,10 @@ public class ZombieLord implements ApplicationListener {
 	
 	
 	public static final String[] backgrounds = new String[]{
-		"hometown.png",
-		"myhouse.png",
-		"church.png"
+		"hometown.png", // 0
+		"myhouse.png", // 1
+		"church.png", // 2
+		"" // ?
 	};
 	
 	
@@ -82,7 +83,7 @@ public class ZombieLord implements ApplicationListener {
 		
 
 		
-		loadLevel(0);
+		loadLevel(2);
 
 		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
 		debugRenderer = new Box2DDebugRenderer();
@@ -123,6 +124,18 @@ public class ZombieLord implements ApplicationListener {
 			lastDirection = 1;
 			posx = 1775;
 			posy = 305;
+			break;
+		case 1:
+			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+			lastDirection = 1;
+			posx = 1775;
+			posy = 305;
+			break;
+		case 2:
+			background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
+			lastDirection = 1;
+			posx = 522;
+			posy = 414;
 			break;
 		default:
 			System.err.println("Case Switched, Learn2Code talas!");
@@ -182,23 +195,25 @@ public class ZombieLord implements ApplicationListener {
 		jumper.setLinearDamping(9.0f);
 		jumperShape.dispose();
 		
-		BodyDef groundBodyDef = new BodyDef();
-		groundBodyDef.type = BodyDef.BodyType.StaticBody;
-		Body groundBody = world.createBody(groundBodyDef);
-		{
-			ChainShape environmentShape = new ChainShape();
-			
-			Vector2[] vertices = vectorize(
-					new float[]{1473,1473,1507,1700,1775,1861,1950,1985,1985,1795,1795,1758,1758},
-					new float[]{322,450,480,480,565,480,480,450,322,322,342,342,322});
-			/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-			vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-			vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-			vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-
-			environmentShape.createLoop(vertices);
-			groundBody.createFixture(environmentShape, 0);
-			environmentShape.dispose();
+		if(levelCode == 0){
+			BodyDef groundBodyDef = new BodyDef();
+			groundBodyDef.type = BodyDef.BodyType.StaticBody;
+			Body groundBody = world.createBody(groundBodyDef);
+			{
+				ChainShape environmentShape = new ChainShape();
+				
+				Vector2[] vertices = vectorize(
+						new float[]{1473,1473,1507,1700,1775,1861,1950,1985,1985,1795,1795,1758,1758},
+						new float[]{322,450,480,480,565,480,480,450,322,322,342,342,322});
+				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
+				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
+				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
+				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
+	
+				environmentShape.createLoop(vertices);
+				groundBody.createFixture(environmentShape, 0);
+				environmentShape.dispose();
+			}
 		}
 	}
 
