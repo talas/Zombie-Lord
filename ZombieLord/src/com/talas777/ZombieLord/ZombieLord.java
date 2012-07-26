@@ -60,6 +60,7 @@ public class ZombieLord implements ApplicationListener {
 		"hometown.png", // 0
 		"myhouse.png", // 1
 		"church.png", // 2
+		"hometown-night.png", // 3
 		"" // ?
 	};
 	
@@ -83,7 +84,7 @@ public class ZombieLord implements ApplicationListener {
 		
 
 		
-		loadLevel(2);
+		loadLevel(3);
 
 		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
 		debugRenderer = new Box2DDebugRenderer();
@@ -119,23 +120,34 @@ public class ZombieLord implements ApplicationListener {
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
 		
 		switch (levelCode) {
-		case 0:
+		case 0://hometown
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
 			lastDirection = 1;
 			posx = 1775;
 			posy = 305;
 			break;
-		case 1:
+			// TODO: add music
+		case 1://my house
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
 			lastDirection = 1;
 			posx = 1775;
 			posy = 305;
 			break;
-		case 2:
+			// TODO: add music
+		case 2: //church
 			background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
 			lastDirection = 1;
 			posx = 522;
 			posy = 414;
+			break;
+		case 3: //hometown night
+			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+			lastDirection = 1;
+			posx = 1775;
+			posy = 305;
+			// TODO: add rain effect
+			// TODO: add wind effect
+			// TODO: add ambient sounds
 			break;
 		default:
 			System.err.println("Case Switched, Learn2Code talas!");
@@ -195,7 +207,7 @@ public class ZombieLord implements ApplicationListener {
 		jumper.setLinearDamping(9.0f);
 		jumperShape.dispose();
 		
-		if(levelCode == 0){
+		if(levelCode == 0 || levelCode == 3){
 			BodyDef groundBodyDef = new BodyDef();
 			groundBodyDef.type = BodyDef.BodyType.StaticBody;
 			Body groundBody = world.createBody(groundBodyDef);
