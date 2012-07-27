@@ -33,4 +33,41 @@ public class CombatAction {
 	public float healthChange;
 	
 	public int targetType;
+	
+	/**
+	 * Full constructor
+	 * @param name Name of the action
+	 * @param description Friendly description
+	 * @param minLevel minimum xp level to use the action
+	 * @param maxLevel maximum xp level to use the action
+	 * @param hpCost health consumed by using the action
+	 * @param mpCost mana consumed by using the action
+	 * @param healthChange how this action affects the health of the target
+	 * @param targetType what this action targets
+	 */
+	public CombatAction(String name, String description, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, int targetType){
+		this.name = name;
+		this.description = description;
+		this.minLevel = minLevel;
+		this.maxLevel = maxLevel;
+		this.hpCost = hpCost;
+		this.mpCost = mpCost;
+		this.healthChange = healthChange;
+		this.targetType = targetType;
+	}
+	
+	/**
+	 * Constructor for most monster actions
+	 * @param name
+	 * @param mpCost
+	 * @param healthChange
+	 * @param targetType
+	 */
+	public CombatAction(String name, int mpCost, float healthChange, int targetType){
+		this(name, "",0,0,0,mpCost,healthChange,targetType);
+	}
+	
+	public CombatAction(String name, String description, int mpCost, float healthChange, int targetType){
+		this(name, description,0,0,0,mpCost,healthChange,targetType);
+	}
 }

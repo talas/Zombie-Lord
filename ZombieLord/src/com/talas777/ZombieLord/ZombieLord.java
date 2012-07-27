@@ -77,9 +77,22 @@ public class ZombieLord implements ApplicationListener {
 	public void loadCombat(int background, MonsterArea monsterArea){
 		//TODO: set background
 		
+		//TODO: position player
+		int bposx = (int)(w/6);
+		int bposy = (int)(h/2);
+		
 		currentCombat = new Combat(monsterArea.getRandomSetup());
 		
 		
+		Monster troll = new Monster("Troll","TrollOgre.png",5,100,15,3,1.25f);
+		troll.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
+		MonsterSetup twoTrolls = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
+		twoTrolls.appendMonster(troll);
+		twoTrolls.appendMonster(troll);
+		
+		//TODO: position monsters
+		
+		// Timing and stuff is taken care of in the Combat class (which is queried from the render loop)
 		
 		gameMode = 1;
 	}
