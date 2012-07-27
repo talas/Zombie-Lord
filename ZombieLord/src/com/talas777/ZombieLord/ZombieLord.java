@@ -55,6 +55,11 @@ public class ZombieLord implements ApplicationListener {
 	
 	public static final float PIXELS_PER_METER = 60.0f;
 	
+	public Party party;
+	
+	private int gameMode = 0; // 0 = walk, 1 = combat, 2 = special/Minigame
+	
+	private Combat currentCombat;
 	
 	public static final String[] backgrounds = new String[]{
 		"hometown.png", // 0
@@ -68,6 +73,16 @@ public class ZombieLord implements ApplicationListener {
 	/*TileMapRenderer tileMapRenderer;
     TiledMap map;
     TileAtlas atlas;*/
+	
+	public void loadCombat(int background, MonsterArea monsterArea){
+		//TODO: set background
+		
+		currentCombat = new Combat(monsterArea.getRandomSetup());
+		
+		
+		
+		gameMode = 1;
+	}
 	
 	@Override
 	public void create() {
@@ -84,7 +99,11 @@ public class ZombieLord implements ApplicationListener {
 		
 
 		
-		loadLevel(3);
+		party = new Party();
+		
+		loadLevel(3,1775,305,1); //hometown night
+		//loadLevel(2,522,414,1); church
+		//loadCombat(0,new MonsterArea(0,0,20,20,0.05f));
 
 		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
 		debugRenderer = new Box2DDebugRenderer();
@@ -113,38 +132,42 @@ public class ZombieLord implements ApplicationListener {
 		texture2.dispose();
 	}
 	
-	public void loadLevel(int levelCode){
+	public void loadLevel(int levelCode, int posx, int posy, int direction){
 		if(backgroundTexture != null)
 			backgroundTexture.dispose();
 		backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
 		
+		this.posx = posx;
+		this.posy = posy;
+		this.lastDirection = direction;
+		
 		switch (levelCode) {
 		case 0://hometown
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			lastDirection = 1;
+			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;
-			break;
+			break;*/
 			// TODO: add music
 		case 1://my house
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			lastDirection = 1;
+			/*lastDirection = 1;
 			posx = 1775;
-			posy = 305;
+			posy = 305;*/
 			break;
 			// TODO: add music
 		case 2: //church
 			background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
-			lastDirection = 1;
+			/*lastDirection = 1;
 			posx = 522;
-			posy = 414;
+			posy = 414;*/
 			break;
 		case 3: //hometown night
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			lastDirection = 1;
+			/*lastDirection = 1;
 			posx = 1775;
-			posy = 305;
+			posy = 305;*/
 			// TODO: add rain effect
 			// TODO: add wind effect
 			// TODO: add ambient sounds
@@ -227,6 +250,7 @@ public class ZombieLord implements ApplicationListener {
 				environmentShape.dispose();
 			}
 		}
+		gameMode = 0;
 	}
 
 	@Override
@@ -240,33 +264,34 @@ public class ZombieLord implements ApplicationListener {
 		boolean up = false;
 		boolean down = false;
 		
-		
-		if(Gdx.input.isKeyPressed(Keys.UP)){
-			//System.out.println("damop:"+jumper.getLinearDamping());
-			jumper.applyLinearImpulse(new Vector2(0.0f, moveSpeed),
-					jumper.getWorldCenter());
-			posy += (100 * Gdx.graphics.getDeltaTime());
-			up = true;
-		}
-		if(Gdx.input.isKeyPressed(Keys.DOWN)){
-			jumper.applyLinearImpulse(new Vector2(0.0f, -moveSpeed),
-					jumper.getWorldCenter());
-			posy -= (100 * Gdx.graphics.getDeltaTime());
-			down = true;
-		}
-		
-		if(Gdx.input.isKeyPressed(Keys.LEFT) && !up && !down){
-			jumper.applyLinearImpulse(new Vector2(-moveSpeed, 0.0f),
-					jumper.getWorldCenter());
-			posx -= (100 * Gdx.graphics.getDeltaTime());
-			left = true;
-		}
-		
-		if(Gdx.input.isKeyPressed(Keys.RIGHT) && !up && !down){
-			jumper.applyLinearImpulse(new Vector2(moveSpeed, 0.0f),
-					jumper.getWorldCenter());
-			posx += (100 * Gdx.graphics.getDeltaTime());
-			right = true;
+		if(gameMode == 0){
+			if(Gdx.input.isKeyPressed(Keys.UP)){
+				//System.out.println("damop:"+jumper.getLinearDamping());
+				jumper.applyLinearImpulse(new Vector2(0.0f, moveSpeed),
+						jumper.getWorldCenter());
+				posy += (100 * Gdx.graphics.getDeltaTime());
+				up = true;
+			}
+			if(Gdx.input.isKeyPressed(Keys.DOWN)){
+				jumper.applyLinearImpulse(new Vector2(0.0f, -moveSpeed),
+						jumper.getWorldCenter());
+				posy -= (100 * Gdx.graphics.getDeltaTime());
+				down = true;
+			}
+			
+			if(Gdx.input.isKeyPressed(Keys.LEFT) && !up && !down){
+				jumper.applyLinearImpulse(new Vector2(-moveSpeed, 0.0f),
+						jumper.getWorldCenter());
+				posx -= (100 * Gdx.graphics.getDeltaTime());
+				left = true;
+			}
+			
+			if(Gdx.input.isKeyPressed(Keys.RIGHT) && !up && !down){
+				jumper.applyLinearImpulse(new Vector2(moveSpeed, 0.0f),
+						jumper.getWorldCenter());
+				posx += (100 * Gdx.graphics.getDeltaTime());
+				right = true;
+			}
 		}
 		
 
@@ -284,84 +309,86 @@ public class ZombieLord implements ApplicationListener {
 		collisionLayer.setY(posy);
 		*/
 
-		world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
-		
-		posx = jumper.getPosition().x*this.PIXELS_PER_METER;
-		posy = jumper.getPosition().y*this.PIXELS_PER_METER;
-		princess.setX(posx-32);
-		princess.setY(posy-10);
-		
-		camera.position.x = princess.getX()+32;
-		camera.position.y = princess.getY()+16;
-		
-		if(Gdx.input.isKeyPressed(Keys.B)){
-			System.out.println("position: x="+posx+", y="+posy);
-		}
-		
-		
-		if(camera.position.y <= h/2)
-			camera.position.y = h/2+1;
-		else if(camera.position.y >= 3200-h/2)
-			camera.position.y = 3200-h/2-1;
-		
-		if(camera.position.x <= w/2)
-			camera.position.x = w/2+1;
-		else if(camera.position.x >= 3200-w/2)
-			camera.position.x = 3200-w/2-1;
-		
-		camera.update();
-		
-		
-		if(stillTime > 0)
-			stillTime -= Gdx.graphics.getDeltaTime();
-
-		int frame = (int)Math.ceil(currentWalkFrame)+1;
-		if(up == true){
-			lastDirection = 0;
-			princess.setRegion(64*frame, 0, 64, 64);
-			//princess = new Sprite(texture2, 0, 64*2, 64, 0);
-		}
-		else if(down == true){
-			lastDirection = 1;
-			princess.setRegion(64*frame, 64*2, 64, 64);
-			//princess = new Sprite(texture2, 0, 64*2, 64, 64);
-		}
-		else if (left == true){
-			lastDirection = 3;
-			princess.setRegion(64*frame, 64*1, 64, 64);
-			//princess = new Sprite(texture2, 0, 64*2, 64, 128);
-		}
-		else if (right == true){
-			princess.setRegion(64*frame, 64*3, 64, 64);
-			lastDirection = 2;
-			//princess = new Sprite(texture2, 0, 64*2, 64, 128+64);
-		}
-		
-		if(up || down || left || right){
-			currentWalkFrame = (float)(currentWalkFrame >= 7-0.15? 0 : currentWalkFrame+0.15);
-			stillTime = 0.1f;
-		}
-		else if(stillTime <= 0)
-		{
-			currentWalkFrame = 0;
-			switch(lastDirection){
-			case 0:
-				//north
-				princess.setRegion(0, 0, 64, 64);
-				break;
-			case 2:
-				//east
-				princess.setRegion(0, 64*3, 64, 64);
-				break;
-			case 3:
-				//west
-				princess.setRegion(0, 64*1, 64, 64);
-				break;
-			default:
-				//south
-				princess.setRegion(0, 64*2, 64, 64);
-				break;
-					
+		if(gameMode == 0){
+			world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
+			
+			posx = jumper.getPosition().x*this.PIXELS_PER_METER;
+			posy = jumper.getPosition().y*this.PIXELS_PER_METER;
+			princess.setX(posx-32);
+			princess.setY(posy-10);
+			
+			camera.position.x = princess.getX()+32;
+			camera.position.y = princess.getY()+16;
+			
+			if(Gdx.input.isKeyPressed(Keys.B)){
+				System.out.println("position: x="+posx+", y="+posy);
+			}
+			
+			
+			if(camera.position.y <= h/2)
+				camera.position.y = h/2+1;
+			else if(camera.position.y >= 3200-h/2)
+				camera.position.y = 3200-h/2-1;
+			
+			if(camera.position.x <= w/2)
+				camera.position.x = w/2+1;
+			else if(camera.position.x >= 3200-w/2)
+				camera.position.x = 3200-w/2-1;
+			
+			camera.update();
+			
+			
+			if(stillTime > 0)
+				stillTime -= Gdx.graphics.getDeltaTime();
+	
+			int frame = (int)Math.ceil(currentWalkFrame)+1;
+			if(up == true){
+				lastDirection = 0;
+				princess.setRegion(64*frame, 0, 64, 64);
+				//princess = new Sprite(texture2, 0, 64*2, 64, 0);
+			}
+			else if(down == true){
+				lastDirection = 1;
+				princess.setRegion(64*frame, 64*2, 64, 64);
+				//princess = new Sprite(texture2, 0, 64*2, 64, 64);
+			}
+			else if (left == true){
+				lastDirection = 3;
+				princess.setRegion(64*frame, 64*1, 64, 64);
+				//princess = new Sprite(texture2, 0, 64*2, 64, 128);
+			}
+			else if (right == true){
+				princess.setRegion(64*frame, 64*3, 64, 64);
+				lastDirection = 2;
+				//princess = new Sprite(texture2, 0, 64*2, 64, 128+64);
+			}
+			
+			if(up || down || left || right){
+				currentWalkFrame = (float)(currentWalkFrame >= 7-0.15? 0 : currentWalkFrame+0.15);
+				stillTime = 0.1f;
+			}
+			else if(stillTime <= 0)
+			{
+				currentWalkFrame = 0;
+				switch(lastDirection){
+				case 0:
+					//north
+					princess.setRegion(0, 0, 64, 64);
+					break;
+				case 2:
+					//east
+					princess.setRegion(0, 64*3, 64, 64);
+					break;
+				case 3:
+					//west
+					princess.setRegion(0, 64*1, 64, 64);
+					break;
+				default:
+					//south
+					princess.setRegion(0, 64*2, 64, 64);
+					break;
+						
+				}
 			}
 		}
 		
