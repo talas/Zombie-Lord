@@ -22,6 +22,8 @@ public class MonsterArea {
 		this.miny = miny;
 		this.maxx = maxx;
 		this.maxy = maxy;
+		this.monsterSetups = new LinkedList<MonsterSetup>();
+		this.setupWeights = new LinkedList<Float>();
 	}
 	
 	public void addMonsterSetup(MonsterSetup setup, float setupWeight){

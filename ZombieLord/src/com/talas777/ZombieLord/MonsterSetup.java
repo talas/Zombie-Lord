@@ -31,6 +31,7 @@ public class MonsterSetup {
 	
 	public MonsterSetup(int formation){
 		this.formation = formation;
+		this.monsters = new LinkedList<Monster>();
 	}
 	
 	/**

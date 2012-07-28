@@ -7,11 +7,7 @@ public class Party {
 	public static final int ID_SIDE = 2;
 	
 	public Party(){
-		this.addMember(new PartyMember(0,"Leoric")); // Male hero (swordsman)
-		this.addMember(new PartyMember(1,"Tolinai")); // Female, hero gf (black mage)
-		this.addMember(new PartyMember(2,"Bert")); // Male, archer
-		this.addMember(new PartyMember(3,"Berzenor")); // Male, white mage
-		this.addMember(new PartyMember(4, "Kiriko")); // Female, rogue
+
 	}
 	
 	private PartyMember[] members = new PartyMember[5];
@@ -21,7 +17,7 @@ public class Party {
 	public String getMemberName(int id){
 		if(members[id] != null)
 		{
-			return members[id].name;
+			return members[id].getName();
 		}
 		else
 			return "Zombie Lord";

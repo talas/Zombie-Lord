@@ -1,9 +1,8 @@
 package com.talas777.ZombieLord;
 
-public class PartyMember {
+public class PartyMember extends Combatant{
 
 	public final int id;
-	public final String name;
 	
 	private long experience = 0;
 	private byte level = 1; // 127 = max, can loop! HAHA!! Negativ lvl 4 U:
@@ -15,9 +14,13 @@ public class PartyMember {
 		return level*level;
 	}
 	
-	public PartyMember(int id, String name){
+	public PartyMember(int id, String name, int healthMax, int healthNow, int manaMax, int manaNow, int exp){
+		super(name, healthNow, healthMax, manaNow, manaMax, exp, getLevel(exp));
 		this.id = id;
-		this.name = name;
+	}
+	
+	public static int getLevel(int experience){
+		return (int)Math.floor(Math.sqrt(experience))+1;
 	}
 	
 	public boolean addExperience(int exp){

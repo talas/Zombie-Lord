@@ -66,7 +66,7 @@ public class ZombieLord implements ApplicationListener {
 		"myhouse.png", // 1
 		"church.png", // 2
 		"hometown-night.png", // 3
-		"" // ?
+		"battle1.png" // 4
 	};
 	
 	
@@ -75,20 +75,49 @@ public class ZombieLord implements ApplicationListener {
     TileAtlas atlas;*/
 	
 	public void loadCombat(int background, MonsterArea monsterArea){
+		this.drawSprites.clear();
 		//TODO: set background
+		
+		this.backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[background]));
+		this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
+		
+		drawSprites.add(this.background);
 		
 		//TODO: position player
 		int bposx = (int)(w/6);
 		int bposy = (int)(h/2);
 		
-		currentCombat = new Combat(monsterArea.getRandomSetup());
+		{
+			texture2 = new Texture(Gdx.files.internal("data/princess.png"));
+			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+			
+			princess = new Sprite(texture2, 0, 64*2, 64, 64);
+			//princess.setSize(64, 64);
+			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
+			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
+			princess.setPosition(bposx-32, bposy);
+			drawSprites.add(princess);
+		}
 		
+		currentCombat = new Combat(monsterArea.getRandomSetup(), party, 5);
+
 		
-		Monster troll = new Monster("Troll","TrollOgre.png",5,100,15,3,1.25f);
-		troll.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
-		MonsterSetup twoTrolls = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
-		twoTrolls.appendMonster(troll);
-		twoTrolls.appendMonster(troll);
+		{
+			for(int i = 0; i < currentCombat.getNumEnemies(); i++){
+				Texture trollTex = new Texture(Gdx.files.internal("data/"+currentCombat.getMonster(i).textureName));
+				//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+			
+			
+				Sprite trollSprite = new Sprite(trollTex, 0, 0, 64, 64);
+				//princess.setSize(64, 64);
+				//sprite.setSize(sprite.getWidth(),sprite.getHeight());
+				//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
+				int[] xy = currentCombat.getMonsterPosition(i, (int)w, (int)h);
+				trollSprite.setPosition(xy[0], xy[1]);
+				drawSprites.add(trollSprite);
+				System.out.println("Added monster:x"+xy[0]+",y"+xy[1]);
+			}
+		}
 		
 		//TODO: position monsters
 		
@@ -114,12 +143,31 @@ public class ZombieLord implements ApplicationListener {
 		
 		party = new Party();
 		
-		loadLevel(3,1775,305,1); //hometown night
+		party.addMember(new PartyMember(0,"Leoric",100,100,5,5,0)); // Male hero (swordsman)
+		/*party.addMember(new PartyMember(1,"Tolinai",25,25,80,80,0)); // Female, hero gf (black mage)
+		this.addMember(new PartyMember(2,"Bert",50,50,10,10,0)); // Male, archer
+		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, white mage
+		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
+		
+		//loadLevel(3,1775,305,1); //hometown night
 		//loadLevel(2,522,414,1); church
-		//loadCombat(0,new MonsterArea(0,0,20,20,0.05f));
+		
+		
+		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
+		
+		Monster troll = new Monster("Troll1","TrollOgre.png",5,100,15,3,1.25f);
+		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
+		troll.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
+		troll2.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
+		MonsterSetup twoTrolls = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
+		twoTrolls.appendMonster(troll);
+		twoTrolls.appendMonster(troll2);
+		area.addMonsterSetup(twoTrolls, 0.7f);
+		
+		loadCombat(4,area);
 
 		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
-		debugRenderer = new Box2DDebugRenderer();
+		//debugRenderer = new Box2DDebugRenderer();
 		
 		
 	}
@@ -405,6 +453,15 @@ public class ZombieLord implements ApplicationListener {
 			}
 		}
 		
+		if(gameMode == 1){
+			princess.setRegion(0, 64*3, 64, 64);
+			camera.position.x = w/2f;
+			camera.position.y = h/2f;
+			camera.update();
+			currentCombat.tick(Gdx.graphics.getDeltaTime());
+		}
+		
+		
 		//background = new Sprite(backgroundTexture, (int)(posx-w), (int)(posy-h), (int)(posx+w), (int)(posy+h));
 		
 		Gdx.gl.glClearColor(0, 0, 0, 0);
@@ -416,10 +473,10 @@ public class ZombieLord implements ApplicationListener {
 		 s.draw(batch);
 		batch.end();
 		
-		debugRenderer.render(world, camera.combined.scale(
+		/*debugRenderer.render(world, camera.combined.scale(
 				PIXELS_PER_METER,
 				PIXELS_PER_METER,
-				PIXELS_PER_METER));
+				PIXELS_PER_METER));*/
 	}
 
 	@Override
