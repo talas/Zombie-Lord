@@ -65,7 +65,10 @@ public class Combat {
 		
 		// first check if all players are dead
 		// in which case it is GAME OVER, no matter if the monsters are dead or alive
-		boolean hasLiveMember = false;
+		//boolean hasLiveMember = false;
+		if(this.getLivePlayers().size() == 0)
+			return 2;
+		/*
 		PartyMember[] activePlayers = party.getActiveMembers();
 		for(int i = 0; i < activePlayers.length; i++){
 			if(activePlayers[i].getHealth() >0){
@@ -76,7 +79,7 @@ public class Combat {
 		if(!hasLiveMember){
 			// GAME OVER!
 			return 2;
-		}
+		}*/
 		
 		// check monsters
 		boolean hasLiveMonster = false;

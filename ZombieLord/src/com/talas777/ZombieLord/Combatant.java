@@ -2,7 +2,16 @@ package com.talas777.ZombieLord;
 
 import java.util.LinkedList;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
+
 public abstract class Combatant {
+	
+	public Sprite drawSprite;
+	
+	/**
+	 * X position of sprite
+	 */
+	public int posx = 0;
 	
 	public Combatant(String name, int health, int health_max, int mana, int mana_max, int exp, int level){
 		this.name = name;
@@ -13,6 +22,7 @@ public abstract class Combatant {
 		this.exp = exp;
 		this.level = level;
 		this.combatActions = new LinkedList<CombatAction>();
+		this.drawSprite = null;
 		
 	}
 	
@@ -97,9 +107,17 @@ public abstract class Combatant {
 		return state;
 	}
 	
+	public void setSprite(Sprite s){
+		this.drawSprite = s;
+	}
+	
 	public void setState(int newState){
 		state = newState;
 	}
 	
 	public abstract int getBaseDelay();
+	
+	public void setXPos(int posx){
+		this.posx = posx;
+	}
 }

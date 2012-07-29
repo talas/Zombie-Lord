@@ -44,6 +44,7 @@ public class ZombieLord implements ApplicationListener {
 	public float currentWalkFrame = 0;
 	public float stillTime = 0;
 	public int lastDirection = 0; // 0 = south, 1 = north, 2 = east, 3 = west
+	public float waitTime = 0;
 	
 	
 	private World world;
@@ -76,6 +77,7 @@ public class ZombieLord implements ApplicationListener {
 	
 	public void loadCombat(int background, MonsterArea monsterArea){
 		this.drawSprites.clear();
+		this.waitTime = 5;
 		//TODO: set background
 		
 		this.backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[background]));
@@ -109,6 +111,8 @@ public class ZombieLord implements ApplicationListener {
 			
 			
 				Sprite trollSprite = new Sprite(trollTex, 0, 0, 64, 64);
+				
+				currentCombat.getMonster(i).setSprite(trollSprite);
 				//princess.setSize(64, 64);
 				//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 				//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
@@ -159,8 +163,8 @@ public class ZombieLord implements ApplicationListener {
 		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
 		CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
 		CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
-		CombatAction twinFist = new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE);
-		CombatAction regrowth = new CombatAction("Regrowth",5,5f,CombatAction.TARGET_SELF);
+		CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
+		CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
 		troll.addCombatAction(twinFist, 0.2f);
 		troll2.addCombatAction(twinFist, 0.2f);
 		troll.addCombatAction(regrowth, 0.2f);
@@ -465,9 +469,74 @@ public class ZombieLord implements ApplicationListener {
 		
 		boolean waiting = false; //TODO: move this and use this
 		
+		if(waitTime > 0)
+		{
+			waiting = true;
+			waitTime -= Gdx.graphics.getDeltaTime();
+		}
+		
 		if(gameMode == 1){
 			
+			// Re-position all creatures..
+			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
+				Combatant current = currentCombat.getLiveCombatants().get(i);
+				if(current.posx != current.drawSprite.getX()){
+					
+				}
+				if(current.health <= 0){
+					// Render as dead/fainted
+				}
+				switch(current.getState()){
+					case Combat.STATE_STONE:
+						// render as grey (as stone)
+						break;
+					case Combat.STATE_POISONED:
+						// render as green
+						break;
+					case Combat.STATE_FURY:
+						// render as red
+						break;
+					case Combat.STATE_WEAKNESS:
+						// render as pale yellow
+						break;
+					case Combat.STATE_DOOM:
+						// render as dark
+						break;
+					
+				}
+			}
+			
+			//check if battle is over.
 			if(!waiting){
+				byte state = currentCombat.getBattleState();
+				
+				if(state == 1){
+					// player has won
+					waiting = true;
+					//TODO: win combat (properly)
+					System.out.println("VICTORY! :>");
+					//TODO: happy trumpet
+					gameMode = 2;
+				}
+				else if(state == 2){
+					// player has lost
+					waiting = true;
+					// TODO: GAME OVER (properly)
+					System.out.println("GAME OVER. :'(");
+					// TODO: sad flute
+					gameMode = 2;
+				}
+			}
+			
+			if(!waiting){
+				//TODO: render all dead/fainted characters as such
+				
+				//TODO: render status changes (those that are visible)
+				
+				for(int i = 0; i < currentCombat.getLiveMonsters().size(); i++){
+					//currentCombat.getLiveMonsters().get(i).setMoveAhead(false);
+				}
+				
 				Monster readyMonster = currentCombat.getFirstReadiedMonster();
 				if(readyMonster != null){
 					
@@ -475,9 +544,17 @@ public class ZombieLord implements ApplicationListener {
 					
 					currentCombat.applyAction(myAction);
 					
+					if(myAction.action != null){
+						// Move monster against player to represent the attack
+						
+						// TODO: some sort of graphical representation of the attack.. effects and such
+						//myAction.caster.setMoveAhead(true);
+					}
+					
 					readyMonster.actionTimer = readyMonster.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
-					// TODO: some sort of graphical representation of the attack..
+					
 					waiting = true;
+					waitTime = 3;
 					// Only 1 attacker per turn.
 				}
 				if(!waiting){
@@ -490,7 +567,7 @@ public class ZombieLord implements ApplicationListener {
 			camera.position.y = h/2f;
 			camera.update();
 			if(!waiting){
-				currentCombat.tick(Gdx.graphics.getDeltaTime()*5);
+				currentCombat.tick(Gdx.graphics.getDeltaTime()*5*2);
 				//TODO: some sort of representation of combat timers (atleast for players..)
 			}
 		}
