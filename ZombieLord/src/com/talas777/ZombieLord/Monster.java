@@ -114,7 +114,7 @@ public class Monster extends Combatant{
 				if(chosenAction != null) // dont keep looking if we already found a good one
 					break;
 				CombatAction current = viableActions.get(i);
-				if(current.healthChange > 0){ // AKA heals instead of damages
+				if(current.healthChange > 0 && current.mpCost <= this.mana){ // AKA heals instead of damages
 					// Check if it can be used on me and my allies :>
 					
 					switch(current.targetType){ // switch case from hell
@@ -145,7 +145,7 @@ public class Monster extends Combatant{
 					if(chosenAction != null) // dont keep looking if we already found a good one
 						break;
 					CombatAction current = viableActions.get(i);
-					if(current.healthChange < 0){ // we want to deal damage
+					if(current.healthChange < 0  && current.mpCost <= this.mana){ // we want to deal damage
 						// Check if it can be used on me and my allies :>
 						
 						switch(current.targetType){ // switch case from hell
@@ -196,7 +196,7 @@ public class Monster extends Combatant{
 		}
 		if(chosenAction == null){
 			System.err.println("Failed to find an action for "+this.getName()+" lvl"+this.level);
-			return new CurrentAction(viableActions.getFirst(), this, this);
+			return new CurrentAction(null, this);
 		}
 		
 		return new CurrentAction(chosenAction, this, chosenTarget);

@@ -13,7 +13,7 @@ public class CombatAction {
 	public static final int TARGET_ALLY_SINGLE = 3;
 	public static final int TARGET_ALLY_ALL = 4;
 	public static final int TARGET_ENEMY_RANDOM = 5;
-	public static final int TARGET_LAST_ATTACKER = 6;
+	//public static final int TARGET_LAST_ATTACKER = 6;
 	public static final int TARGET_RANDOM = 7;
 	public static final int TARGET_ALL = 8;
 	public static final int TARGET_ALL_OTHER = 9;

@@ -157,7 +157,8 @@ public class ZombieLord implements ApplicationListener {
 		
 		Monster troll = new Monster("Troll1","TrollOgre.png",5,100,15,3,1.25f);
 		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
-		CombatAction punch = new CombatAction("Bite",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
+		CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
+		CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
 		CombatAction twinFist = new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE);
 		CombatAction regrowth = new CombatAction("Regrowth",5,5f,CombatAction.TARGET_SELF);
 		troll.addCombatAction(twinFist, 0.2f);
@@ -166,6 +167,8 @@ public class ZombieLord implements ApplicationListener {
 		troll2.addCombatAction(regrowth, 0.2f);
 		troll.addCombatAction(punch, 0.2f);
 		troll2.addCombatAction(punch, 0.2f);
+		troll.addCombatAction(bite, 0.2f);
+		troll2.addCombatAction(bite, 0.2f);
 		MonsterSetup twoTrolls = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 		twoTrolls.appendMonster(troll);
 		twoTrolls.appendMonster(troll2);

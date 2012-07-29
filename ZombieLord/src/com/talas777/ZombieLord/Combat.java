@@ -129,11 +129,101 @@ public class Combat {
 	}
 	
 	public void applyAction(CurrentAction action){
-		System.out.println(action.caster.getName()+" uses "+action.action.name+" on "+(action.primaryTarget == null? "all":action.primaryTarget.getName())+"!");
+		if(action.action == null){
+			// no action == defend/wait
+		}
+		else {
+			System.out.println(action.caster.getName()+"("+action.caster.health+","+action.caster.mana+")"+" uses "+action.action.name+" on "+(action.primaryTarget == null? "all":action.primaryTarget.getName()+"("+action.primaryTarget.health+")")+"!");
+			
+			LinkedList<Combatant> liveCombatants = getLiveCombatants();
+			
+			LinkedList<Combatant> enemies = new LinkedList<Combatant>();
+			
+			LinkedList<Combatant> allies = new LinkedList<Combatant>();
+			
+			if(action.caster instanceof Monster){
+				for(int i = 0; i < liveCombatants.size(); i++){
+					if(liveCombatants.get(i) instanceof Monster)
+						allies.add(liveCombatants.get(i));
+					else
+						enemies.add(liveCombatants.get(i));
+				}
+			}
+			else {
+				for(int i = 0; i < liveCombatants.size(); i++){
+					if(liveCombatants.get(i) instanceof PartyMember)
+						allies.add(liveCombatants.get(i));
+					else
+						enemies.add(liveCombatants.get(i));
+				}
+			}
+			
+			switch(action.action.targetType){  // apply damage/healing
+			case CombatAction.TARGET_ALLY_SINGLE:
+			case CombatAction.TARGET_ENEMY_SINGLE:
+				action.primaryTarget.health += action.action.healthChange;
+				break;
+			case CombatAction.TARGET_ALL:
+				for(int i = 0; i < liveCombatants.size(); i++){
+					liveCombatants.get(i).health += action.action.healthChange;
+				}
+				break;
+			case CombatAction.TARGET_SELF:
+				action.caster.health += action.action.healthChange;
+				break;
+			case CombatAction.TARGET_RANDOM:
+				int numLive = liveCombatants.size();
+				int selected = (int)Math.floor(Math.random()*numLive);
+				liveCombatants.get(selected).health += action.action.healthChange;
+				break;
+			case CombatAction.TARGET_ALL_OTHER:
+				for(int i = 0; i < liveCombatants.size(); i++){
+					if(liveCombatants.get(i) == action.caster)
+						continue;
+					liveCombatants.get(i).health += action.action.healthChange;
+				}
+				break;
+			case CombatAction.TARGET_ALLY_ALL:
+				for(int i = 0; i < allies.size(); i++){
+					allies.get(i).health += action.action.healthChange;
+				}
+				break;
+			case CombatAction.TARGET_ENEMY_ALL:
+				for(int i = 0; i < enemies.size(); i++){
+					enemies.get(i).health += action.action.healthChange;
+				}
+				break;
+			case CombatAction.TARGET_ENEMY_RANDOM:
+				int sel = (int)Math.floor(Math.random()*enemies.size());
+				enemies.get(sel).health += action.action.healthChange;
+				break;
+			}
+			
+			
+			action.caster.mana -= action.action.mpCost;// apply mpCost to caster (if any)
+		
+		}
 	}
 	
 	public Combatant[] getCombatants(){
 		return combatants;
+	}
+	
+	public LinkedList<Combatant> getLiveCombatants(){
+		LinkedList<Combatant> liveCombatants = new LinkedList<Combatant>();
+		for(int i = 0; i < combatants.length; i++){
+				if(combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							liveCombatants.add(combatants[i]);
+					}
+				}
+		}
+		return liveCombatants;
 	}
 	
 	public LinkedList<Monster> getLiveMonsters(){
@@ -154,6 +244,26 @@ public class Combat {
 		}
 		return liveMonsters;
 	}
+	
+	
+	/*private LinkedList<Combatant> _getLivePlayers(){
+		LinkedList<Combatant> livePlayers = new LinkedList<Combatant>();
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i] instanceof PartyMember){
+				if(combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							livePlayers.add(combatants[i]);
+					}
+				}
+			}
+		}
+		return livePlayers;
+	}*/
 	
 	public LinkedList<PartyMember> getLivePlayers(){
 		LinkedList<PartyMember> livePlayers = new LinkedList<PartyMember>();
