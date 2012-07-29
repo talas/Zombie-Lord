@@ -45,4 +45,8 @@ public class PartyMember extends Combatant{
 	public int getLevel(){
 		return level;
 	}
+	
+	public int getBaseDelay(){
+		return 200/level;
+	}
 }

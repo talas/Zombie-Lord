@@ -7,7 +7,7 @@ public class Party {
 	public static final int ID_SIDE = 2;
 	
 	public Party(){
-
+		this.activeMembers = new int[]{0};
 	}
 	
 	private PartyMember[] members = new PartyMember[5];
@@ -35,21 +35,12 @@ public class Party {
 		members[member.id] = member;
 	}
 	
-	
-	public int getMemberMana(int id){
-		return 0;
-	}
-	
-	public void setMemberMana(int id, int mana){
-		//TODO: setMemberMana
-	}
-	
-	public int[] getMemberIds(){
-		return new int[]{0};
-	}
-	
-	public int[] getActiveMembers(){
-		return new int[]{0};
+	public PartyMember[] getActiveMembers(){
+		PartyMember[] active = new PartyMember[this.activeMembers.length];
+		for(int i = 0; i < activeMembers.length; i++){
+			active[i] = members[this.activeMembers[i]];
+		}
+		return active;
 	}
 	
 	public int[] getInactiveMembers(){

@@ -1,6 +1,7 @@
 package com.talas777.ZombieLord;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * A class to hold all the data of an ongoing battle
@@ -11,6 +12,13 @@ public class Combat {
 
 	MonsterSetup setup;
 	Party party;
+	
+	/**
+	 * Array of creatures in this Combat
+	 * TODO: use this
+	 */
+	Combatant[] combatants;
+	
 	/**
 	 * how long the players have to wait to take the initial action.
 	 */
@@ -18,16 +26,6 @@ public class Combat {
 	
 	// each player character(actually monsters too) has to wait a given time between each action.
 	// time is only subtracted when no action is occuring (kinda common i think in rpgs?)
-	
-	/**
-	 * How long (in msec) each combat participant (identified by name) has to wait to make a new action.
-	 */
-	public HashMap<String,Integer> actionTimer;
-	
-	
-	public boolean isReady(String combatant){ // throws NullPointerException
-		return actionTimer.get(combatant) <= 0;
-	}
 	
 	// public ??? getAction(String combatant) //TODO: ??
 	
@@ -68,9 +66,9 @@ public class Combat {
 		// first check if all players are dead
 		// in which case it is GAME OVER, no matter if the monsters are dead or alive
 		boolean hasLiveMember = false;
-		int[] activePlayers = party.getActiveMembers();
+		PartyMember[] activePlayers = party.getActiveMembers();
 		for(int i = 0; i < activePlayers.length; i++){
-			if(party.getMemberHealth(activePlayers[i]) >0){
+			if(activePlayers[i].getHealth() >0){
 				hasLiveMember = true;
 			}
 		}
@@ -104,13 +102,98 @@ public class Combat {
 	 * @param time
 	 */
 	public void tick(float time){
-		
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i].actionTimer <= 0)
+				combatants[i].actionTimer = 0;
+			else
+				combatants[i].actionTimer -= time;
+		}
+	}
+	
+	public Monster getFirstReadiedMonster(){
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i] instanceof Monster){
+				if(combatants[i].actionTimer <= 0 && combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							return (Monster) combatants[i]; // A monster that is ready to take action
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public void applyAction(CurrentAction action){
+		System.out.println(action.caster.getName()+" uses "+action.action.name+" on "+(action.primaryTarget == null? "all":action.primaryTarget.getName())+"!");
+	}
+	
+	public Combatant[] getCombatants(){
+		return combatants;
+	}
+	
+	public LinkedList<Monster> getLiveMonsters(){
+		LinkedList<Monster> liveMonsters = new LinkedList<Monster>();
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i] instanceof Monster){
+				if(combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							liveMonsters.add((Monster)combatants[i]);
+					}
+				}
+			}
+		}
+		return liveMonsters;
+	}
+	
+	public LinkedList<PartyMember> getLivePlayers(){
+		LinkedList<PartyMember> livePlayers = new LinkedList<PartyMember>();
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i] instanceof PartyMember){
+				if(combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							livePlayers.add((PartyMember)combatants[i]);
+					}
+				}
+			}
+		}
+		return livePlayers;
 	}
 	
 	public Combat(MonsterSetup setup, Party party, int baseDelay){
 		this.setup = setup;
 		this.party = party;
 		this.baseActionDelay = baseDelay;
+		
+		this.combatants = new Combatant[setup.getMonsters().size()+party.getActiveMembers().length];
+		PartyMember[] mem = party.getActiveMembers();
+		LinkedList<Monster> monsters = setup.getMonsters();
+		int i = 0;
+			for(int j = 0; j < mem.length; j++){
+				combatants[i] = mem[j];
+				combatants[i].actionTimer = this.baseActionDelay + combatants[i].getBaseDelay()*Math.random();
+				i++;
+			}
+			for(int j = 0; j < monsters.size(); j++){
+				combatants[i] = monsters.get(j);
+				combatants[i].actionTimer = -this.baseActionDelay + combatants[i].getBaseDelay()*(2f*Math.random());
+				i++;
+			}
+		
 	}
 	
 	public Monster getMonster(int monsterId){

@@ -157,8 +157,15 @@ public class ZombieLord implements ApplicationListener {
 		
 		Monster troll = new Monster("Troll1","TrollOgre.png",5,100,15,3,1.25f);
 		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
-		troll.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
-		troll2.addCombatAction(new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE), 0.2f);
+		CombatAction punch = new CombatAction("Bite",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
+		CombatAction twinFist = new CombatAction("TwinFist",2,-10f,CombatAction.TARGET_ENEMY_SINGLE);
+		CombatAction regrowth = new CombatAction("Regrowth",5,5f,CombatAction.TARGET_SELF);
+		troll.addCombatAction(twinFist, 0.2f);
+		troll2.addCombatAction(twinFist, 0.2f);
+		troll.addCombatAction(regrowth, 0.2f);
+		troll2.addCombatAction(regrowth, 0.2f);
+		troll.addCombatAction(punch, 0.2f);
+		troll2.addCombatAction(punch, 0.2f);
 		MonsterSetup twoTrolls = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 		twoTrolls.appendMonster(troll);
 		twoTrolls.appendMonster(troll2);
@@ -453,12 +460,36 @@ public class ZombieLord implements ApplicationListener {
 			}
 		}
 		
+		boolean waiting = false; //TODO: move this and use this
+		
 		if(gameMode == 1){
+			
+			if(!waiting){
+				Monster readyMonster = currentCombat.getFirstReadiedMonster();
+				if(readyMonster != null){
+					
+					CurrentAction myAction = readyMonster.getMonsterAction(party, currentCombat);
+					
+					currentCombat.applyAction(myAction);
+					
+					readyMonster.actionTimer = readyMonster.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
+					// TODO: some sort of graphical representation of the attack..
+					waiting = true;
+					// Only 1 attacker per turn.
+				}
+				if(!waiting){
+					//TODO: give players the options they have (if its their turn)
+				}
+			}
+			
 			princess.setRegion(0, 64*3, 64, 64);
 			camera.position.x = w/2f;
 			camera.position.y = h/2f;
 			camera.update();
-			currentCombat.tick(Gdx.graphics.getDeltaTime());
+			if(!waiting){
+				currentCombat.tick(Gdx.graphics.getDeltaTime()*5);
+				//TODO: some sort of representation of combat timers (atleast for players..)
+			}
 		}
 		
 		

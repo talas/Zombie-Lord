@@ -1,4 +1,5 @@
 package com.talas777.ZombieLord;
+import java.util.Collections;
 import java.util.LinkedList;
 
 
@@ -77,12 +78,132 @@ public class Monster extends Combatant{
 		this.combatActionWeights.add(1f);
 	}
 	
-	public CombatAction getMonsterAction(int health, int mana, Party party, Combat combat){
+	public CurrentAction getMonsterAction(Party party, Combat combat){
 		// Uses all the information available to make a decission for the monster.
 		//TODO: use info, write function
 		
-		return null;
+		LinkedList<CombatAction> viableActions = (LinkedList<CombatAction>) this.getCombatActions().clone();
+		
+		CombatAction chosenAction = null;
+		CombatAction mediocreChoice = null;
+		Combatant mediocreTarget = null;
+		Combatant chosenTarget = null;
+		
+		boolean wantHealing = false;
+		boolean singleEnemy = false;
+		
+		if(this.health < this.health_max/2){
+			// less than 50% health.. should heal if possible?
+			wantHealing = true;
+			System.out.println("heal me!");
+		}
+		
+		if(combat.getLivePlayers().size() == 1){
+			singleEnemy = true;
+			// Zolom/ruby lululul
+		}
+		
+		Collections.shuffle(viableActions);
+		
+		
+		
+		if(wantHealing){
+			// seach for healing actions..
+			
+			for(int i = 0; i < viableActions.size(); i++){
+				if(chosenAction != null) // dont keep looking if we already found a good one
+					break;
+				CombatAction current = viableActions.get(i);
+				if(current.healthChange > 0){ // AKA heals instead of damages
+					// Check if it can be used on me and my allies :>
+					
+					switch(current.targetType){ // switch case from hell
+						case CombatAction.TARGET_ALLY_ALL:
+						case CombatAction.TARGET_ALLY_SINGLE:
+						case CombatAction.TARGET_SELF:
+							// Found a "perfect one"
+							chosenAction = current;
+							chosenTarget = this;
+							break;
+						case CombatAction.TARGET_ALL:
+						case CombatAction.TARGET_RANDOM:
+							// Found a "mediocre one"
+							// check if VERY desperate..
+							if(combat.getLiveMonsters().size() == 1 && this.health < this.health_max/4f){// last enemy and with critical health = critical measures
+								mediocreChoice = current;
+								mediocreTarget = this;
+							}
+							break;
+						default:
+							//cant be used
+					}
+				}
+			}
+		}
+			while(chosenAction == null){ // didnt want healing, so loop untill we find something else..
+				for(int i = 0; i < viableActions.size(); i++){
+					if(chosenAction != null) // dont keep looking if we already found a good one
+						break;
+					CombatAction current = viableActions.get(i);
+					if(current.healthChange < 0){ // we want to deal damage
+						// Check if it can be used on me and my allies :>
+						
+						switch(current.targetType){ // switch case from hell
+							case CombatAction.TARGET_ENEMY_ALL:
+								// Good, unless theres only a single enemy..?
+								if(!singleEnemy || (Math.random()*100f) >= 70  ){ // 30% chance to use against single enemy
+									chosenAction = current;
+									chosenTarget = combat.getLivePlayers().getFirst();
+								}
+								break;
+							case CombatAction.TARGET_ENEMY_RANDOM:
+							case CombatAction.TARGET_ENEMY_SINGLE:
+								// these 2 are the same for monsters..
+								// and both of them are good
+								int numPlayers = combat.getLivePlayers().size();
+								int chosenPlayer = (int)Math.floor((Math.random()*numPlayers));
+								chosenAction = current;
+								chosenTarget = combat.getLivePlayers().get(chosenPlayer);
+								break;
+							case CombatAction.TARGET_ALL_OTHER:
+							case CombatAction.TARGET_RANDOM:
+								// Found a "mediocre one"
+								// check if VERY desperate..
+								if(combat.getLiveMonsters().size() == 1 || this.health < this.health_max/4f){// last enemy and with critical health = critical measures
+									mediocreChoice = current;
+									mediocreTarget = this;
+								}
+								break;
+							case CombatAction.TARGET_ALL:
+								// Found a "mediocre one"
+								// check if VERY desperate..
+								if(Math.random()*100 > 80 || (combat.getLiveMonsters().size() == 1 && this.health > this.health_max/3f)){
+									mediocreChoice = current;
+									mediocreTarget = this;
+								}
+								break;
+							default:
+								//Not good
+						}
+					}
+				}
+			}
+		
+		
+		if(chosenAction == null){
+			chosenAction = mediocreChoice;
+			chosenTarget = mediocreTarget;
+		}
+		if(chosenAction == null){
+			System.err.println("Failed to find an action for "+this.getName()+" lvl"+this.level);
+			return new CurrentAction(viableActions.getFirst(), this, this);
+		}
+		
+		return new CurrentAction(chosenAction, this, chosenTarget);
 	}
 	
+	public int getBaseDelay(){
+		return 200/level;
+	}
 
 }
