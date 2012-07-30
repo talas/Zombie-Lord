@@ -82,8 +82,12 @@ public class Combat {
 		}*/
 		
 		// check monsters
-		boolean hasLiveMonster = false;
-		for (int i = 0; i < getNumEnemies(); i++) {
+		//boolean hasLiveMonster = false;
+		if(this.getLiveMonsters().size() == 0){
+			return 1;
+		}
+		return 0;
+		/*for (int i = 0; i < getNumEnemies(); i++) {
 			if (this.getMonsterHealth(i) > 0) {
 				switch (this.getMonsterState(i)) { // also check if monster was
 													// immobilized
@@ -95,9 +99,9 @@ public class Combat {
 					hasLiveMonster = true;
 				}
 			}
-		}
+		}*/
 		
-		return (byte)(hasLiveMonster? 0 : 1);
+		//return (byte)(hasLiveMonster? 0 : 1);
 	}
 	
 	/**
@@ -131,12 +135,38 @@ public class Combat {
 		return null;
 	}
 	
+	public PartyMember getFirstReadiedPlayer(){
+		for(int i = 0; i < combatants.length; i++){
+			if(combatants[i] instanceof PartyMember){
+				if(combatants[i].actionTimer <= 0 && combatants[i].health > 0){
+					switch(combatants[i].getState()){
+					case STATE_STOP:
+					case STATE_STONE:
+					case STATE_PARALYZED:
+						break;
+						default:
+							return (PartyMember) combatants[i]; // A monster that is ready to take action
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public boolean isEscapeAllowed(){
+		return false; // TODO: no! never!
+	}
+	
+	public boolean isItemAllowed(){
+		return false; // TODO: keep your zalbatrunk!
+	}
+	
 	public void applyAction(CurrentAction action){
 		if(action.action == null){
 			// no action == defend/wait
 		}
 		else {
-			System.out.println(action.caster.getName()+"("+action.caster.health+","+action.caster.mana+")"+" uses "+action.action.name+" on "+(action.primaryTarget == null? "all":action.primaryTarget.getName()+"("+action.primaryTarget.health+")")+"!");
+			
 			
 			LinkedList<Combatant> liveCombatants = getLiveCombatants();
 			
@@ -161,44 +191,54 @@ public class Combat {
 				}
 			}
 			
+			double abs = Math.abs(action.action.healthChange);
+			
+			float damage = (float)Math.floor(abs + Math.sqrt(action.caster.level*abs));
+			
+			if(action.action.healthChange < 0){
+				damage *= -1;
+			}
+			
+			System.out.println(action.caster.getName()+"("+action.caster.health+","+action.caster.mana+")"+" uses "+action.action.name+"(" + Math.abs(damage) + ") on "+(action.primaryTarget == null? "all":action.primaryTarget.getName()+"("+action.primaryTarget.health+")")+"!");
+			
 			switch(action.action.targetType){  // apply damage/healing
 			case CombatAction.TARGET_ALLY_SINGLE:
 			case CombatAction.TARGET_ENEMY_SINGLE:
-				action.primaryTarget.health += action.action.healthChange;
+				action.primaryTarget.health += damage;
 				break;
 			case CombatAction.TARGET_ALL:
 				for(int i = 0; i < liveCombatants.size(); i++){
-					liveCombatants.get(i).health += action.action.healthChange;
+					liveCombatants.get(i).health += damage;
 				}
 				break;
 			case CombatAction.TARGET_SELF:
-				action.caster.health += action.action.healthChange;
+				action.caster.health += damage;
 				break;
 			case CombatAction.TARGET_RANDOM:
 				int numLive = liveCombatants.size();
 				int selected = (int)Math.floor(Math.random()*numLive);
-				liveCombatants.get(selected).health += action.action.healthChange;
+				liveCombatants.get(selected).health += damage;
 				break;
 			case CombatAction.TARGET_ALL_OTHER:
 				for(int i = 0; i < liveCombatants.size(); i++){
 					if(liveCombatants.get(i) == action.caster)
 						continue;
-					liveCombatants.get(i).health += action.action.healthChange;
+					liveCombatants.get(i).health += damage;
 				}
 				break;
 			case CombatAction.TARGET_ALLY_ALL:
 				for(int i = 0; i < allies.size(); i++){
-					allies.get(i).health += action.action.healthChange;
+					allies.get(i).health += damage;
 				}
 				break;
 			case CombatAction.TARGET_ENEMY_ALL:
 				for(int i = 0; i < enemies.size(); i++){
-					enemies.get(i).health += action.action.healthChange;
+					enemies.get(i).health += damage;
 				}
 				break;
 			case CombatAction.TARGET_ENEMY_RANDOM:
 				int sel = (int)Math.floor(Math.random()*enemies.size());
-				enemies.get(sel).health += action.action.healthChange;
+				enemies.get(sel).health += damage;
 				break;
 			}
 			

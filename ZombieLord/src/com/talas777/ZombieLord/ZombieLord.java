@@ -62,6 +62,18 @@ public class ZombieLord implements ApplicationListener {
 	
 	private Combat currentCombat;
 	
+	
+	final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
+	final CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
+	final CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
+	final CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
+	final CombatAction slash = new CombatAction("Slash",0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
+	final CombatAction cycloneSlash = new CombatAction("CycloneSlash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	
+	final CombatOption escape = new CombatOption("escape");
+	final CombatOption item = new CombatOption("item");
+	final CombatOption defend = new CombatOption("defend");
+	
 	public static final String[] backgrounds = new String[]{
 		"hometown.png", // 0
 		"myhouse.png", // 1
@@ -98,6 +110,7 @@ public class ZombieLord implements ApplicationListener {
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 			princess.setPosition(bposx-32, bposy);
+			party.getActiveMembers()[0].setSprite(princess);
 			drawSprites.add(princess);
 		}
 		
@@ -147,10 +160,18 @@ public class ZombieLord implements ApplicationListener {
 		
 		party = new Party();
 		
-		party.addMember(new PartyMember(0,"Leoric",100,100,5,5,0)); // Male hero (swordsman)
-		/*party.addMember(new PartyMember(1,"Tolinai",25,25,80,80,0)); // Female, hero gf (black mage)
+		
+		
+		
+		PartyMember leoric = new PartyMember(0,"Leoric",250,250,5,5,0);
+		leoric.addCombatAction(slash);
+		leoric.addCombatAction(cycloneSlash);
+		
+		party.addMember(leoric); // Male hero (swordsman)
+		
+		/*party.addMember(new PartyMember(1,"Tolinai",25,25,80,80,0)); // Female, hero gf (offensive mage)
 		this.addMember(new PartyMember(2,"Bert",50,50,10,10,0)); // Male, archer
-		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, white mage
+		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
 		//loadLevel(3,1775,305,1); //hometown night
@@ -161,10 +182,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		Monster troll = new Monster("Troll1","TrollOgre.png",5,100,15,3,1.25f);
 		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
-		CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
-		CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
-		CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
-		CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
+
 		troll.addCombatAction(twinFist, 0.2f);
 		troll2.addCombatAction(twinFist, 0.2f);
 		troll.addCombatAction(regrowth, 0.2f);
@@ -480,9 +498,7 @@ public class ZombieLord implements ApplicationListener {
 			// Re-position all creatures..
 			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
 				Combatant current = currentCombat.getLiveCombatants().get(i);
-				if(current.posx != current.drawSprite.getX()){
-					
-				}
+				
 				if(current.health <= 0){
 					// Render as dead/fainted
 				}
@@ -510,6 +526,10 @@ public class ZombieLord implements ApplicationListener {
 			if(!waiting){
 				byte state = currentCombat.getBattleState();
 				
+				for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
+					currentCombat.getLiveCombatants().get(i).setMoveAhead(false);
+				}
+				
 				if(state == 1){
 					// player has won
 					waiting = true;
@@ -526,16 +546,10 @@ public class ZombieLord implements ApplicationListener {
 					// TODO: sad flute
 					gameMode = 2;
 				}
-			}
-			
-			if(!waiting){
+				
 				//TODO: render all dead/fainted characters as such
 				
 				//TODO: render status changes (those that are visible)
-				
-				for(int i = 0; i < currentCombat.getLiveMonsters().size(); i++){
-					//currentCombat.getLiveMonsters().get(i).setMoveAhead(false);
-				}
 				
 				Monster readyMonster = currentCombat.getFirstReadiedMonster();
 				if(readyMonster != null){
@@ -548,17 +562,64 @@ public class ZombieLord implements ApplicationListener {
 						// Move monster against player to represent the attack
 						
 						// TODO: some sort of graphical representation of the attack.. effects and such
-						//myAction.caster.setMoveAhead(true);
+						myAction.caster.setMoveAhead(true);
 					}
 					
 					readyMonster.actionTimer = readyMonster.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
 					
 					waiting = true;
-					waitTime = 3;
+					waitTime = 2;
 					// Only 1 attacker per turn.
 				}
 				if(!waiting){
-					//TODO: give players the options they have (if its their turn)
+					PartyMember readyMember = currentCombat.getFirstReadiedPlayer();
+					if(readyMember != null){
+						
+						// Find the options..
+						
+						LinkedList<CombatOption> combatOptions = new LinkedList<CombatOption>();
+						
+
+						
+						if(currentCombat.isEscapeAllowed()){
+							combatOptions.add(escape); // RUN AWAAY!!
+						}
+						if(currentCombat.isItemAllowed() && party.hasCombatItem()){
+							combatOptions.add(item); // use some item (potion, etc..)
+						}
+						combatOptions.add(defend); // spend the turn to increase defense (+50% def to ALL damage)
+						
+						for(CombatAction ca : readyMember.getCombatActions()){
+							combatOptions.add(new CombatOption(ca.name, ca));
+						}
+						
+						//TODO: serve combat options to player
+						
+						System.out.print("Actions available for "+readyMember.getName()+":");
+						for(CombatOption co : combatOptions){
+							System.out.print(" "+co.name);
+						}
+						System.out.println(".");
+						
+						int chosen = (int)(Math.random()*readyMember.getCombatActions().size());
+						
+						CurrentAction myAction = new CurrentAction(readyMember.getCombatActions().get(chosen), readyMember, currentCombat.getLiveMonsters().getFirst());
+						currentCombat.applyAction(myAction);
+						
+						if(myAction.action != null){
+							// Move player against monster to represent the attack
+							
+							// TODO: some sort of graphical representation of the attack.. effects and such
+							myAction.caster.setMoveAhead(true);
+						}
+						
+						readyMember.actionTimer = readyMember.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
+						
+						waiting = true;
+						waitTime = 2;
+						
+					}
+					
 				}
 			}
 			

@@ -27,6 +27,10 @@ public class Party {
 		return 100;
 	}
 	
+	public boolean hasCombatItem(){
+		return false; // TODO: actually, we have no items at all..
+	}
+	
 	public void setMemberHealth(int id, int health){
 		//TODO: setMemberHealth
 	}

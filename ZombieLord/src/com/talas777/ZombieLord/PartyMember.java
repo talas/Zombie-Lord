@@ -47,6 +47,6 @@ public class PartyMember extends Combatant{
 	}
 	
 	public int getBaseDelay(){
-		return 200/level;
+		return (int)(Math.max(50, Math.min(100, 187/level))*0.5f);
 	}
 }
