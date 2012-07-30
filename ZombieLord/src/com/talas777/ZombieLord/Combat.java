@@ -205,46 +205,90 @@ public class Combat {
 			case CombatAction.TARGET_ALLY_SINGLE:
 			case CombatAction.TARGET_ENEMY_SINGLE:
 				action.primaryTarget.health += damage;
+				if(action.primaryTarget.health < 0)
+					action.primaryTarget.health = 0;
+				else if(action.primaryTarget.health > action.primaryTarget.health_max)
+					action.primaryTarget.health = action.primaryTarget.health_max;
 				break;
 			case CombatAction.TARGET_ALL:
 				for(int i = 0; i < liveCombatants.size(); i++){
 					liveCombatants.get(i).health += damage;
+					if(liveCombatants.get(i).health < 0)
+						liveCombatants.get(i).health = 0;
+					else if(liveCombatants.get(i).health > liveCombatants.get(i).health_max)
+						liveCombatants.get(i).health = liveCombatants.get(i).health_max;
 				}
 				break;
 			case CombatAction.TARGET_SELF:
 				action.caster.health += damage;
+				if(action.caster.health < 0)
+					action.caster.health = 0;
+				else if(action.caster.health > action.caster.health_max)
+					action.caster.health = action.caster.health_max;
 				break;
 			case CombatAction.TARGET_RANDOM:
 				int numLive = liveCombatants.size();
 				int selected = (int)Math.floor(Math.random()*numLive);
 				liveCombatants.get(selected).health += damage;
+				if(liveCombatants.get(selected).health < 0)
+					liveCombatants.get(selected).health = 0;
+				else if(liveCombatants.get(selected).health > liveCombatants.get(selected).health_max)
+					liveCombatants.get(selected).health = liveCombatants.get(selected).health_max;
 				break;
 			case CombatAction.TARGET_ALL_OTHER:
 				for(int i = 0; i < liveCombatants.size(); i++){
 					if(liveCombatants.get(i) == action.caster)
 						continue;
 					liveCombatants.get(i).health += damage;
+					if(liveCombatants.get(i).health < 0)
+						liveCombatants.get(i).health = 0;
+					else if(liveCombatants.get(i).health > liveCombatants.get(i).health_max)
+						liveCombatants.get(i).health = liveCombatants.get(i).health_max;
 				}
 				break;
 			case CombatAction.TARGET_ALLY_ALL:
 				for(int i = 0; i < allies.size(); i++){
 					allies.get(i).health += damage;
+					if(allies.get(i).health < 0)
+						allies.get(i).health = 0;
+					else if(allies.get(i).health > allies.get(i).health_max)
+						allies.get(i).health = allies.get(i).health_max;
 				}
 				break;
 			case CombatAction.TARGET_ENEMY_ALL:
 				for(int i = 0; i < enemies.size(); i++){
 					enemies.get(i).health += damage;
+					if(enemies.get(i).health < 0)
+						enemies.get(i).health = 0;
+					else if(enemies.get(i).health > enemies.get(i).health_max)
+						enemies.get(i).health = enemies.get(i).health_max;
 				}
 				break;
 			case CombatAction.TARGET_ENEMY_RANDOM:
 				int sel = (int)Math.floor(Math.random()*enemies.size());
 				enemies.get(sel).health += damage;
+				if(enemies.get(sel).health < 0)
+					enemies.get(sel).health = 0;
+				else if(enemies.get(sel).health > enemies.get(sel).health_max)
+					enemies.get(sel).health = enemies.get(sel).health_max;
 				break;
 			}
 			
 			
 			action.caster.mana -= action.action.mpCost;// apply mpCost to caster (if any)
 		
+		}
+	}
+	
+	/**
+	 * Resets all monsters.
+	 */
+	public void cleanUp(){
+		for(Combatant c : combatants){
+			if(c instanceof Monster){
+				c.health = c.health_max;
+				c.mana = c.mana_max;
+			}
 		}
 	}
 	

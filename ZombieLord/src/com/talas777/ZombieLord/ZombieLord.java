@@ -1,11 +1,13 @@
 package com.talas777.ZombieLord;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -25,6 +27,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
 //import com.badlogic.gdx.graphics.g2d.tiled.*;
+import com.badlogic.gdx.utils.Array;
 
 public class ZombieLord implements ApplicationListener {
 	private OrthographicCamera camera;
@@ -46,6 +49,16 @@ public class ZombieLord implements ApplicationListener {
 	public int lastDirection = 0; // 0 = south, 1 = north, 2 = east, 3 = west
 	public float waitTime = 0;
 	
+	/**
+	 * For rain or meteor showers etc.
+	 */
+	public Array<Sprite> falling;
+	public float fallSpeed = 700;
+	public int minFallDist = 50;
+	public int maxFallDist = 500;
+	public Texture fallingTexture;
+	public int fallingDensity = 100;
+	
 	
 	private World world;
 	private Body jumper;
@@ -61,6 +74,8 @@ public class ZombieLord implements ApplicationListener {
 	private int gameMode = 0; // 0 = walk, 1 = combat, 2 = special/Minigame
 	
 	private Combat currentCombat;
+	
+	public Sound hitSound;
 	
 	
 	final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
@@ -88,6 +103,10 @@ public class ZombieLord implements ApplicationListener {
     TileAtlas atlas;*/
 	
 	public void loadCombat(int background, MonsterArea monsterArea){
+		this.fallingTexture = null;
+		for(Sprite s : drawSprites){
+			s.getTexture().dispose();
+		}
 		this.drawSprites.clear();
 		this.waitTime = 5;
 		//TODO: set background
@@ -174,7 +193,7 @@ public class ZombieLord implements ApplicationListener {
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		//loadLevel(3,1775,305,1); //hometown night
+		loadLevel(3,1775,305,1); //hometown night
 		//loadLevel(2,522,414,1); church
 		
 		
@@ -196,7 +215,7 @@ public class ZombieLord implements ApplicationListener {
 		twoTrolls.appendMonster(troll2);
 		area.addMonsterSetup(twoTrolls, 0.7f);
 		
-		loadCombat(4,area);
+		//loadCombat(4,area);
 
 		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
 		//debugRenderer = new Box2DDebugRenderer();
@@ -226,6 +245,11 @@ public class ZombieLord implements ApplicationListener {
 	}
 	
 	public void loadLevel(int levelCode, int posx, int posy, int direction){
+		this.fallingTexture = null;
+		for(Sprite s : drawSprites){
+			s.getTexture().dispose();
+		}
+		this.drawSprites.clear();
 		if(backgroundTexture != null)
 			backgroundTexture.dispose();
 		backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
@@ -258,6 +282,7 @@ public class ZombieLord implements ApplicationListener {
 			break;
 		case 3: //hometown night
 			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+			this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
 			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;*/
@@ -349,7 +374,48 @@ public class ZombieLord implements ApplicationListener {
 	@Override
 	public void render() {
 		
-		
+		if(this.fallingTexture != null){
+			if(this.falling == null){
+				this.falling = new Array<Sprite>();
+			}
+			//System.out.println("rain: "+this.falling.size);
+			// pour de rain (Count de money)
+			//for(int i = 0; i < this.fallingDensity; i++){
+			if(this.falling.size < this.fallingDensity){
+				Sprite newDrop = new Sprite(fallingTexture,0,0,8,8);
+				newDrop.setY(posy+h);
+				newDrop.setX(posx-20-w/2+(float)Math.random()*(w+20));
+				this.falling.add(newDrop);
+				this.drawSprites.add(newDrop);
+			}
+			Iterator<Sprite> iter = falling.iterator();
+			while(iter.hasNext()){
+				Sprite s = iter.next();
+				s.setY(s.getY()-this.fallSpeed*Gdx.graphics.getDeltaTime());
+				if(h-s.getY() > this.minFallDist){
+					// OK to delete?
+					if(h-s.getY() >= this.maxFallDist){
+						this.drawSprites.remove(s);
+						iter.remove();
+					}
+					else if(Math.random()*100 > 90){
+						this.drawSprites.remove(s);
+						iter.remove();
+					}
+					
+				}
+			}
+		}
+		else if(this.falling != null){
+			// Clean up rain..
+			Iterator<Sprite> iter = falling.iterator();
+			while(iter.hasNext()){
+				Sprite s = iter.next();
+				this.drawSprites.remove(s);
+				iter.remove();
+			}
+			this.falling = null;
+		}
 		
 		
 		boolean left = false;
@@ -493,6 +559,32 @@ public class ZombieLord implements ApplicationListener {
 			waitTime -= Gdx.graphics.getDeltaTime();
 		}
 		
+		if(gameMode == 2){
+			// "After Combat" screen
+			if(currentCombat != null){
+				// clean up!
+				for(Sprite s : drawSprites){
+					s.getTexture().dispose();
+				}
+				drawSprites.clear();
+				
+				currentCombat.cleanUp();
+				currentCombat = null;
+				waitTime = 10f;
+				//TODO: display some info about the fight..
+				
+			}
+			
+			
+			if(!waiting)
+				loadLevel(0,(int)posx,(int)posy,lastDirection);
+		}
+		
+		if(gameMode == 99){
+			// Game over
+			//TODO: write something 'nice' to the screen?
+		}
+		
 		if(gameMode == 1){
 			
 			// Re-position all creatures..
@@ -537,6 +629,7 @@ public class ZombieLord implements ApplicationListener {
 					System.out.println("VICTORY! :>");
 					//TODO: happy trumpet
 					gameMode = 2;
+					
 				}
 				else if(state == 2){
 					// player has lost
@@ -544,7 +637,7 @@ public class ZombieLord implements ApplicationListener {
 					// TODO: GAME OVER (properly)
 					System.out.println("GAME OVER. :'(");
 					// TODO: sad flute
-					gameMode = 2;
+					gameMode = 99;
 				}
 				
 				//TODO: render all dead/fainted characters as such
@@ -590,10 +683,15 @@ public class ZombieLord implements ApplicationListener {
 						combatOptions.add(defend); // spend the turn to increase defense (+50% def to ALL damage)
 						
 						for(CombatAction ca : readyMember.getCombatActions()){
-							combatOptions.add(new CombatOption(ca.name, ca));
+							if(ca.mpCost <= readyMember.getMana()) {
+								combatOptions.add(new CombatOption(ca.name, ca));
+							}
 						}
 						
 						//TODO: serve combat options to player
+						//TODO: in some sort of menu
+						//TODO: that lets the player select
+						//TODO: and then uses the selected option/action
 						
 						System.out.print("Actions available for "+readyMember.getName()+":");
 						for(CombatOption co : combatOptions){
