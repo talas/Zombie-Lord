@@ -1,5 +1,6 @@
 package com.talas777.ZombieLord;
 
+import com.talas777.ZombieLord.Levels.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -194,7 +195,7 @@ public class ZombieLord implements ApplicationListener {
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		loadLevel(3,1775,305,1); //hometown night
+		loadLevel(new HomeTownNight(),1775,305,1); //hometown night
 		//loadLevel(2,522,414,1); church
 		
 		
@@ -223,19 +224,20 @@ public class ZombieLord implements ApplicationListener {
 		
 		
 	}
-	/**
+	
+	/*
 	 * create a vector array from the given positions
 	 * @param xValues x values
 	 * @param yValues y values
 	 * @return array of vector2 points
 	 */
-	public Vector2[] vectorize(float[] xValues, float[] yValues){
+	/*public Vector2[] vectorize(float[] xValues, float[] yValues){
 		Vector2[] vec = new Vector2[xValues.length];
 		for(int i = 0; i < xValues.length; i++){
 			vec[i] = new Vector2(xValues[i]/PIXELS_PER_METER, yValues[i]/PIXELS_PER_METER);
 		}
 		return vec;
-	}
+	}*/
 
 	@Override
 	public void dispose() {
@@ -245,7 +247,7 @@ public class ZombieLord implements ApplicationListener {
 		texture2.dispose();
 	}
 	
-	public void loadLevel(int levelCode, int posx, int posy, int direction){
+	public void loadLevel(Level level, int posx, int posy, int direction){
 		this.fallingTexture = null;
 		for(Sprite s : drawSprites){
 			s.getTexture().dispose();
@@ -253,48 +255,54 @@ public class ZombieLord implements ApplicationListener {
 		this.drawSprites.clear();
 		if(backgroundTexture != null)
 			backgroundTexture.dispose();
-		backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
+		//backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
+		backgroundTexture = new Texture(Gdx.files.internal("data/"+level.getBackground()));
+		
+		if(level.getForeground() != null){
+			//TODO: foreground if available..
+		}
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
 		
 		this.posx = posx;
 		this.posy = posy;
 		this.lastDirection = direction;
 		
-		switch (levelCode) {
-		case 0://hometown
-			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+		//switch (levelCode) {
+		//case 0://hometown
+			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
 			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;
 			break;*/
 			// TODO: add music
-		case 1://my house
-			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+		//case 1://my house
+			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
 			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;*/
-			break;
+			//break;
 			// TODO: add music
-		case 2: //church
-			background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
+		//case 2: //church
+			//background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
 			/*lastDirection = 1;
 			posx = 522;
 			posy = 414;*/
-			break;
-		case 3: //hometown night
-			background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
+			//break;
+		//case 3: //hometown night
+			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
+			if(level instanceof HomeTownNight)
+				this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
 			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;*/
-			// TODO: add rain effect
 			// TODO: add wind effect
 			// TODO: add ambient sounds
-			break;
-		default:
-			System.err.println("Case Switched, Learn2Code talas!");
-		}
-		
+			//break;
+		//default:
+			//System.err.println("Case Switched, Learn2Code talas!");
+		//}
+		background = level.background(backgroundTexture);
+			
 		drawSprites.add(background);
 		/*
 		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
@@ -327,6 +335,8 @@ public class ZombieLord implements ApplicationListener {
 		}
 		
 		world = new World(new Vector2(0.0f, 0.0f), true);
+		
+		level.applyCollisionBoundaries(world, PIXELS_PER_METER);
 
 		BodyDef jumperBodyDef = new BodyDef();
 		jumperBodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -344,9 +354,6 @@ public class ZombieLord implements ApplicationListener {
 		jumperFixtureDef.shape = jumperShape;
 		jumperFixtureDef.density = 0.1f;
 		jumperFixtureDef.friction = 1.0f;
-		//jumperFixtureDef.filter.groupIndex = -2;
-		//jumperFixtureDef.filter.categoryBits = 2;
-		//jumperFixtureDef.filter.maskBits = 2;
 
 		jumper.createFixture(jumperFixtureDef);
 		jumper.setLinearDamping(9.0f);
@@ -364,179 +371,12 @@ public class ZombieLord implements ApplicationListener {
 		
 		FixtureDef jf = new FixtureDef();
 		jf.shape = js;
-		//jf.filter.groupIndex = -3;
-		//jf.filter.categoryBits = 2;
 		jf.filter.maskBits = 2;
 		
 		
 		pointer.createFixture(jf);
 		
 		
-		if(levelCode == 0 || levelCode == 3){
-			BodyDef groundBodyDef = new BodyDef();
-			groundBodyDef.type = BodyDef.BodyType.StaticBody;
-			Body groundBody = world.createBody(groundBodyDef);
-			{ // church
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{1473,1473,1507,1700,1775,1861,1950,1985,1985,1795,1795,1758,1758},
-						new float[]{322,450,480,480,565,480,480,450,322,322,342,342,322});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestone 1
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{1898,1898,1941,1941},
-						new float[]{225,265,265,225});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestone 2
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{1953,1953,1985,1985},
-						new float[]{288,322,322,288});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestones 3
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{1989,1989,2106,2106},
-						new float[]{226,254,254,226});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestones 4
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{2026,2026,2043,2043,2047,2047,2107,2107,2069,2069},
-						new float[]{289 , 329, 340, 350, 350, 382, 382, 352, 352, 289});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestones 5
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{1985,1985,2008,2000},
-						new float[]{353 , 382, 382, 353});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // gravestone 6
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{2110,2110,2129,2138,2144},
-						new float[]{288 , 352, 352, 345, 290});
-				/*vertices[0] = new Vector2(1473/PIXELS_PER_METER,322/PIXELS_PER_METER);
-				vertices[1] = new Vector2(1473/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[2] = new Vector2(1985/PIXELS_PER_METER,480/PIXELS_PER_METER);
-				vertices[3] = new Vector2(1985/PIXELS_PER_METER,322/PIXELS_PER_METER);*/
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // farm fence (only outer)
-				ChainShape environmentShape = new ChainShape();
-				
-				Vector2[] vertices = vectorize(
-						new float[]{2445,2445,2476,2476,2975,2975,2931,2931,3040,3040,3008,3008,3085,3085, 3200},
-						new float[]{1   , 734, 734, 797, 797, 774, 774, 734, 734, 776, 776, 797, 797, 828, 828});
-	
-				environmentShape.createChain(vertices); // not a loop!
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			
-			{ // pond (near square)
-				ChainShape environmentShape = new ChainShape();
-				
-
-				Vector2[] vertices = vectorize(
-						new float[]{1906,1906,1961,1971,2026,2026,2002,2002,2022,2047,2150,2162,2162,2217,2224,2274,2289,2315,2324,2380,2380,2305,2293,2280
-								,2200,2190,2159,2159,2135,2122,2002,2002,1970,1970},
-						new float[]{1048,1135,1135,1108,1108,1127,1151,1194,1194,1232,1232,1254,1293,1293,1172,1171,1143,1136,1108,1101,1010,1010,1000,979,979
-								,1001,1001,952,939,883,883,935,953,1033});
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			
-			{ // top houses and fence
-				ChainShape environmentShape = new ChainShape();
-				
-
-				Vector2[] vertices = vectorize(
-						new float[]{3206,3138,3138,3099,3099,2946,2946,2908,2908,2880,2880,2754,2754,2717,2717,2689,2689,
-								2654,2654,2563,2563,2348,2348,2304,2304,2207,2207,2112,2112,2077,2077,2020,2016,1922,1922,1953,
-								2269,2303,2303,2403,2403,2369,2388,2479},
-						new float[]{1409,1409,1446,1446,1408,1408,1439,1439,1409,1409,1440,1440,1505,1505,1442,1442,1477,
-								1477,1440,1440,1512,1512,1799,1799,1666,1666,1536,1536,1569,1569,1536,1536,1730,1730,1974,1983,
-								1983,1974,1822,1822,1859,1874,1925,1948});
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-			{ // bottom right house
-				ChainShape environmentShape = new ChainShape();
-				
-
-				Vector2[] vertices = vectorize(
-						new float[]{2945,2945,2974,3103,3136,3136,3042,3042},
-						new float[]{1122,1301,1310,1310,1301,1090,1090,1121});
-	
-				environmentShape.createLoop(vertices);
-				groundBody.createFixture(environmentShape, 0);
-				environmentShape.dispose();
-			}
-		}
 		gameMode = 0;
 	}
 
@@ -750,7 +590,7 @@ public class ZombieLord implements ApplicationListener {
 			
 			
 			if(!waiting)
-				loadLevel(0,(int)posx,(int)posy,lastDirection);
+				loadLevel(new HomeTown(),(int)posx,(int)posy,lastDirection);
 		}
 		
 		if(gameMode == 99){
