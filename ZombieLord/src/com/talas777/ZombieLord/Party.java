@@ -16,6 +16,8 @@
 
 package com.talas777.ZombieLord;
 
+import java.util.LinkedList;
+
 public class Party {
 
 	public static final int ID_MAIN = 0;
@@ -23,51 +25,43 @@ public class Party {
 	public static final int ID_SIDE = 2;
 	
 	public Party(){
-		this.activeMembers = new int[]{0};
+		this.activeMembers = new LinkedList<PartyMember>();
+		this.members = new LinkedList<PartyMember>();
 	}
 	
-	private PartyMember[] members = new PartyMember[5];
-	
-	private int[] activeMembers;
-	
-	public String getMemberName(int id){
-		if(members[id] != null)
-		{
-			return members[id].getName();
-		}
-		else
-			return "Zombie Lord";
-	}
-	
-	public int getMemberHealth(int id){
-		return 100;
-	}
+	private LinkedList<PartyMember> members;
+	private LinkedList<PartyMember> activeMembers;
 	
 	public boolean hasCombatItem(){
 		return false; // TODO: actually, we have no items at all..
 	}
-	
-	public void setMemberHealth(int id, int health){
-		//TODO: setMemberHealth
-	}
+
 	
 	public void addMember(PartyMember member){
-		members[member.id] = member;
+		members.add(member);
+		if(this.activeMembers.size() < 3){
+			// also set as active..
+		}
+		activeMembers.add(member);
 	}
+	
+	public boolean isActive(PartyMember member){
+		for(PartyMember m : this.activeMembers){
+			if(m.getName().equals(member.getName()))
+				return true;
+		}
+		return false;
+	}
+	
+	
 	
 	public PartyMember[] getActiveMembers(){
-		PartyMember[] active = new PartyMember[this.activeMembers.length];
-		for(int i = 0; i < activeMembers.length; i++){
-			active[i] = members[this.activeMembers[i]];
+		PartyMember[] active = new PartyMember[this.activeMembers.size()];
+		return activeMembers.toArray(active);
+		/*for(PartyMember member : activeMembers){
+			active[i] = member;
 		}
-		return active;
+		return active;*/
 	}
-	
-	public int[] getInactiveMembers(){
-		return new int[]{1};
-	}
-	
-	public void setActiveMembers(int first, int second, int third){
-		//TODO: setActiveMembers
-	}
+
 }

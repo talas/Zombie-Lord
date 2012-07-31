@@ -95,7 +95,7 @@ public class MyHouse extends Level {
 		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
 		
 		//TODO: find real positions..
-		
+		{
 		TalkScript talk = new TalkScript();
 		
 		talk.add("Tolinai", "Oh, Leoric you're back. Thank goodness you are safe!");
@@ -111,13 +111,26 @@ public class MyHouse extends Level {
 		talk.add("Tolinai", "Of course! It will be just like old times.");
 		talk.add("Tolinai", "Here, take your sword. I have my staff ready. Lets go to each house and help fend off the zombies!");
 		
-		Dialog d = new Dialog(0,0,50,50, "talk with gf", talk, Keys.T);
+		Dialog d = new Dialog(469,567,297,398, "talk with gf", talk, 0);
+		d.addTimeChange("leave home");
 		d.addMemberGain(ZombieLord.Tolinai);
-		d.addLevelTransfer(new HomeTownNight(), 500, 500, ZombieLord.DIR_SOUTH);
+		
+		dialogs.add(d);
+	}
+		{
+		TalkScript talk = new TalkScript();
+		
+		Dialog d = new Dialog(420,470,160,185, "leave home", talk, 0);
 		d.addTimeChange("east house?");
+		d.addLevelTransfer(new HomeTownNight(), 2928, 1388, ZombieLord.DIR_SOUTH);
+		
+		dialogs.add(d);
+	}
 		
 		
-		return null;
+		
+		
+		return dialogs;
 	}
 
 }

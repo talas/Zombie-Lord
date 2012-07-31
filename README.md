@@ -3,11 +3,11 @@ Zombie Lord
 =============
 
 A Java RPG featuring the Hero defending citizens from Zombie attacks brought on by unknown powers.
-The game brings you chasing truth about the attacks while exploring the world, gaining allies and strength.
+The game brings you chasing truth about the attacks while exploring the world, gaining allies and strength.  
 
-Using LibGDX.
+Using LibGDX.  
 
- - Source repository: https://github.com/talas/Zombie-Lord
+ - Source repository: https://github.com/talas/Zombie-Lord  
 
 Building and running
 --------------------
@@ -20,15 +20,15 @@ The 3 other folders are for desktop, android and html5 specific code.
 Desktop
 -------
 
-Java version 1.6 is required.
+Java version 1.6 is required.  
 
 
-To build, run ant in the desktop folder:
+To build, run ant in the desktop folder:  
 
-  $ cd ZombieLord-desktop
+  $ cd ZombieLord-desktop  
   $ ant
 
-then run the program like:
+then run the program like:  
 
   $ java -jar bin/zombie-lord.jar
 

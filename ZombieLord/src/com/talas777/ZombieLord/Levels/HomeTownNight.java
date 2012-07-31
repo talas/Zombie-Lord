@@ -97,7 +97,7 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			//TODO: pos shouldve been outside myhouse
-			Dialog d = new Dialog(2922,2930,1416,1430, "start", talk, 0);
+			Dialog d = new Dialog(2922,2940,1416,1430, "start", talk, 0);
 			d.addTimeChange("talk with gf");
 			d.addLevelTransfer(new MyHouse(), 448, 220, ZombieLord.DIR_NORTH);
 			

@@ -53,21 +53,23 @@ public class ZombieLord implements ApplicationListener {
 	private Texture texture2;
 	//private Sprite sprite;
 	private LinkedList<Sprite> drawSprites;
-	private Sprite princess;
+	private Sprite leoricSprite;
 	private float w;
 	private float h;
 	private Sprite background;
 	private Texture backgroundTexture;
+	public Sprite mover;
+	public float moverTimer = 0;
 	//private Sprite collisionLayer;
 	public float posx = -1;
 	public float posy = -1;
 	public float currentWalkFrame = 0;
 	public float stillTime = 0;
-	public int lastDirection = 0; // 0 = south, 1 = north, 2 = east, 3 = west
+	public int lastDirection = 0;
 	public float waitTime = 0;
 	
-	public static final int DIR_SOUTH = 0;
-	public static final int DIR_NORTH = 1;
+	public static final int DIR_SOUTH = 1;
+	public static final int DIR_NORTH = 0;
 	public static final int DIR_EAST = 2;
 	public static final int DIR_WEST = 3;
 	
@@ -85,6 +87,8 @@ public class ZombieLord implements ApplicationListener {
 	private World world;
 	private Body jumper;
 	private Body pointer;
+	
+
 	
 	private Box2DDebugRenderer debugRenderer;
 	
@@ -107,6 +111,8 @@ public class ZombieLord implements ApplicationListener {
 	private LinkedList<Dialog> activeDialogs;
 	
 	public Dialog currentDialog;
+	
+
 	
 	public static PartyMember Leoric;
 	public static PartyMember Tolinai;
@@ -169,18 +175,34 @@ public class ZombieLord implements ApplicationListener {
 		int bposx = (int)(w/6);
 		int bposy = (int)(h/2);
 		
-		{
-			texture2 = new Texture(Gdx.files.internal("data/princess.png"));
+		if(party.isActive(Tolinai)){
+			Texture texture2 = new Texture(Gdx.files.internal("data/princess.png"));
 			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
-			princess = new Sprite(texture2, 0, 64*2, 64, 64);
+			Sprite tolinai = new Sprite(texture2, 0, 64*3, 64, 64);
 			//princess.setSize(64, 64);
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
-			princess.setPosition(bposx-32, bposy);
-			party.getActiveMembers()[0].setSprite(princess);
-			drawSprites.add(princess);
+			tolinai.setPosition(bposx-32, bposy+50);
+			party.getActiveMembers()[0].setSprite(tolinai);
+			drawSprites.add(tolinai);
 		}
+		{// Leoric is always active
+			if(returnLevel instanceof HomeTownNight)
+				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier-dark.png"));
+			else
+				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier.png"));
+			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+			
+			leoricSprite = new Sprite(texture2, 0, 64*2, 64, 64);
+			//princess.setSize(64, 64);
+			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
+			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
+			leoricSprite.setPosition(bposx-32, bposy);
+			party.getActiveMembers()[0].setSprite(leoricSprite);
+			drawSprites.add(leoricSprite);
+		}
+
 		
 		currentCombat = new Combat(setup, party, 5);
 
@@ -235,10 +257,11 @@ public class ZombieLord implements ApplicationListener {
 		timeTracker.addEvent("start");
 		timeTracker.incrementTime();
 		timeTracker.addEvent("go home");
-		timeTracker.addEvent("talk with gf");
+		timeTracker.addEvent("talk with gf"); // talk
+		timeTracker.addEvent("leave home"); // leave
 		
-		timeTracker.addEvent("east house?");
-		timeTracker.addEvent("east house!");
+		timeTracker.addEvent("east house?"); // goto house
+		timeTracker.addEvent("east house!"); // enter house
 		timeTracker.addEvent("east house-combat");
 		
 		timeTracker.addEvent("south east house?");
@@ -265,17 +288,17 @@ public class ZombieLord implements ApplicationListener {
 		
 		party.addMember(Leoric);
 		
-		Tolinai = new PartyMember(0,"Tolinai",50,50,40,40,0); // Female, hero gf (offensive mage)
+		Tolinai = new PartyMember(1,"Tolinai",50,50,40,40,0); // Female, hero gf (offensive mage)
 		Tolinai.addCombatAction(staffStrike);
 		Tolinai.addCombatAction(magicArrow);
 		
-		Bert = new PartyMember(0,"Bert",250,250,5,5,0); // Male, archer
+		Bert = new PartyMember(2,"Bert",250,250,5,5,0); // Male, archer
 		Bert.addCombatAction(punch);
 		
-		Berzenor = new PartyMember(0,"Berzenor",250,250,5,5,0); // Male, defensive mage
+		Berzenor = new PartyMember(3,"Berzenor",250,250,5,5,0); // Male, defensive mage
 		Berzenor.addCombatAction(punch);
 		
-		Kuriko = new PartyMember(0,"Kuriko",250,250,5,5,0); // Female, rogue
+		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0); // Female, rogue
 		Kuriko.addCombatAction(punch);
 		
 		/*
@@ -378,8 +401,7 @@ public class ZombieLord implements ApplicationListener {
 			//break;
 		//case 3: //hometown night
 			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			if(level instanceof HomeTownNight)
-				this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
+
 			/*lastDirection = 1;
 			posx = 1775;
 			posy = 305;*/
@@ -395,6 +417,35 @@ public class ZombieLord implements ApplicationListener {
 		
 		this.activeMonsterAreas = level.getMonsterAreas(timeTracker);
 		this.activeDialogs = level.getLevelDialogs();
+		
+		
+		// Hard Coded strange things goes here.. SPOLIER ALERT, etc..
+		
+		if(level instanceof HomeTownNight)
+			this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
+		
+
+		if(level instanceof Church){
+			Texture to1 = new Texture(Gdx.files.internal("data/FBI_hurt.png"));
+			this.mover = new Sprite(to1, 64*1,0,64,64);
+			this.mover.setX(583-32);
+			this.mover.setY(483);
+			drawSprites.add(mover);
+			this.moverTimer = 0.4f;
+		}
+		if(level instanceof MyHouse){
+			Texture to1 = new Texture(Gdx.files.internal("data/princess2.png"));
+			this.mover = new Sprite(to1, 0,64*2,64,64);
+			this.mover.setX(475);
+			this.mover.setY(326);
+			drawSprites.add(mover);
+			this.moverTimer = 0.4f;
+		}
+		
+		
+		
+		
+		
 		/*
 		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
 		collisionLayer = new Sprite(texture, 0, 0, 3200, 3200);
@@ -414,15 +465,25 @@ public class ZombieLord implements ApplicationListener {
 			drawSprites.add(sprite);
 		}*/
 		{
-			texture2 = new Texture(Gdx.files.internal("data/princess.png"));
+			if(level instanceof HomeTownNight)
+				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier-dark.png"));
+			else
+				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier.png"));
 			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
-			princess = new Sprite(texture2, 0, 64*2, 64, 64);
+			if(direction == DIR_NORTH)
+				leoricSprite = new Sprite(texture2, 0, 64*0, 64, 64);
+			else if(direction == DIR_SOUTH)
+				leoricSprite = new Sprite(texture2, 0, 64*2, 64, 64);
+			else if(direction == DIR_EAST)
+				leoricSprite = new Sprite(texture2, 0, 64*3, 64, 64);
+			else
+				leoricSprite = new Sprite(texture2, 0, 64*1, 64, 64);
 			//princess.setSize(64, 64);
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
-			princess.setPosition(posx-32, posy);
-			drawSprites.add(princess);
+			leoricSprite.setPosition(posx-32, posy);
+			drawSprites.add(leoricSprite);
 		}
 		
 		world = new World(new Vector2(0.0f, 0.0f), true);
@@ -436,8 +497,8 @@ public class ZombieLord implements ApplicationListener {
 		jumper = world.createBody(jumperBodyDef);
 		
 		PolygonShape jumperShape = new PolygonShape();
-		jumperShape.setAsBox(princess.getWidth() / (6 * PIXELS_PER_METER),
-				princess.getHeight() / (6 * PIXELS_PER_METER));
+		jumperShape.setAsBox(leoricSprite.getWidth() / (6 * PIXELS_PER_METER),
+				leoricSprite.getHeight() / (6 * PIXELS_PER_METER));
 		
 		jumper.setFixedRotation(true);
 		
@@ -518,6 +579,8 @@ public class ZombieLord implements ApplicationListener {
 			this.falling = null;
 		}
 		
+		
+		
 		if(gameMode == 7){
 			// a Dialog is active;
 			if(this.currentDialog.hasNextUtterance()){
@@ -583,6 +646,30 @@ public class ZombieLord implements ApplicationListener {
 		boolean down = false;
 		
 		if(gameMode == 0){
+			if(returnLevel instanceof MyHouse){
+				if(moverTimer > 0){
+					// load princess
+					this.moverTimer -= Gdx.graphics.getDeltaTime();
+					
+					if(moverTimer <= 0){
+						this.mover.setTexture(new Texture(Gdx.files.internal("data/princess.png")));
+						mover.setRegion(0, 64*2, 64, 64);
+					}
+				}
+				else if(this.timeTracker.hasOccured("talk with gf")){
+					// unload princess
+					this.mover.getTexture().dispose();
+					this.drawSprites.remove(mover);
+				}
+			}
+			if(returnLevel instanceof Church){
+				if(this.timeTracker.hasOccured(("zero"))){
+					// unload dead priest
+					this.mover.getTexture().dispose();
+					this.drawSprites.remove(mover);
+				}
+			}
+			
 			if(Gdx.input.isKeyPressed(Keys.UP)){
 				//System.out.println("damop:"+jumper.getLinearDamping());
 				jumper.applyLinearImpulse(new Vector2(0.0f, moveSpeed),
@@ -632,12 +719,14 @@ public class ZombieLord implements ApplicationListener {
 			
 			posx = jumper.getPosition().x*this.PIXELS_PER_METER;
 			posy = jumper.getPosition().y*this.PIXELS_PER_METER;
-			princess.setX(posx-32);
-			princess.setY(posy-10);
+			leoricSprite.setX(posx-32);
+			leoricSprite.setY(posy-10);
 			pointer.setTransform(jumper.getPosition().x, jumper.getPosition().y, 0);
 			
-			camera.position.x = princess.getX()+32;
-			camera.position.y = princess.getY()+16;
+			camera.position.x = leoricSprite.getX()+32;
+			camera.position.y = leoricSprite.getY()+16;
+			
+			
 			
 			// TODO: check if player has entered some interesting area
 			
@@ -715,51 +804,55 @@ public class ZombieLord implements ApplicationListener {
 			if(stillTime > 0)
 				stillTime -= Gdx.graphics.getDeltaTime();
 	
-			int frame = (int)Math.ceil(currentWalkFrame)+1;
+			int frame = (int)Math.ceil(currentWalkFrame)+0;
 			if(up == true){
 				lastDirection = 0;
-				princess.setRegion(64*frame, 0, 64, 64);
+				leoricSprite.setRegion(64*frame, 0, 64, 64);
 				//princess = new Sprite(texture2, 0, 64*2, 64, 0);
 			}
 			else if(down == true){
 				lastDirection = 1;
-				princess.setRegion(64*frame, 64*2, 64, 64);
+				leoricSprite.setRegion(64*frame, 64*2, 64, 64);
 				//princess = new Sprite(texture2, 0, 64*2, 64, 64);
 			}
 			else if (left == true){
 				lastDirection = 3;
-				princess.setRegion(64*frame, 64*1, 64, 64);
+				leoricSprite.setRegion(64*frame, 64*1, 64, 64);
 				//princess = new Sprite(texture2, 0, 64*2, 64, 128);
 			}
 			else if (right == true){
-				princess.setRegion(64*frame, 64*3, 64, 64);
+				leoricSprite.setRegion(64*frame, 64*3, 64, 64);
 				lastDirection = 2;
 				//princess = new Sprite(texture2, 0, 64*2, 64, 128+64);
 			}
 			
-			if(up || down || left || right){
-				currentWalkFrame = (float)(currentWalkFrame >= 7-0.15? 0 : currentWalkFrame+0.15);
+			if(left || right){
+				currentWalkFrame = (float)(currentWalkFrame >= 7-0.20? 0 : currentWalkFrame+0.10);
+				stillTime = 0.1f;
+			}
+			else if(up || down || left || right){
+				currentWalkFrame = (float)(currentWalkFrame >= 8-0.10? 1 : currentWalkFrame+0.10);
 				stillTime = 0.1f;
 			}
 			else if(stillTime <= 0)
-			{
+			{ // stop the animation.
 				currentWalkFrame = 0;
 				switch(lastDirection){
 				case 0:
 					//north
-					princess.setRegion(0, 0, 64, 64);
+					leoricSprite.setRegion(0, 0, 64, 64);
 					break;
 				case 2:
 					//east
-					princess.setRegion(0, 64*3, 64, 64);
+					leoricSprite.setRegion(0, 64*3, 64, 64);
 					break;
 				case 3:
 					//west
-					princess.setRegion(0, 64*1, 64, 64);
+					leoricSprite.setRegion(0, 64*1, 64, 64);
 					break;
 				default:
 					//south
-					princess.setRegion(0, 64*2, 64, 64);
+					leoricSprite.setRegion(0, 64*2, 64, 64);
 					break;
 						
 				}
@@ -949,7 +1042,7 @@ public class ZombieLord implements ApplicationListener {
 				}
 			}
 			
-			princess.setRegion(0, 64*3, 64, 64);
+			leoricSprite.setRegion(0, 64*3, 64, 64);
 			camera.position.x = w/2f;
 			camera.position.y = h/2f;
 			camera.update();
