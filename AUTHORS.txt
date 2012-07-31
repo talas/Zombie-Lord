@@ -1,0 +1,317 @@
+Code authors
+============
+
+This program was written by the following people:
+ - Martin "Talas" Haukeli
+
+Asset attribution
+=================
+
+Lanea Zimmerman (AKA Sharm)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - barrel.png
+ - brackish.png
+ - buckets.png
+ - bridges.png
+ - cabinets.png
+ - cement.png
+ - cementstair.png
+ - chests.png
+ - country.png
+ - cup.png
+ - dirt2.png
+ - dirt.png
+ - dungeon.png
+ - grassalt.png
+ - grass.png
+ - holek.png
+ - holemid.png
+ - hole.png
+ - house.png
+ - inside.png
+ - kitchen.png
+ - lava.png
+ - lavarock.png
+ - mountains.png
+ - rock.png
+ - shadow.png
+ - signs.png
+ - stairs.png
+ - treetop.png
+ - trunk.png
+ - waterfall.png
+ - watergrass.png
+ - water.png
+ - princess.png and princess.xcf
+
+
+Stephen Challener (AKA Redshrike)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - female_walkcycle.png
+ - female_hurt.png
+ - female_slash.png
+ - female_spellcast.png
+ - male_walkcycle.png
+ - male_hurt.png
+ - male_slash.png
+ - male_spellcast.png
+ - male_pants.png
+ - male_hurt_pants.png
+ - male_fall_down_pants.png
+ - male_slash_pants.png
+
+
+Charles Sanchez (AKA CharlesGabriel)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - bat.png
+ - bee.png
+ - big_worm.png
+ - eyeball.png
+ - ghost.png
+ - man_eater_flower.png
+ - pumpking.png
+ - slime.png
+ - small_worm.png
+ - snake.png
+
+
+Manuel Riecke (AKA MrBeast)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - hairfemale.png and hairfemale.xcf
+ - hairmale.png and hairmale.xcf
+ - soldier.png
+ - soldier_altcolor.png
+
+
+Daniel Armstrong (AKA HughSpectrum)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - castlewalls.png
+ - castlefloors.png
+ - castle_outside.png
+ - castlefloors_outside.png
+ - castle_lightsources.png
+
+
+Adrian RAPINEAU
+~~~~~~~~~~~~~~~
+
+ - CRAY-1 (2D art)
+
+
+Artur Reterski
+~~~~~~~~~~~~~~
+
+ - Items set (2D art)
+
+
+Barbara Rivera
+~~~~~~~~~~~~~~
+
+ - Concept Art for LPC Entry (2D art)
+
+
+Ben Potter
+~~~~~~~~~~
+
+ - Cookiez monsters (2D art)
+
+
+Brandon
+~~~~~~~
+
+ - Calm Town (music)
+
+
+Brooss
+~~~~~~
+
+ - Livestock (2D art)
+
+
+Caleb Rugg
+~~~~~~~~~~
+
+ - Some Characters and Other Things set in the 17th century (2D art)
+
+
+Casper Nilsson
+~~~~~~~~~~~~~~
+
+ - LPC C.Nilsson (2D art)
+
+
+Chris Phillips
+~~~~~~~~~~~~~~
+
+ - Team River Fox (2D art)
+
+
+Clint Bellanger
+~~~~~~~~~~~~~~~
+
+ - Animated Coins (2D art)
+
+
+Daniel Eddeland
+~~~~~~~~~~~~~~~
+
+ - Farming tilesets, magic animations and UI elements (2D art)
+
+
+Dennis Boysen
+~~~~~~~~~~~~~
+
+ - Firefight (2D art)
+
+
+Dethe Elza
+~~~~~~~~~~
+
+ - LCP art entry (2D art)
+
+
+Emilio J. Sanchez-Sierra
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+ - Steampun-a-fy (with concept art) (2D art)
+
+
+Erik Schilling
+~~~~~~~~~~~~~~
+
+ - Redyable orbs for particle engine (2D art)
+
+
+Guido Bos
+~~~~~~~~~
+
+ - 3rd entry, some old castle stuff (2D art)
+ - Interior wooden tiles (2D art)
+ - Flowers, buildings and boxes (2D art)
+
+
+Johann CHARLOT
+~~~~~~~~~~~~~~
+
+ - Shoot'em up graphic kit (2D art)
+
+
+Johannes Sjölund
+~~~~~~~~~~~~~~~~
+
+ - Character animations, clothes, armor, weapons, skeleton enemy, combat dummy (2D art)
+
+
+Johnathan Roatch
+~~~~~~~~~~~~~~~~
+
+ - miscellaneous sfx (Sound effects)
+ - Chainsaw (Sound effects)
+ - Piano Keys (Sound effects)
+
+
+Jonas Klinger
+~~~~~~~~~~~~~
+
+ - [LPC] Skorpio's SciFi Sprite Pack (2D art)
+
+
+Joshua Taylor
+~~~~~~~~~~~~~
+
+ - Fruit and Veggie Inventory (2D art)
+
+
+Juan M. Rodriguez
+~~~~~~~~~~~~~~~~~
+
+ - Maskman XCF (2D art)
+
+
+Léo Villeveygoux
+~~~~~~~~~~~~~~~~
+
+ - Limestone wall (2D art)
+
+
+Lori Angela Nagel
+~~~~~~~~~~~~~~~~~
+
+ - Jastiv's Artwork (2D art)
+
+
+Luke Mehl
+~~~~~~~~~
+
+ - Female mage clothing set (2D art)
+
+
+Mark Weyer
+~~~~~~~~~~
+
+ - Caeles' LPC art (2D art)
+
+
+Matthew Nash
+~~~~~~~~~~~~
+
+ - Public Toilet Tileset (2D art)
+ - RPG Enemies (2D art)
+
+
+Nelson James Gatlin
+~~~~~~~~~~~~~~~~~~~
+
+ - Memento (2D art and music)
+
+
+Radomir Dopieralski
+~~~~~~~~~~~~~~~~~~~
+
+ - Alternate character sprites (2D art)
+
+
+Skyler Robert Colladay
+~~~~~~~~~~~~~~~~~~~~~~
+
+ - FeralFantom's Entry (2D art)
+
+
+Stefan Beller
+~~~~~~~~~~~~~
+
+ - Animated Water tiles (2D art)
+
+
+Stephen Challener
+~~~~~~~~~~~~~~~~~
+
+ - 2 Unfinished Chars: Xeon and Sinbad the Ogre (2D art)
+ - Suzerain Mage character sprite (2D art) 
+ - Baldric fully animated (2D art)
+
+
+Stephen John Fogarty
+~~~~~~~~~~~~~~~~~~~~
+
+ - Liberated Steampunk Character (2D art)
+
+
+Thane & Stacey Brimhall
+~~~~~~~~~~~~~~~~~~~~~~~
+
+ - Clothing, Facial features and UI Elements (2D art)
+
+
+Tunicate
+~~~~~~~~
+
+ - Anemones and seaweed (2D art)
+ - Wheelbot and Blobbert (2D art)
+
+

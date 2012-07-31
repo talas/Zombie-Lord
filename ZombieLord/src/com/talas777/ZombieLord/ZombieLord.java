@@ -1,3 +1,19 @@
+/* Zombie Lord - A story driven roleplaying game
+* Copyright (C) 2012  Talas (talas777@gmail.com)
+* 
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 package com.talas777.ZombieLord;
 
 import com.talas777.ZombieLord.Levels.*;
@@ -79,32 +95,44 @@ public class ZombieLord implements ApplicationListener {
 	
 	public Sound hitSound;
 	
+	public TimeTracker timeTracker;
 	
-	final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
-	final CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
-	final CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
-	final CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
-	final CombatAction slash = new CombatAction("Slash",0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
-	final CombatAction cycloneSlash = new CombatAction("CycloneSlash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	private LinkedList<MonsterArea> activeMonsterAreas;
 	
-	final CombatOption escape = new CombatOption("escape");
-	final CombatOption item = new CombatOption("item");
-	final CombatOption defend = new CombatOption("defend");
 	
-	public static final String[] backgrounds = new String[]{
+	public static final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
+	public static final CombatAction slash = new CombatAction("Slash",0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction cycloneSlash = new CombatAction("CycloneSlash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	
+	public static final CombatOption escape = new CombatOption("escape");
+	public static final CombatOption item = new CombatOption("item");
+	public static final CombatOption defend = new CombatOption("defend");
+	
+	/*public static final String[] backgrounds = new String[]{
 		"hometown.png", // 0
 		"myhouse.png", // 1
 		"church.png", // 2
 		"hometown-night.png", // 3
 		"battle1.png" // 4
-	};
+	};*/
 	
 	
 	/*TileMapRenderer tileMapRenderer;
     TiledMap map;
     TileAtlas atlas;*/
 	
-	public void loadCombat(int background, MonsterArea monsterArea){
+	private void returnFromCombat(){
+		// TODO: figure out where we are..
+		
+		this.loadLevel(returnLevel, (int)posx, (int)posy, lastDirection);
+	}
+	
+	private Level returnLevel;
+	
+	public void loadCombat(MonsterArea monsterArea){
 		this.fallingTexture = null;
 		for(Sprite s : drawSprites){
 			s.getTexture().dispose();
@@ -113,7 +141,9 @@ public class ZombieLord implements ApplicationListener {
 		this.waitTime = 5;
 		//TODO: set background
 		
-		this.backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[background]));
+		String[] backgrounds = this.returnLevel.getBattleBackgrounds();
+		
+		this.backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[(int)(Math.random()*backgrounds.length)  ]));
 		this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
 		
 		drawSprites.add(this.background);
@@ -140,24 +170,22 @@ public class ZombieLord implements ApplicationListener {
 		
 		{
 			for(int i = 0; i < currentCombat.getNumEnemies(); i++){
-				Texture trollTex = new Texture(Gdx.files.internal("data/"+currentCombat.getMonster(i).textureName));
+				Texture monsterTexture = new Texture(Gdx.files.internal("data/"+currentCombat.getMonster(i).textureName));
 				//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
 			
-				Sprite trollSprite = new Sprite(trollTex, 0, 0, 64, 64);
+				Sprite monsterSprite = new Sprite(monsterTexture, 0, 0, 64, 64);
 				
-				currentCombat.getMonster(i).setSprite(trollSprite);
+				currentCombat.getMonster(i).setSprite(monsterSprite);
 				//princess.setSize(64, 64);
 				//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 				//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 				int[] xy = currentCombat.getMonsterPosition(i, (int)w, (int)h);
-				trollSprite.setPosition(xy[0], xy[1]);
-				drawSprites.add(trollSprite);
+				monsterSprite.setPosition(xy[0], xy[1]);
+				drawSprites.add(monsterSprite);
 				System.out.println("Added monster:x"+xy[0]+",y"+xy[1]);
 			}
 		}
-		
-		//TODO: position monsters
 		
 		// Timing and stuff is taken care of in the Combat class (which is queried from the render loop)
 		
@@ -180,6 +208,20 @@ public class ZombieLord implements ApplicationListener {
 
 		
 		party = new Party();
+		
+		timeTracker = new TimeTracker();
+		timeTracker.addEvent("start");
+		timeTracker.incrementTime();
+		timeTracker.addEvent("go home");
+		timeTracker.addEvent("talk with gf");
+		timeTracker.addEvent("east house");
+		timeTracker.addEvent("south east house");
+		timeTracker.addEvent("south west house");
+		timeTracker.addEvent("west house");
+		timeTracker.addEvent("mayors house");
+		
+		
+		timeTracker.setTime("east house"); // TODO: remove debug test
 		
 		
 		
@@ -304,6 +346,8 @@ public class ZombieLord implements ApplicationListener {
 		background = level.background(backgroundTexture);
 			
 		drawSprites.add(background);
+		
+		this.activeMonsterAreas = level.getMonsterAreas(timeTracker);
 		/*
 		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
 		collisionLayer = new Sprite(texture, 0, 0, 3200, 3200);
@@ -378,6 +422,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		
 		gameMode = 0;
+		this.returnLevel = level; // incase we get into a fight, we want a way back :p
 	}
 
 	@Override
@@ -491,6 +536,35 @@ public class ZombieLord implements ApplicationListener {
 			
 			// TODO: check if player has entered some interesting area
 			
+			if(left || right || up || down){
+				// Only attract monsters when moving
+				
+				if(this.activeMonsterAreas != null && this.activeMonsterAreas.size() > 0){
+					
+						
+					for(MonsterArea area : activeMonsterAreas){
+						// check if player is inside it
+						if(area.isInside((int)posx, (int)posy)){
+							
+							// roll a dice to find out if the player should be attacked.
+							float num = (float)Math.random();
+							
+							//if(Math.random()*100>90)
+								//System.out.println(num+" v.s. "+area.encounterChance);
+							
+							if(num < area.encounterChance){
+								// we have a winner..
+								this.loadCombat(area);
+								return; // TODO: not sure if this is a good idea or bad
+								// either return or break..
+							}
+							
+						}
+						
+					}
+				}
+			}
+			
 			
 			if(Gdx.input.isKeyPressed(Keys.B)){
 				System.out.println("position: x="+posx+", y="+posy);
@@ -577,28 +651,41 @@ public class ZombieLord implements ApplicationListener {
 			if(currentCombat != null){
 				// clean up!
 				for(Sprite s : drawSprites){
-					s.getTexture().dispose();
+					//s.getTexture().dispose();
 				}
 				drawSprites.clear();
 				
 				currentCombat.cleanUp();
 				currentCombat = null;
 				waitTime = 10f;
+				waiting = true;
 				//TODO: display some info about the fight..
+				
+				this.backgroundTexture = new Texture(Gdx.files.internal("data/victory.png"));
+				this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
+				
+				drawSprites.add(this.background);
 				
 			}
 			
 			
-			if(!waiting)
-				loadLevel(new HomeTown(),(int)posx,(int)posy,lastDirection);
+			if(!waiting){
+				this.returnFromCombat();
+				return; // TODO: not sure if this is a good idea or bad
+			}
 		}
 		
-		if(gameMode == 99){
+		else if(gameMode == 99){
 			// Game over
 			//TODO: write something 'nice' to the screen?
+			//TODO: nice musics?
+			this.backgroundTexture = new Texture(Gdx.files.internal("data/gameover.png"));
+			this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
+			
+			drawSprites.add(this.background);
 		}
 		
-		if(gameMode == 1){
+		else if(gameMode == 1){
 			
 			// Re-position all creatures..
 			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
