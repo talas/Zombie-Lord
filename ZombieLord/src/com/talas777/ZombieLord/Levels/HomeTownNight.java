@@ -31,7 +31,7 @@ public class HomeTownNight extends HomeTown {
 	@Override
 	public String getBackground() {
 		// TODO Auto-generated method stub
-		return "hometown-night.png";
+		return "hometown/hometown-night.png";
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			//TODO: pos shouldve been outside myhouse
-			Dialog d = new Dialog(2922,2940,1416,1430, "start", talk, 0);
+			Dialog d = new Dialog(2913,2942,1416,1430, "start", talk, 0);
 			d.addTimeChange("talk with gf");
 			d.addLevelTransfer(new MyHouse(), 448, 220, ZombieLord.DIR_NORTH);
 			
@@ -110,8 +110,7 @@ public class HomeTownNight extends HomeTown {
 			talk.add("Tolinai", "Lets go to the eastmost house first.");
 			talk.add("Leoric", "Watch out for zombies!");
 			
-			//TODO: pos shouldve been outside myhouse
-			Dialog d = new Dialog(0,0,50,50, "east house?", talk, 0);
+			Dialog d = new Dialog(0,3200,0,3200, "east house?", talk, 0);
 			d.addTimeChange("east house!");
 			
 			dialogs.add(d);
@@ -122,10 +121,9 @@ public class HomeTownNight extends HomeTown {
 			talk.add("Leoric", "Ok, are you ready? I can hear zombies inside.");
 			talk.add("Leoric", "Lets go!");
 			
-			//TODO: pos shouldve been outside east house, level is also missing
-			Dialog d = new Dialog(0,0,50,50, "east house!", talk, 0);
+			Dialog d = new Dialog(3106,3130,1413,1426, "east house!", talk, 0);
 			d.addTimeChange("east house-combat");
-			d.addLevelTransfer(null, 0, 0, ZombieLord.DIR_NORTH);
+			d.addLevelTransfer(new EastHouse(), 239, 149, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);
 		}
@@ -136,9 +134,40 @@ public class HomeTownNight extends HomeTown {
 			talk.add("Tolinai", "I can hear zombies inside, I guess we can't help them.");
 			talk.add("Tolinai", "We'll go to the house on the left next.");
 			
-			//TODO: pos shouldve been outside south east house
-			Dialog d = new Dialog(0,0,50,50, "south east house?", talk, 0);
+			Dialog d = new Dialog(2960,3130,1310,1329, "south east house?", talk, 0);
 			d.addTimeChange("south west house?");
+			
+			dialogs.add(d);
+		}
+		{ // talk when entering south-west house
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Leoric", "It's locked..");
+			talk.add("Tolinai", "Break it open!");
+			
+
+			Dialog d = new Dialog(2790,2808,1125,1145, "south west house?", talk, 0);
+			d.addTimeChange("south west house!");
+			d.addLevelTransfer(new SouthWestHouse(), 337, 52, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		{ // talk when entering west house
+			TalkScript talk = new TalkScript();
+			
+			//TODO: pos shouldve been outside house
+			Dialog d = new Dialog(2660,2675,1440,1453, "west house?", talk, 0);
+			d.addTimeChange("west house!");
+			d.addLevelTransfer(new WestHouse(), 337, 52, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		{ // talk when entering mayors house
+			TalkScript talk = new TalkScript();
+			
+			Dialog d = new Dialog(2670,2687,1463,1475, "mayors house?", talk, 0);
+			d.addTimeChange("mayors house!");
+			d.addLevelTransfer(new MayorHouse(), 337, 52, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);
 		}

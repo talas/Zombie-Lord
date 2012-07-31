@@ -83,6 +83,8 @@ public class ZombieLord implements ApplicationListener {
 	public Texture fallingTexture;
 	public int fallingDensity = 100;
 	
+	private boolean debug = false;
+	
 	
 	private World world;
 	private Body jumper;
@@ -134,6 +136,7 @@ public class ZombieLord implements ApplicationListener {
 	public static final CombatOption item = new CombatOption("item");
 	public static final CombatOption defend = new CombatOption("defend");
 	
+	
 	/*public static final String[] backgrounds = new String[]{
 		"hometown.png", // 0
 		"myhouse.png", // 1
@@ -166,7 +169,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		String[] backgrounds = this.returnLevel.getBattleBackgrounds();
 		
-		this.backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[(int)(Math.random()*backgrounds.length)  ]));
+		this.backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+backgrounds[(int)(Math.random()*backgrounds.length)  ]));
 		this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
 		
 		drawSprites.add(this.background);
@@ -184,13 +187,13 @@ public class ZombieLord implements ApplicationListener {
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 			tolinai.setPosition(bposx-32, bposy+50);
-			party.getActiveMembers()[0].setSprite(tolinai);
+			Tolinai.setSprite(tolinai);
 			drawSprites.add(tolinai);
 		}
 		{// Leoric is always active
-			if(returnLevel instanceof HomeTownNight)
-				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier-dark.png"));
-			else
+			//if(returnLevel instanceof HomeTownNight)
+				//texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier-dark.png"));
+			//else
 				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier.png"));
 			//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
@@ -199,7 +202,7 @@ public class ZombieLord implements ApplicationListener {
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 			leoricSprite.setPosition(bposx-32, bposy);
-			party.getActiveMembers()[0].setSprite(leoricSprite);
+			Leoric.setSprite(leoricSprite);
 			drawSprites.add(leoricSprite);
 		}
 
@@ -263,23 +266,26 @@ public class ZombieLord implements ApplicationListener {
 		timeTracker.addEvent("east house?"); // goto house
 		timeTracker.addEvent("east house!"); // enter house
 		timeTracker.addEvent("east house-combat");
+		timeTracker.addEvent("leave east house");
 		
 		timeTracker.addEvent("south east house?");
-		timeTracker.addEvent("south east house!");
 		
 		timeTracker.addEvent("south west house?");
 		timeTracker.addEvent("south west house!");
+		timeTracker.addEvent("leave sw house");
 		
 		timeTracker.addEvent("west house?");
 		timeTracker.addEvent("west house!");
+		timeTracker.addEvent("leave west house");
 		
 		timeTracker.addEvent("mayors house?");
 		timeTracker.addEvent("mayors house!");
+		timeTracker.addEvent("leave mayors house");
+		
+		timeTracker.addEvent("leave hometown");
 		
 		
 		//timeTracker.setTime("east house"); // TODO: remove debug test
-		
-		
 		
 		
 		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
@@ -367,7 +373,7 @@ public class ZombieLord implements ApplicationListener {
 		if(backgroundTexture != null)
 			backgroundTexture.dispose();
 		//backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
-		backgroundTexture = new Texture(Gdx.files.internal("data/"+level.getBackground()));
+		backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getBackground()));
 		
 		if(level.getForeground() != null){
 			//TODO: foreground if available..
@@ -1064,7 +1070,7 @@ public class ZombieLord implements ApplicationListener {
 		 s.draw(batch);
 		batch.end();
 		
-		if(world != null && debugRenderer != null)
+		if(debug && world != null && debugRenderer != null)
 			debugRenderer.render(world, camera.combined.scale(
 					PIXELS_PER_METER,
 					PIXELS_PER_METER,

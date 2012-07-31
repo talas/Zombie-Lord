@@ -34,7 +34,7 @@ public class HomeTown extends Level {
 
 	@Override
 	public String getBackground() {
-		return "hometown.png";
+		return "hometown/hometown.png";
 	}
 	
 	public Sprite background(Texture t){
