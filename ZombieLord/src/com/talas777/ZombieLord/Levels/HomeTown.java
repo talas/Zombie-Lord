@@ -185,6 +185,30 @@ public class HomeTown extends Level {
 			groundBody.createFixture(environmentShape, 0);
 			environmentShape.dispose();
 		}
+		{ // bottom left house
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{2658,2658,2627,2626,2657,2848,2880,2876,2845,2845,2816,2816,2784,2784},
+					new float[]{1121,1154,1154,1332,1342,1342,1334,1152,1152,1120,1120,1152,1152,1120});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // big tree (at square)
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{1771,1750,1702,1698,1709,1750,1766,1792,1824,1824,1816,1797},
+					new float[]{1417,1417,1439,1480,1539,1583,1592,1580,1515,1496,1469,1453});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
 
 	}
 

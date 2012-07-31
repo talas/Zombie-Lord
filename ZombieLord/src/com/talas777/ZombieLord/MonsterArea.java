@@ -53,7 +53,9 @@ public class MonsterArea {
 	}
 	
 	public MonsterSetup getRandomSetup(){
-		//TODO: getRandomSetup, make it random (with weights)
-		return monsterSetups.getFirst();
+		// TODO: roulette wheel here..
+		
+		
+		return monsterSetups.get((int) Math.random()*monsterSetups.size());
 	}
 }
