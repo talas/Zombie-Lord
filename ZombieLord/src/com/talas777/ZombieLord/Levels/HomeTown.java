@@ -25,6 +25,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Level;
 import com.talas777.ZombieLord.MonsterArea;
 import com.talas777.ZombieLord.TimeTracker;
@@ -226,6 +227,12 @@ public class HomeTown extends Level {
 
 	@Override
 	public LinkedList<MonsterArea> getMonsterAreas(TimeTracker timer) {
+		return null;
+	}
+
+	@Override
+	public LinkedList<Dialog> getLevelDialogs() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

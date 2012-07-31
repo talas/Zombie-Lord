@@ -66,6 +66,11 @@ public class ZombieLord implements ApplicationListener {
 	public int lastDirection = 0; // 0 = south, 1 = north, 2 = east, 3 = west
 	public float waitTime = 0;
 	
+	public static final int DIR_SOUTH = 0;
+	public static final int DIR_NORTH = 1;
+	public static final int DIR_EAST = 2;
+	public static final int DIR_WEST = 3;
+	
 	/**
 	 * For rain or meteor showers etc.
 	 */
@@ -99,13 +104,25 @@ public class ZombieLord implements ApplicationListener {
 	
 	private LinkedList<MonsterArea> activeMonsterAreas;
 	
+	private LinkedList<Dialog> activeDialogs;
+	
+	public Dialog currentDialog;
+	
+	public static PartyMember Leoric;
+	public static PartyMember Tolinai;
+	public static PartyMember Bert;
+	public static PartyMember Berzenor;
+	public static PartyMember Kuriko;
+	
 	
 	public static final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
 	public static final CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
 	public static final CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
 	public static final CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
 	public static final CombatAction slash = new CombatAction("Slash",0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction cycloneSlash = new CombatAction("CycloneSlash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	public static final CombatAction cycloneSlash = new CombatAction("Cyclone Slash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	public static final CombatAction magicArrow = new CombatAction("Magic Arrow", 8, -12f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction staffStrike = new CombatAction("Staff Strike",0, -1f, CombatAction.TARGET_ENEMY_SINGLE);
 	
 	public static final CombatOption escape = new CombatOption("escape");
 	public static final CombatOption item = new CombatOption("item");
@@ -132,7 +149,7 @@ public class ZombieLord implements ApplicationListener {
 	
 	private Level returnLevel;
 	
-	public void loadCombat(MonsterArea monsterArea){
+	public void loadCombat(MonsterSetup setup){
 		this.fallingTexture = null;
 		for(Sprite s : drawSprites){
 			s.getTexture().dispose();
@@ -165,7 +182,7 @@ public class ZombieLord implements ApplicationListener {
 			drawSprites.add(princess);
 		}
 		
-		currentCombat = new Combat(monsterArea.getRandomSetup(), party, 5);
+		currentCombat = new Combat(setup, party, 5);
 
 		
 		{
@@ -192,6 +209,10 @@ public class ZombieLord implements ApplicationListener {
 		gameMode = 1;
 	}
 	
+	public void loadCombat(MonsterArea monsterArea){
+		loadCombat(monsterArea.getRandomSetup());
+	}
+	
 	@Override
 	public void create() {
 		w = Gdx.graphics.getWidth();
@@ -210,35 +231,60 @@ public class ZombieLord implements ApplicationListener {
 		party = new Party();
 		
 		timeTracker = new TimeTracker();
+		timeTracker.addEvent("zero");
 		timeTracker.addEvent("start");
 		timeTracker.incrementTime();
 		timeTracker.addEvent("go home");
 		timeTracker.addEvent("talk with gf");
-		timeTracker.addEvent("east house");
-		timeTracker.addEvent("south east house");
-		timeTracker.addEvent("south west house");
-		timeTracker.addEvent("west house");
-		timeTracker.addEvent("mayors house");
+		
+		timeTracker.addEvent("east house?");
+		timeTracker.addEvent("east house!");
+		timeTracker.addEvent("east house-combat");
+		
+		timeTracker.addEvent("south east house?");
+		timeTracker.addEvent("south east house!");
+		
+		timeTracker.addEvent("south west house?");
+		timeTracker.addEvent("south west house!");
+		
+		timeTracker.addEvent("west house?");
+		timeTracker.addEvent("west house!");
+		
+		timeTracker.addEvent("mayors house?");
+		timeTracker.addEvent("mayors house!");
 		
 		
-		timeTracker.setTime("east house"); // TODO: remove debug test
+		//timeTracker.setTime("east house"); // TODO: remove debug test
 		
 		
 		
 		
-		PartyMember leoric = new PartyMember(0,"Leoric",250,250,5,5,0);
-		leoric.addCombatAction(slash);
-		leoric.addCombatAction(cycloneSlash);
+		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
+		Leoric.addCombatAction(slash);
+		Leoric.addCombatAction(cycloneSlash);
 		
-		party.addMember(leoric); // Male hero (swordsman)
+		party.addMember(Leoric);
 		
-		/*party.addMember(new PartyMember(1,"Tolinai",25,25,80,80,0)); // Female, hero gf (offensive mage)
+		Tolinai = new PartyMember(0,"Tolinai",50,50,40,40,0); // Female, hero gf (offensive mage)
+		Tolinai.addCombatAction(staffStrike);
+		Tolinai.addCombatAction(magicArrow);
+		
+		Bert = new PartyMember(0,"Bert",250,250,5,5,0); // Male, archer
+		Bert.addCombatAction(punch);
+		
+		Berzenor = new PartyMember(0,"Berzenor",250,250,5,5,0); // Male, defensive mage
+		Berzenor.addCombatAction(punch);
+		
+		Kuriko = new PartyMember(0,"Kuriko",250,250,5,5,0); // Female, rogue
+		Kuriko.addCombatAction(punch);
+		
+		/*
 		this.addMember(new PartyMember(2,"Bert",50,50,10,10,0)); // Male, archer
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		loadLevel(new HomeTownNight(),1775,305,1); //hometown night
-		//loadLevel(2,522,414,1); church
+		//loadLevel(new HomeTownNight(),1775,305,1); //hometown night
+		loadLevel(new Church(),522,414,1);// church
 		
 		
 		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
@@ -348,6 +394,7 @@ public class ZombieLord implements ApplicationListener {
 		drawSprites.add(background);
 		
 		this.activeMonsterAreas = level.getMonsterAreas(timeTracker);
+		this.activeDialogs = level.getLevelDialogs();
 		/*
 		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
 		collisionLayer = new Sprite(texture, 0, 0, 3200, 3200);
@@ -471,6 +518,64 @@ public class ZombieLord implements ApplicationListener {
 			this.falling = null;
 		}
 		
+		if(gameMode == 7){
+			// a Dialog is active;
+			if(this.currentDialog.hasNextUtterance()){
+				//TODO: this has to be done more nicely somehow..
+				Utterance u = this.currentDialog.getNextUtterance();
+				
+				System.out.print(u.speaker+": ");
+				System.out.println(u.sentence);
+			}
+			else {
+				// apply secondary effects and change gameMode back to whatever normal is
+				// TODO: would be nice if dialogs could be had inside combat also..
+				// but not strictly required.
+				
+				if(this.currentDialog.getTimeChange() != null){
+					this.timeTracker.setTime( this.currentDialog.getTimeChange()  );
+				}
+				
+				MonsterSetup setup = this.currentDialog.getFight();
+				
+
+				for(PartyMember joiner : this.currentDialog.getMemberJoins()){
+					this.party.addMember(joiner);
+				}
+
+				
+				if(this.currentDialog.nextLevel != null){
+					// Level change..
+					
+					if(setup != null){
+						// after fight..
+						this.returnLevel = this.currentDialog.nextLevel;
+						this.posx = this.currentDialog.posx;
+						this.posy = this.currentDialog.posy;
+						this.lastDirection = this.currentDialog.direction;
+					}
+				}
+				if(setup != null){
+					// fight!
+					this.loadCombat(setup);
+				}
+				else if(this.currentDialog.nextLevel != null){
+					// change level
+					
+					this.loadLevel(this.currentDialog.nextLevel, this.currentDialog.posx, this.currentDialog.posy,
+							this.currentDialog.direction);
+				}
+				else {
+					// No combat, no Level change..
+					// Guess we just have to go back to normal then :<
+					this.gameMode = 0;
+					this.currentDialog = null;
+					return;
+				}
+				
+			}
+		}
+		
 		
 		boolean left = false;
 		boolean right = false;
@@ -539,6 +644,29 @@ public class ZombieLord implements ApplicationListener {
 			if(left || right || up || down){
 				// Only attract monsters when moving
 				
+				if(this.activeDialogs != null && this.activeDialogs.size() > 0){
+					for(Dialog d : activeDialogs){
+						
+						if(d.isInside((int)posx, (int)posy, timeTracker)){
+							boolean activate = false;
+							// button?
+							if(d.button != 0){
+								activate = Gdx.input.isKeyPressed(d.button);
+							}
+							else
+								activate = true;
+							
+							if(activate){
+								// Start the dialog
+								this.gameMode = 7;
+								this.currentDialog = d;
+								return;
+							}
+							
+						}
+					}
+				}
+				
 				if(this.activeMonsterAreas != null && this.activeMonsterAreas.size() > 0){
 					
 						
@@ -567,7 +695,7 @@ public class ZombieLord implements ApplicationListener {
 			
 			
 			if(Gdx.input.isKeyPressed(Keys.B)){
-				System.out.println("position: x="+posx+", y="+posy);
+				System.out.println("position: x="+posx+", y="+posy+", time="+timeTracker.getTime());
 			}
 			
 			

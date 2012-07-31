@@ -64,7 +64,7 @@ public abstract class Level {
 	}
 	
 	/**
-	 * 
+	 * TODO: this function is not so smart.. maybe use a dialog instead?
 	 * @param posx current x position
 	 * @param posy current y position
 	 * @return Which level to transfer to (or -1 for no transfer)
@@ -82,5 +82,7 @@ public abstract class Level {
 	public String[] getBattleBackgrounds(){
 		return new String[]{"battle1.png"};
 	}
+	
+	public abstract LinkedList<Dialog> getLevelDialogs();
 
 }

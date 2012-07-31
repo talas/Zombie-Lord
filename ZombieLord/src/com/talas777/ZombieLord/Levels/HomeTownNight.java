@@ -18,9 +18,11 @@ package com.talas777.ZombieLord.Levels;
 
 import java.util.LinkedList;
 
+import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Monster;
 import com.talas777.ZombieLord.MonsterArea;
 import com.talas777.ZombieLord.MonsterSetup;
+import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
 import com.talas777.ZombieLord.ZombieLord;
 
@@ -81,6 +83,68 @@ public class HomeTownNight extends HomeTown {
 			areas.add(area);
 			return areas;
 		}
+	}
+	
+	@Override
+	public LinkedList<Dialog> getLevelDialogs() {
+		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
+
+		// TODO: dialogs needed here?
+		
+		//TODO: find real positions..
+		
+		{ // entering myhouse the first time
+			TalkScript talk = new TalkScript();
+			
+			//TODO: pos shouldve been outside myhouse
+			Dialog d = new Dialog(2922,2930,1416,1430, "start", talk, 0);
+			d.addTimeChange("talk with gf");
+			d.addLevelTransfer(new MyHouse(), 448, 220, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		
+		{ // talk when exiting myhouse the first time
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Tolinai", "Lets go to the eastmost house first.");
+			talk.add("Leoric", "Watch out for zombies!");
+			
+			//TODO: pos shouldve been outside myhouse
+			Dialog d = new Dialog(0,0,50,50, "east house?", talk, 0);
+			d.addTimeChange("east house!");
+			
+			dialogs.add(d);
+		}
+		{ // talk when entering east house
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Leoric", "Ok, are you ready? I can hear zombies inside.");
+			talk.add("Leoric", "Lets go!");
+			
+			//TODO: pos shouldve been outside east house, level is also missing
+			Dialog d = new Dialog(0,0,50,50, "east house!", talk, 0);
+			d.addTimeChange("east house-combat");
+			d.addLevelTransfer(null, 0, 0, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		{ // talk when entering south-west house
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Leoric", "It's barricaded..");
+			talk.add("Tolinai", "I can hear zombies inside, I guess we can't help them.");
+			talk.add("Tolinai", "We'll go to the house on the left next.");
+			
+			//TODO: pos shouldve been outside south east house
+			Dialog d = new Dialog(0,0,50,50, "south east house?", talk, 0);
+			d.addTimeChange("south west house?");
+			
+			dialogs.add(d);
+		}
+		
+		
+		return dialogs;
 	}
 
 }

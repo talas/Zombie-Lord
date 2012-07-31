@@ -32,7 +32,28 @@ public class TimeTracker {
 	private String current;
 	
 	
+	/**
+	 * Checks if a specific event has already occured.
+	 * Note that the current event has "not already occured"
+	 * @param event to check for
+	 * @return boolean, true if event has occured, false if event is current, next or later
+	 */
 	public boolean hasOccured(String event){
+		if(current.equals(event)){
+			return false; // its happening right now, hasnt already happened
+		}
+		
+		ListIterator<String> l = this.events.listIterator();
+		
+		while(l.hasNext()){
+			String s = l.next();
+			if(s.equals(this.current)){
+				return false;
+			}
+			if(s.equals(event)){
+				return true;
+			}
+		}
 		return false;
 	}
 	
