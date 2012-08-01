@@ -71,10 +71,12 @@ public class HomeTownNight extends HomeTown {
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(zombie1);
+			setup1.exp = 1;
 			
 			MonsterSetup setup2 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup2.appendMonster(zombie1);
 			setup2.appendMonster(zombie2);
+			setup2.exp = 5;
 			
 			area.addMonsterSetup(setup1, 0.7f);
 			area.addMonsterSetup(setup2, 0.3f);
@@ -131,8 +133,8 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			talk.add("Leoric", "It's barricaded..");
-			talk.add("Tolinai", "I can hear zombies inside, I guess we can't help them.");
-			talk.add("Tolinai", "We'll go to the house on the left next.");
+			talk.add("Tolinai", "I can hear zombies     inside, I guess we can't help them.");
+			talk.add("Tolinai", "We'll go to the house  on the left next.");
 			
 			Dialog d = new Dialog(2960,3130,1310,1329, "south east house?", talk, 0);
 			d.addTimeChange("south west house?");
@@ -155,18 +157,16 @@ public class HomeTownNight extends HomeTown {
 		{ // talk when entering west house
 			TalkScript talk = new TalkScript();
 			
-			//TODO: pos shouldve been outside house
-			Dialog d = new Dialog(2660,2675,1440,1453, "west house?", talk, 0);
+			Dialog d = new Dialog(2660,2680,1440,1459, "west house?", talk, 0);
 			d.addTimeChange("west house!");
-			d.addLevelTransfer(new WestHouse(), 337, 52, ZombieLord.DIR_NORTH);
+			d.addLevelTransfer(new WestHouse(), 205, 126, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);
 		}
 		{ // talk when entering mayors house
 			TalkScript talk = new TalkScript();
 			
-			Dialog d = new Dialog(2670,2687,1463,1475, "mayors house?", talk, 0);
-			d.addTimeChange("mayors house!");
+			Dialog d = new Dialog(2070,2097,1530,1559, "mayors house?", talk, 0);
 			d.addLevelTransfer(new MayorHouse(), 337, 52, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);

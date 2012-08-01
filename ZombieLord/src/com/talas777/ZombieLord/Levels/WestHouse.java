@@ -20,6 +20,10 @@ import java.util.LinkedList;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Level;
@@ -35,13 +39,12 @@ public class WestHouse extends Level {
 	@Override
 	public String getBackground() {
 		// TODO Auto-generated method stub
-		return "prerenders/westhouse.png";
+		return "hometown/westhouse.png";
 	}
 
 	@Override
 	public Sprite background(Texture t) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Sprite(t, 0, 0, 512, 512);
 	}
 
 	@Override
@@ -52,8 +55,20 @@ public class WestHouse extends Level {
 
 	@Override
 	public void applyCollisionBoundaries(World world, float pixels_per_meter) {
-		// TODO Auto-generated method stub
+		BodyDef groundBodyDef = new BodyDef();
+		groundBodyDef.type = BodyDef.BodyType.StaticBody;
+		Body groundBody = world.createBody(groundBodyDef);
+		{ // table and chairs
+			ChainShape environmentShape = new ChainShape();
+			
+			Vector2[] vertices = vectorize(
+					new float[]{171,171,14,14,43,43,76,80,105,111,133,131,80,76,18,16,168,170,205,207,306,300,360,358,394,396,363,360,244,247,323,331,239,239},
+					new float[]{80,97,97,219,219,134,134,157,157,187,187,265,265,314,314,403,403,382,382,412,412,318,317,398,398,160,160,237,237,158,156,97,96,80});
 
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
 	}
 
 	@Override
@@ -81,7 +96,7 @@ public class WestHouse extends Level {
 		{
 			TalkScript talk = new TalkScript();
 			talk.add("Leoric", "Nobody?");
-			talk.add("Tolinai", "They must be hiding at the Mayors house west of here. Let's go there!");
+			talk.add("Tolinai", "They must be hiding at the Mayors house west of here.  Let's go there!");
 			
 			Dialog d = new Dialog(0,770,170,300, "west house!", talk, 0);
 			d.addTimeChange("mayors house?");
@@ -94,10 +109,10 @@ public class WestHouse extends Level {
 			
 
 			
-			Dialog d = new Dialog(303,334,48,62, "mayors house?", talk, 0);
+			Dialog d = new Dialog(171,239,62,96, "mayors house?", talk, 0);
 
 
-			d.addLevelTransfer(new HomeTownNight(), 2800, 1116, ZombieLord.DIR_SOUTH);
+			d.addLevelTransfer(new HomeTownNight(), 2672, 1429, ZombieLord.DIR_SOUTH);
 			
 			dialogs.add(d);
 		}

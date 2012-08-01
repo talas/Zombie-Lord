@@ -35,6 +35,16 @@ public class Party {
 	public boolean hasCombatItem(){
 		return false; // TODO: actually, we have no items at all..
 	}
+	
+	public void addExperience(int ammount){
+		if(ammount == 0)
+			return; // Dont bother me!
+		for(PartyMember active : activeMembers){
+			if(active.getHealth() > 0){ //only people who survived get xp...
+				active.addExperience(ammount);
+			}
+		}
+	}
 
 	
 	public void addMember(PartyMember member){

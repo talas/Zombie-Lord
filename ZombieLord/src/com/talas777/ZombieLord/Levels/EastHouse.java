@@ -114,6 +114,7 @@ public class EastHouse extends Level {
 			zombie2.addCombatAction(ZombieLord.bite);
 			setup.appendMonster(zombie1);
 			setup.appendMonster(zombie2);
+			setup.exp = 25;
 			
 			d.addFight(setup);
 			//d.addLevelTransfer(new HomeTownNight(), 2928, 1388, ZombieLord.DIR_SOUTH);
@@ -124,7 +125,7 @@ public class EastHouse extends Level {
 		{
 			TalkScript talk = new TalkScript();
 			
-			talk.add("Tolinai","Let's go to the house south of here next.");
+			talk.add("Tolinai","Let's go to the house  south of here next.");
 			
 			Dialog d = new Dialog(223,256,103,123, "leave east house", talk, 0);
 			d.addTimeChange("south east house?");

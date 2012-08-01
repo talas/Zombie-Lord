@@ -39,7 +39,7 @@ public class MayorHouse extends Level {
 	@Override
 	public String getBackground() {
 		// TODO Auto-generated method stub
-		return "mayorhouse";
+		return "hometown/mayorhouse.png";
 	}
 
 	@Override
@@ -137,6 +137,7 @@ public class MayorHouse extends Level {
 			setup.appendMonster(zombie2);
 			setup.appendMonster(zombie3);
 			setup.appendMonster(zombie4);
+			setup.exp = 100;
 			
 			d.addFight(setup);
 			
@@ -145,27 +146,28 @@ public class MayorHouse extends Level {
 		
 		{
 			TalkScript talk = new TalkScript();
-			talk.add("Leoric", "Theres som many!");
+			talk.add("Leoric", "Theres so many!");
 			talk.add("Tolinai", "We have to get out of here!");
 			
-			Dialog d = new Dialog(0,770,170,300, "mayors house!", talk, 0);
+			Dialog d = new Dialog(0,900,0,900, "mayors house!", talk, 0);
 			d.addTimeChange("leave mayors house");
+			d.addLevelTransfer(new HomeTownNight(), 2093, 1521, ZombieLord.DIR_SOUTH);
 			
 			dialogs.add(d);
 		}
 		
-		{
+		/*{
 			TalkScript talk = new TalkScript();
 			
 
 			
-			Dialog d = new Dialog(303,334,48,62, "leave mayors house", talk, 0);
+			Dialog d = new Dialog(292,376,2,31, "leave mayors house", talk, 0);
 
 
-			d.addLevelTransfer(new HomeTownNight(), 2800, 1116, ZombieLord.DIR_SOUTH);
+			d.addLevelTransfer(new HomeTownNight(), 2093, 1521, ZombieLord.DIR_SOUTH);
 			
 			dialogs.add(d);
-		}
+		}*/
 		
 		
 		

@@ -30,8 +30,10 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -49,6 +51,7 @@ import com.badlogic.gdx.utils.Array;
 public class ZombieLord implements ApplicationListener {
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
+	private SpriteBatch fontBatch;
 	//private Texture texture;
 	private Texture texture2;
 	//private Sprite sprite;
@@ -74,6 +77,14 @@ public class ZombieLord implements ApplicationListener {
 	
 	public int camMinX = 0;
 	public int camMaxX = 0;
+	
+	public float nextCombat = 0;
+	
+	//TextureAtlas fontAtlas;
+	BitmapFont font;
+	
+	private String curSentence = null;
+	private String curSpeaker = null;
 	
 	
 	public static final int DIR_SOUTH = 1;
@@ -114,6 +125,11 @@ public class ZombieLord implements ApplicationListener {
 	
 	public Sound hitSound;
 	
+	/**
+	 * Zombie bite sound
+	 */
+	public Sound biteSound;
+	
 	public TimeTracker timeTracker;
 	
 	private LinkedList<MonsterArea> activeMonsterAreas;
@@ -121,6 +137,12 @@ public class ZombieLord implements ApplicationListener {
 	private LinkedList<Dialog> activeDialogs;
 	
 	public Dialog currentDialog;
+	public float dialogWait = 0;
+	/**
+	 * used to let new levels load before starting dialogs..
+	 * otherwise things will get quite clunky
+	 */
+	public float levelLoadGraceTime = 0;
 	
 
 	
@@ -261,9 +283,17 @@ public class ZombieLord implements ApplicationListener {
 		camera = new OrthographicCamera(w, h);
 		camera.position.set(0, 0, 0);
 		batch = new SpriteBatch();
+		fontBatch = new SpriteBatch();
 		drawSprites = new LinkedList<Sprite>();
 		
 
+		// Load up the font
+		
+		//fontAtlas = new TextureAtlas("data");
+		font = new BitmapFont(Gdx.files.internal("data/fonts/PressStart2P/PressStart2P.fnt"),false);
+		//fontAtlas.findRegion("PressStart2P"), false);
+		
+		
 		
 		party = new Party();
 		
@@ -299,7 +329,7 @@ public class ZombieLord implements ApplicationListener {
 		timeTracker.addEvent("left hometown");
 		
 		
-		timeTracker.setTime("left hometown"); // TODO: remove debug test
+		
 		
 		
 		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
@@ -321,15 +351,20 @@ public class ZombieLord implements ApplicationListener {
 		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0); // Female, rogue
 		Kuriko.addCombatAction(punch);
 		
+		loadLevel(new Church(),522,414,1);// church the real start point
+		
 		/*
 		this.addMember(new PartyMember(2,"Bert",50,50,10,10,0)); // Male, archer
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		//loadLevel(new HomeTownNight(),1775,305,1); //hometown night
-		//loadLevel(new Church(),522,414,1);// church the real start point
+		loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
+		party.addMember(Tolinai); // TODO: remove this!!
+		timeTracker.setTime("start"); // TODO: remove debug test
 		
-		loadLevel(new SecondTown(),117,1949,1);// second town
+		
+		//loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
+		//loadLevel(new SecondTownInn1(),177,1814,this.DIR_NORTH);// second town inn
 		
 		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
 		
@@ -351,7 +386,6 @@ public class ZombieLord implements ApplicationListener {
 		
 		//loadCombat(4,area);
 
-		// uncomment to enable box2d debug render mode, MAJOR SLOWDOWN! 
 		debugRenderer = new Box2DDebugRenderer();
 		
 		
@@ -374,6 +408,7 @@ public class ZombieLord implements ApplicationListener {
 	@Override
 	public void dispose() {
 		batch.dispose();
+		fontBatch.dispose();
 		backgroundTexture.dispose();
 		//texture.dispose();
 		texture2.dispose();
@@ -402,6 +437,8 @@ public class ZombieLord implements ApplicationListener {
 			
 			foreground = level.foreground(foregroundTexture);
 		}
+		
+		this.levelLoadGraceTime = 0.5f;
 		
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
 		
@@ -619,17 +656,32 @@ public class ZombieLord implements ApplicationListener {
 		
 		if(gameMode == 7){
 			// a Dialog is active;
-			if(this.currentDialog.hasNextUtterance()){
+			if(this.dialogWait > 0){
+				dialogWait -= Gdx.graphics.getDeltaTime();
+			}
+			else if(this.currentDialog.hasNextUtterance()){
 				//TODO: this has to be done more nicely somehow..
+				
 				Utterance u = this.currentDialog.getNextUtterance();
 				
 				System.out.print(u.speaker+": ");
 				System.out.println(u.sentence);
+				
+				this.curSpeaker = u.speaker;
+				this.curSentence = u.sentence;
+
+				dialogWait = (u.sentence.length()*0.07f); // TODO: hum hum
+				if(dialogWait < 1)
+					dialogWait = 1;
+
+				
 			}
 			else {
 				// apply secondary effects and change gameMode back to whatever normal is
 				// TODO: would be nice if dialogs could be had inside combat also..
 				// but not strictly required.
+				this.curSpeaker = null;
+				this.curSentence = null;
 				
 				if(this.currentDialog.getTimeChange() != null){
 					this.timeTracker.setTime( this.currentDialog.getTimeChange()  );
@@ -763,11 +815,8 @@ public class ZombieLord implements ApplicationListener {
 			camera.position.y = leoricSprite.getY()+16;
 			
 			
-			
-			// TODO: check if player has entered some interesting area
-			
-			if(left || right || up || down){
-				// Only attract monsters when moving
+			if((left || right || up || down) && this.levelLoadGraceTime <= 0){
+				// Only attract monsters and dialogs when moving
 				
 				if(this.activeDialogs != null && this.activeDialogs.size() > 0){
 					for(Dialog d : activeDialogs){
@@ -794,28 +843,36 @@ public class ZombieLord implements ApplicationListener {
 				
 				if(this.activeMonsterAreas != null && this.activeMonsterAreas.size() > 0){
 					
-						
-					for(MonsterArea area : activeMonsterAreas){
-						// check if player is inside it
-						if(area.isInside((int)posx, (int)posy)){
-							
-							// roll a dice to find out if the player should be attacked.
-							float num = (float)Math.random();
-							
-							//if(Math.random()*100>90)
-								//System.out.println(num+" v.s. "+area.encounterChance);
-							
-							if(num < area.encounterChance){
-								// we have a winner..
-								this.loadCombat(area);
-								return; // TODO: not sure if this is a good idea or bad
-								// either return or break..
+					if(this.nextCombat > 0){ // Try to limit how often you have to fight somewhat..
+						nextCombat -= Gdx.graphics.getDeltaTime();
+					}
+					else {
+						for(MonsterArea area : activeMonsterAreas){
+							// check if player is inside it
+							if(area.isInside((int)posx, (int)posy)){
+								
+								// roll a dice to find out if the player should be attacked.
+								float num = (float)Math.random();
+								
+								//if(Math.random()*100>90)
+									//System.out.println(num+" v.s. "+area.encounterChance);
+								
+								if(num < area.encounterChance){
+									// we have a winner..
+									nextCombat = 10f; // aprox 10 seconds to next fight?
+									this.loadCombat(area);
+									return; // TODO: not sure if this is a good idea or bad
+									// either return or break..
+								}
+								
 							}
 							
 						}
-						
 					}
 				}
+			}
+			else if(this.levelLoadGraceTime > 0){
+				this.levelLoadGraceTime -= Gdx.graphics.getDeltaTime();
 			}
 			
 			
@@ -918,11 +975,16 @@ public class ZombieLord implements ApplicationListener {
 				}
 				drawSprites.clear();
 				
+				//TODO: display some info about the fight..
+				//TODO: give items and stuffs
+				party.addExperience(currentCombat.setup.exp);
+				
 				currentCombat.cleanUp();
 				currentCombat = null;
 				waitTime = 10f;
 				waiting = true;
-				//TODO: display some info about the fight..
+				
+				
 				
 				this.backgroundTexture = new Texture(Gdx.files.internal("data/victory.png"));
 				this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
@@ -1113,10 +1175,45 @@ public class ZombieLord implements ApplicationListener {
 		for(Sprite s : drawSprites)
 		 s.draw(batch);
 		
+		
+		
+
+		
+		
 		if(gameMode == 0 && this.foreground != null) // drawing foreground last = ontop of everything else
 			foreground.draw(batch);
 		
 		batch.end();
+		
+		if(gameMode == 7 && this.curSpeaker != null){
+			fontBatch.begin();
+			// Ongoing dialog, draw the talkstuffs
+			
+			int length = this.curSpeaker.length()+2+this.curSentence.length();
+			float cposx = w/2;
+			float cposy = h/2;
+			if(length > 32){
+				// needs to be split
+				int remain = length;
+				int num = 0;
+				int start = 0;
+
+				while(remain > 0){
+					int printed = Math.min(32, remain);
+					
+					font.draw(fontBatch, this.curSpeaker+": "+this.curSentence, cposx-w/2+(num==0?0:30), cposy+h/2-h/4-(num*16), start, start+printed);
+					remain -= printed;
+					start += printed;
+					num ++;
+				}
+			}
+			else {
+				// print everything in one go
+				font.draw(fontBatch, this.curSpeaker+": "+this.curSentence, cposx-w/2, cposy+h/2-h/4);
+			}
+			fontBatch.end();
+			
+		}
 		
 		if(debug && world != null && debugRenderer != null)
 			debugRenderer.render(world, camera.combined.scale(

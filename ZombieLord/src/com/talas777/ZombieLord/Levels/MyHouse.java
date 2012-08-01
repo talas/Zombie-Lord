@@ -99,16 +99,16 @@ public class MyHouse extends Level {
 			
 			talk.add("Tolinai", "Oh, Leoric you're back. Thank goodness you are safe!");
 			talk.add("Leoric", "Honey, what's going on? I can't remember anything!");
-			talk.add("Tolinai", "But, you remember me right?");
+			talk.add("Tolinai", "But, you remember me   right?");
 			talk.add("Leoric", "Yes...  ..");
 			talk.add("Tolinai", "That's good, you almost had me worried there.");
-			talk.add("Leoric", "Why is there nobody outside? It seemed so empty out there.");
-			talk.add("Tolinai", "Rumor has it that a Zombie Lord is coming to destroy the village. Everyone is hiding.");
+			talk.add("Leoric", "Why is there nobody     outside? It seemed so empty out there.");
+			talk.add("Tolinai", "Rumor has it that      Zombies are coming to destroy   the village. Everyone is hiding.");
 			talk.add("Leoric", "We must do something!");
-			talk.add("Tolinai", "Are you sure you are ready to fight?");
-			talk.add("Leoric", "Yes, but will you help me with your magic?");
-			talk.add("Tolinai", "Of course! It will be just like old times.");
-			talk.add("Tolinai", "Here, take your sword. I have my staff ready. Lets go to each house and help fend off the zombies!");
+			talk.add("Tolinai", "Are you sure you are   ready to fight?");
+			talk.add("Leoric", "Yes, but will you help  me with your magic?");
+			talk.add("Tolinai", "Of course! It will be  just like old times.");
+			talk.add("Tolinai", "Here, take your sword. I have my staff ready. Lets go  to each house and help fend off the zombies!");
 			
 			Dialog d = new Dialog(469,567,297,398, "talk with gf", talk, 0);
 			d.addTimeChange("leave home");

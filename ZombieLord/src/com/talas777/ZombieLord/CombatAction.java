@@ -34,6 +34,8 @@ public class CombatAction {
 	public static final int TARGET_ALL = 8;
 	public static final int TARGET_ALL_OTHER = 9;
 	
+	public boolean isDistanceAttack = false;
+	
 	public String name;
 	public String description;
 	

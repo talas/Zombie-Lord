@@ -147,7 +147,8 @@ public abstract class Combatant {
 		if(state == this.movedAhead)
 			return; // already moved, do nothing
 		else {
-			int movePixels = 200;
+			//int movePixels = 200;
+			int movePixels = 90;
 			if((state && this instanceof Monster) || (!state && this instanceof PartyMember)){ // move left
 				// I'm a little ashamed of this strange method
 				movePixels *= -1;

@@ -116,6 +116,7 @@ public class SouthWestHouse extends Level {
 			zombie1.addCombatAction(ZombieLord.bite);
 
 			setup.appendMonster(zombie1);
+			setup.exp = 10;
 
 			
 			d.addFight(setup);

@@ -21,6 +21,8 @@ import java.util.LinkedList;
 public class MonsterSetup {
 	//TODO: MonsterSetup, loot, gold, dialog, ++
 	
+	public int exp;
+	
 	private int formation;
 	
 	/**
