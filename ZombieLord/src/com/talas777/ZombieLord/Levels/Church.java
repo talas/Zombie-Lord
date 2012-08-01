@@ -118,4 +118,10 @@ public class Church extends Level {
 		return dialogs;
 	}
 
+	@Override
+	public Sprite foreground(Texture t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

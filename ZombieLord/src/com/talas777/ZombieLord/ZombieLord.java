@@ -58,6 +58,7 @@ public class ZombieLord implements ApplicationListener {
 	private float h;
 	private Sprite background;
 	private Texture backgroundTexture;
+	private Sprite foreground;
 	public Sprite mover;
 	public float moverTimer = 0;
 	//private Sprite collisionLayer;
@@ -67,6 +68,13 @@ public class ZombieLord implements ApplicationListener {
 	public float stillTime = 0;
 	public int lastDirection = 0;
 	public float waitTime = 0;
+	
+	public int camMinY = 0;
+	public int camMaxY = 0;
+	
+	public int camMinX = 0;
+	public int camMaxX = 0;
+	
 	
 	public static final int DIR_SOUTH = 1;
 	public static final int DIR_NORTH = 0;
@@ -162,6 +170,10 @@ public class ZombieLord implements ApplicationListener {
 		this.fallingTexture = null;
 		for(Sprite s : drawSprites){
 			s.getTexture().dispose();
+		}
+		if(this.foreground != null){
+			this.foreground.getTexture().dispose();
+			this.foreground = null;
 		}
 		this.drawSprites.clear();
 		this.waitTime = 5;
@@ -287,7 +299,7 @@ public class ZombieLord implements ApplicationListener {
 		timeTracker.addEvent("left hometown");
 		
 		
-		//timeTracker.setTime("east house"); // TODO: remove debug test
+		timeTracker.setTime("left hometown"); // TODO: remove debug test
 		
 		
 		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
@@ -315,8 +327,9 @@ public class ZombieLord implements ApplicationListener {
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
 		//loadLevel(new HomeTownNight(),1775,305,1); //hometown night
-		loadLevel(new Church(),522,414,1);// church
+		//loadLevel(new Church(),522,414,1);// church the real start point
 		
+		loadLevel(new SecondTown(),117,1949,1);// second town
 		
 		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
 		
@@ -377,10 +390,25 @@ public class ZombieLord implements ApplicationListener {
 		//backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
 		backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getBackground()));
 		
-		if(level.getForeground() != null){
-			//TODO: foreground if available..
+		if(this.foreground != null){
+			this.foreground.getTexture().dispose();
+			this.foreground = null;
 		}
+		
+		if(level.getForeground() != null){
+			
+			// Level has a foreground image
+			Texture foregroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getForeground()));
+			
+			foreground = level.foreground(foregroundTexture);
+		}
+		
 		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
+		
+		this.camMinX = level.getCamMinX();
+		this.camMaxX = level.getCamMaxX();
+		this.camMinY = level.getCamMinY();
+		this.camMaxY = level.getCamMaxY();
 		
 		this.posx = posx;
 		this.posy = posy;
@@ -792,7 +820,7 @@ public class ZombieLord implements ApplicationListener {
 			
 			
 			if(Gdx.input.isKeyPressed(Keys.B)){
-				System.out.println("position: x="+posx+", y="+posy+", time="+timeTracker.getTime());
+				System.out.println("position: x="+posx+", y="+posy+", time="+timeTracker.getTime() + ", cam:["+camera.position.x+","+camera.position.y+"].");
 			}
 			
 			if(Gdx.input.isKeyPressed(Keys.D)){
@@ -801,15 +829,16 @@ public class ZombieLord implements ApplicationListener {
 			}
 			
 			
-			if(camera.position.y <= h/2)
-				camera.position.y = h/2+1;
-			else if(camera.position.y >= 3200-h/2)
-				camera.position.y = 3200-h/2-1;
+			// Keep the camera inside the level..
+			if(camera.position.y <= h/2+this.camMinY)
+				camera.position.y = h/2+1+this.camMinY;
+			else if(camera.position.y >= this.camMaxY-h/2)
+				camera.position.y = this.camMaxY-h/2-1;
 			
-			if(camera.position.x <= w/2)
-				camera.position.x = w/2+1;
-			else if(camera.position.x >= 3200-w/2)
-				camera.position.x = 3200-w/2-1;
+			if(camera.position.x <= w/2+this.camMinX)
+				camera.position.x = w/2+1+this.camMinX;
+			else if(camera.position.x >= this.camMaxX-w/2)
+				camera.position.x = this.camMaxX-w/2-1;
 			
 			camera.update();
 			
@@ -1083,6 +1112,10 @@ public class ZombieLord implements ApplicationListener {
 		batch.begin();
 		for(Sprite s : drawSprites)
 		 s.draw(batch);
+		
+		if(gameMode == 0 && this.foreground != null) // drawing foreground last = ontop of everything else
+			foreground.draw(batch);
+		
 		batch.end();
 		
 		if(debug && world != null && debugRenderer != null)

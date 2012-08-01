@@ -140,4 +140,10 @@ public class EastHouse extends Level {
 		return dialogs;
 	}
 
+	@Override
+	public Sprite foreground(Texture t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

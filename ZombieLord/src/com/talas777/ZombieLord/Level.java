@@ -40,6 +40,21 @@ public abstract class Level {
 	 */
 	public abstract String getForeground();
 	
+	public abstract Sprite foreground(Texture t);
+	
+	public int getCamMinY(){
+		return 0;
+	}
+	public int getCamMaxY(){
+		return 3200;
+	}
+	public int getCamMinX(){
+		return 0;
+	}
+	public int getCamMaxX(){
+		return 3200;
+	}
+	
 	/**
 	 * Adds all the collision boundaries to the given box2d World
 	 * @param world

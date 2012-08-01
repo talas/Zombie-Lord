@@ -304,4 +304,10 @@ public class HomeTown extends Level {
 		return null;
 	}
 
+	@Override
+	public Sprite foreground(Texture t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
