@@ -16,6 +16,8 @@
 
 package com.talas777.ZombieLord;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
+
 public class CombatAction {
 
 	/*
@@ -44,6 +46,11 @@ public class CombatAction {
 	
 	public int hpCost;
 	public int mpCost;
+	
+	/**
+	 * A sprite that will be overlayed those that are affected by the action
+	 */
+	public Sprite overlaySprite;
 	
 	/**
 	 * Can be negative to deal damage, or positive to heal.

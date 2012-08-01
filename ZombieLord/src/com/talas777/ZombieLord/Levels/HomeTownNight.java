@@ -91,14 +91,10 @@ public class HomeTownNight extends HomeTown {
 	public LinkedList<Dialog> getLevelDialogs() {
 		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
 
-		// TODO: dialogs needed here?
-		
-		//TODO: find real positions..
 		
 		{ // entering myhouse the first time
 			TalkScript talk = new TalkScript();
 			
-			//TODO: pos shouldve been outside myhouse
 			Dialog d = new Dialog(2913,2942,1416,1430, "start", talk, 0);
 			d.addTimeChange("talk with gf");
 			d.addLevelTransfer(new MyHouse(), 448, 220, ZombieLord.DIR_NORTH);
@@ -133,7 +129,7 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			talk.add("Leoric", "It's barricaded..");
-			talk.add("Tolinai", "I can hear zombies     inside, I guess we can't help them.");
+			talk.add("Tolinai", "I can hear zombies     inside, I guess we can't help   them.");
 			talk.add("Tolinai", "We'll go to the house  on the left next.");
 			
 			Dialog d = new Dialog(2960,3130,1310,1329, "south east house?", talk, 0);
@@ -175,7 +171,7 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			talk.add("Leoric", "What do we do now?");
-			talk.add("Tolinai", "There are still hordes of zombies coming, we have to flee the town!");
+			talk.add("Tolinai", "There are still hordes of zombies coming, we have to   flee the town!");
 			
 			Dialog d = new Dialog(0,3200,0,3200, "leave mayors house", talk, 0);
 			d.addTimeChange("leave hometown");
@@ -185,8 +181,10 @@ public class HomeTownNight extends HomeTown {
 		{ // exit the town
 			TalkScript talk = new TalkScript();
 			
-			Dialog d = new Dialog(2670,2687,1463,1475, "leave hometown", talk, 0);
+			Dialog d = new Dialog(2190,2500,0,17, "leave hometown", talk, 0);
 			d.addTimeChange("left hometown");
+			d.addLevelTransfer(new SecondTown(), 117,1949, ZombieLord.DIR_SOUTH);
+			
 			
 			dialogs.add(d);
 		}

@@ -12,7 +12,9 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Level;
 import com.talas777.ZombieLord.MonsterArea;
+import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
+import com.talas777.ZombieLord.ZombieLord;
 
 public class SecondTown extends Level {
 
@@ -239,8 +241,18 @@ public class SecondTown extends Level {
 
 	@Override
 	public LinkedList<Dialog> getLevelDialogs() {
-		// TODO Auto-generated method stub
-		return null;
+		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
+
+		
+		{ // entering inn
+			TalkScript talk = new TalkScript();
+			
+			Dialog d = new Dialog(895,930,1794,1805, "start", "THE END", talk, 0);
+			d.addLevelTransfer(new SecondTownInn1(), 177,1814, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		return dialogs;
 	}
 
 	@Override

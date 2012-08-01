@@ -43,8 +43,8 @@ public class Dialog {
 	
 	private final ListIterator<Utterance> iter;
 	
-	private LinkedList<PartyMember> joins;
-	private LinkedList<PartyMember> quits;
+	private final LinkedList<PartyMember> joins;
+	private final LinkedList<PartyMember> quits;
 	
 	public LinkedList<PartyMember> getMemberJoins(){
 		return joins;
@@ -122,6 +122,8 @@ public class Dialog {
 		
 		this.button = button;
 		this.iter = talk.getTalk().listIterator();
+		this.joins = new LinkedList<PartyMember>();
+		this.quits = new LinkedList<PartyMember>();
 	}
 	
 	/**
@@ -135,21 +137,7 @@ public class Dialog {
 	 * @param button
 	 */
 	public Dialog(int minx, int maxx, int miny, int maxy, String time, TalkScript talk, int button){
-		this.minx = minx;
-		this.maxx = maxx;
-		this.miny = miny;
-		this.maxy = maxy;
-
-		
-		this.minTime = time;
-		this.maxTime = time;
-		
-		this.talkScript = talk;
-		
-		this.button = button;
-		this.iter = talk.getTalk().listIterator();
-		this.joins = new LinkedList<PartyMember>();
-		this.quits = new LinkedList<PartyMember>();
+		this(minx, maxx, miny, maxy, time, time, talk, button);
 	}
 	
 	public void addFight(MonsterSetup setup){

@@ -328,7 +328,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		timeTracker.addEvent("left hometown");
 		
-		
+		timeTracker.addEvent("THE END"); // Keep this last or bugs be onto ye!
 		
 		
 		
@@ -358,12 +358,12 @@ public class ZombieLord implements ApplicationListener {
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
+		//loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
 		party.addMember(Tolinai); // TODO: remove this!!
-		timeTracker.setTime("start"); // TODO: remove debug test
+		timeTracker.setTime("left hometown"); // TODO: remove debug test
 		
 		
-		//loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
+		loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
 		//loadLevel(new SecondTownInn1(),177,1814,this.DIR_NORTH);// second town inn
 		
 		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);

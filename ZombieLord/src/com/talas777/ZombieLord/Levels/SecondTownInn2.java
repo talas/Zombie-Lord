@@ -16,33 +16,18 @@ import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
 import com.talas777.ZombieLord.ZombieLord;
 
-/**
- * First floor of the inn in the second town
- * @author talas
- *
- */
-public class SecondTownInn1 extends Level {
+public class SecondTownInn2 extends Level {
 
 	@Override
 	public String getBackground() {
-		return "secondtown/st-inn-1.png";
+		return "secondtown/st-inn-2.png";
 	}
 
 	@Override
 	public Sprite background(Texture t) {
 		return new Sprite(t, 0, 0, 2048, 2048);
 	}
-
-	@Override
-	public String getForeground() {
-		return "secondtown/st-inn-1-foreground.png";
-	}
-
-	@Override
-	public Sprite foreground(Texture t) {
-		return new Sprite(t, 0, 0, 2048, 2048);
-	}
-
+	
 	@Override
 	public int getCamMaxY(){
 		return 2046;
@@ -59,18 +44,41 @@ public class SecondTownInn1 extends Level {
 	}
 
 	@Override
+	public String getForeground() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Sprite foreground(Texture t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public void applyCollisionBoundaries(World world, float pixels_per_meter) {
 		BodyDef groundBodyDef = new BodyDef();
 		groundBodyDef.type = BodyDef.BodyType.StaticBody;
 		Body groundBody = world.createBody(groundBodyDef);
-		{ // everything
+		{ // borders
 			ChainShape environmentShape = new ChainShape();
 			
 			Vector2[] vertices = vectorize(
-					new float[]{136,136,30,30,8,8,32,32,34,34,62,62,64,64,98,98,142,142,320,320,384,384,457,457,423,423,457,457,423,423,457,457,423,423,457,457,423,423,461,461,632,632,360,360,217,217},
-					new float[]{1782,1790,1790,1828,1828,1954,1954,1893,1893,1950,1950,1893,1893,1954,1954,1935,1935,1878,1878,1924,1924,1957,1957,1918,1918,1890,1890,1854,1854,1795,1795,1726,1726,1635,1635,1598,1598,1541,1541,1501,1501,1439,1439,1790,1790,1782});
+					new float[]{8,8,386,386,413,413,439,439,631,631,359,359},
+					new float[]{1792,1952,1952,1936,1936,1953,1953,1737,1737,1696,1696,1791});
 
 			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // stairs
+			ChainShape environmentShape = new ChainShape();
+			
+			Vector2[] vertices = vectorize(
+					new float[]{63,63,33,33},
+					new float[]{1919,1857,1857,1919});
+
+			environmentShape.createChain(vertices);
 			groundBody.createFixture(environmentShape, 0);
 			environmentShape.dispose();
 		}
@@ -97,25 +105,14 @@ public class SecondTownInn1 extends Level {
 
 	@Override
 	public LinkedList<Dialog> getLevelDialogs() {
-		// TODO Auto-generated method stub
 		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
 
 		
-		{ // leaving inn
+		{ // go back downstairs
 			TalkScript talk = new TalkScript();
 			
-			Dialog d = new Dialog(136,217,1770,1793, "start", "THE END", talk, 0);
-			d.addLevelTransfer(new SecondTown(), 913, 1766, ZombieLord.DIR_SOUTH);
-			
-			dialogs.add(d);
-		}
-		
-		{ // second floor
-			TalkScript talk = new TalkScript();
-			
-			// return address (if undeliverable: 48, 1911)
-			Dialog d = new Dialog(47,50,1936,1950, "start", "THE END", talk, 0);
-			d.addLevelTransfer(new SecondTownInn2(), 48,1931, ZombieLord.DIR_NORTH);
+			Dialog d = new Dialog(42,57,1880,1890, "start", "THE END", talk, 0);
+			d.addLevelTransfer(new SecondTownInn1(), 48,1911, ZombieLord.DIR_SOUTH);
 			
 			dialogs.add(d);
 		}

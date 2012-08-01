@@ -147,7 +147,7 @@ public class MayorHouse extends Level {
 		{
 			TalkScript talk = new TalkScript();
 			talk.add("Leoric", "Theres so many!");
-			talk.add("Tolinai", "We have to get out of here!");
+			talk.add("Tolinai", "We have to get out of  here!");
 			
 			Dialog d = new Dialog(0,900,0,900, "mayors house!", talk, 0);
 			d.addTimeChange("leave mayors house");
