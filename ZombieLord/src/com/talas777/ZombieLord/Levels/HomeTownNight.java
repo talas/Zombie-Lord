@@ -148,7 +148,7 @@ public class HomeTownNight extends HomeTown {
 
 			Dialog d = new Dialog(2790,2808,1125,1145, "south west house?", talk, 0);
 			d.addTimeChange("south west house!");
-			d.addLevelTransfer(new SouthWestHouse(), 337, 52, ZombieLord.DIR_NORTH);
+			d.addLevelTransfer(new SouthWestHouse(), 318, 87, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);
 		}
@@ -168,6 +168,25 @@ public class HomeTownNight extends HomeTown {
 			Dialog d = new Dialog(2670,2687,1463,1475, "mayors house?", talk, 0);
 			d.addTimeChange("mayors house!");
 			d.addLevelTransfer(new MayorHouse(), 337, 52, ZombieLord.DIR_NORTH);
+			
+			dialogs.add(d);
+		}
+		{ // talk when exiting mayors house
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Leoric", "What do we do now?");
+			talk.add("Tolinai", "There are still hordes of zombies coming, we have to flee the town!");
+			
+			Dialog d = new Dialog(0,3200,0,3200, "leave mayors house", talk, 0);
+			d.addTimeChange("leave hometown");
+			
+			dialogs.add(d);
+		}
+		{ // exit the town
+			TalkScript talk = new TalkScript();
+			
+			Dialog d = new Dialog(2670,2687,1463,1475, "leave hometown", talk, 0);
+			d.addTimeChange("left hometown");
 			
 			dialogs.add(d);
 		}

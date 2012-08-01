@@ -284,6 +284,8 @@ public class ZombieLord implements ApplicationListener {
 		
 		timeTracker.addEvent("leave hometown");
 		
+		timeTracker.addEvent("left hometown");
+		
 		
 		//timeTracker.setTime("east house"); // TODO: remove debug test
 		
@@ -793,6 +795,11 @@ public class ZombieLord implements ApplicationListener {
 				System.out.println("position: x="+posx+", y="+posy+", time="+timeTracker.getTime());
 			}
 			
+			if(Gdx.input.isKeyPressed(Keys.D)){
+				this.debug = ! this.debug;
+				System.out.println("debug :"+(this.debug?"On":"Off"));
+			}
+			
 			
 			if(camera.position.y <= h/2)
 				camera.position.y = h/2+1;
@@ -896,7 +903,9 @@ public class ZombieLord implements ApplicationListener {
 			}
 			
 			
-			if(!waiting){
+			if(!waiting || this.debug){
+				waiting = false;
+				waitTime = 0;
 				this.returnFromCombat();
 				return; // TODO: not sure if this is a good idea or bad
 			}
@@ -1036,6 +1045,12 @@ public class ZombieLord implements ApplicationListener {
 							
 							// TODO: some sort of graphical representation of the attack.. effects and such
 							myAction.caster.setMoveAhead(true);
+						}
+						if(this.debug){
+							// time to stop this nonsense!
+							for(Monster m : currentCombat.getLiveMonsters()){
+								m.health = 0;
+							}
 						}
 						
 						readyMember.actionTimer = readyMember.getBaseDelay()*(2f*Math.random());// TODO: randomize better?

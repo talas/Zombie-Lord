@@ -210,6 +210,74 @@ public class HomeTown extends Level {
 			groundBody.createFixture(environmentShape, 0);
 			environmentShape.dispose();
 		}
+		{ // border, fences, water
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+			new float[]{3197,1008,1008,950,942,916,910,910,910,980,980,950,950,1195,1360,1335,1423,1423,1477,1508,
+					1544,1545,1545,1480,1489,1469,1457,1457,1430,1325,1325,1354,1354,1298,1291,1291,1266,1262,1231,
+					1226,1226,1194,1113,1076,1075,1075,1041,1041, 915, 914, 897, 533, 533,1328,1328,1427,1454,1454,
+					1504,1539,1677,1759,1759,1654,1653,2357,2357,2700,2700,2796,2796,2755,2716,2715,2631,2587,2539,
+					2533,2533,2484,2467,2386,2377,2383,2382,3198},
+			new float[]{   1,   2,  82, 82,115,119,147,198,199,257,518,540,683, 687, 865, 911, 911, 978, 979,1012,
+					1012,1012,1041,1105,1153,1178,1209,1389,1406,1402,1342,1320,1241,1199,1147,1146,1133, 984, 969,
+					 921, 920, 888, 888, 922, 922,1006,1007, 980, 980, 980,1008,1019,1558,1576,1442,1442,1466,1535,
+					1584,1584,1714,1714,1781,1782,2888,2888,2922,2922,2728,2728,2377,2327,2327,2327,2232,2232,2172,
+					2137,2136,2128,2040,2035,1958,1938,1938,1467});
+			
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // water
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{1793,1793,1793,1835,1853,1910,1910,1876,1862,1845,1831},
+					new float[]{1712,1776,1777,1777,1809,1809,1778,1770,1743,1737,1716});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // stall1
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{2945,2945,3007,3007},
+					new float[]{885,1009,1009,885});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // stall2
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{3039,3039,3103,3104},
+					new float[]{887,1009,1009,888});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
+		{ // stall3
+			ChainShape environmentShape = new ChainShape();
+			
+
+			Vector2[] vertices = vectorize(
+					new float[]{3136,3136,3166,3167},
+					new float[]{888,976,976,888});
+
+			environmentShape.createLoop(vertices);
+			groundBody.createFixture(environmentShape, 0);
+			environmentShape.dispose();
+		}
 
 	}
 
