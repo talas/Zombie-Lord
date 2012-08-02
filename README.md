@@ -25,10 +25,11 @@ Java version 1.6 is required.
 
 To build, run ant in the desktop folder:  
 
-  $ cd ZombieLord-desktop  
+  $ cd ZombieLord-desktop
+  $ javac src/com/talas777/ZombieLord/Main.java -sourcepath src:../ZombieLord/src -d bin -classpath libs/*:../ZombieLord/libs/*
   $ ant
 
 then run the program like:  
 
-  $ java -jar bin/zombie-lord.jar
+  $ java -jar zombie-lord.jar
 

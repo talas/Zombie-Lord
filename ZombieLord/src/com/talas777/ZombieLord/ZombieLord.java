@@ -498,7 +498,7 @@ public class ZombieLord implements ApplicationListener {
 		//loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
 		//loadLevel(new SecondTownInn1(),177,1814,this.DIR_NORTH);// second town inn
 		
-		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
+		/*MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
 		
 		Monster troll = new Monster("Troll1","TrollOgre.png",5,100,15,3,1.25f);
 		Monster troll2 = new Monster("Troll2","TrollOgre.png",5,100,15,3,1.25f);
@@ -515,7 +515,7 @@ public class ZombieLord implements ApplicationListener {
 		twoTrolls.appendMonster(troll);
 		twoTrolls.appendMonster(troll2);
 		area.addMonsterSetup(twoTrolls, 0.7f);
-		
+		*/
 		//loadCombat(4,area);
 
 		debugRenderer = new Box2DDebugRenderer();
@@ -647,14 +647,18 @@ public class ZombieLord implements ApplicationListener {
 			this.moverTimer = 0.4f;
 		}
 		
-		if(this.timeTracker.hasOccured("left hometown")){
+		if(this.timeTracker.getTime().equals("left hometown")){
 			// second town
+			if(this.currentMusic != null)
+				this.currentMusic.stop();
 			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
 			this.currentMusic.setLooping(true);
 			this.currentMusic.play();
 		}
 		else if(this.timeTracker.getTime().equals("start")){
 			// inside hometown
+			if(this.currentMusic != null)
+				this.currentMusic.stop();
 			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Mark_Subbotin_-_Phoenix.ogg"));
 			this.currentMusic.setLooping(true);
 			this.currentMusic.play();

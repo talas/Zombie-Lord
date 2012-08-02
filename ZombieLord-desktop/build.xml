@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project ZombieLord-desktop with libraries in sub-folder">
+<project default="create_run_jar" name="Create Runnable Jar for Project ZombieLord-desktop with Jar-in-Jar Loader">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
+    
     <target name="create_run_jar">
         <jar destfile="zombie-lord.jar">
             <manifest>
-                <attribute name="Main-Class" value="com.talas777.ZombieLord.Main"/>
-                <attribute name="Class-Path" value=". zombie-lord_lib/gdx-backend-lwjgl.jar zombie-lord_lib/gdx-backend-lwjgl-natives.jar zombie-lord_lib/gdx-natives.jar zombie-lord_lib/bodyeditor-loader.jar zombie-lord_lib/gdx.jar zombie-lord_lib/tween-engine-api.jar"/>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="com.talas777.ZombieLord.Main"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ gdx-backend-lwjgl.jar gdx-backend-lwjgl-natives.jar gdx-natives.jar bodyeditor-loader.jar gdx.jar tween-engine-api.jar"/>
             </manifest>
-            <fileset dir="../ZombieLord-desktop/bin"/>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="bin"/>
+            <zipfileset dir="libs" includes="gdx-backend-lwjgl.jar"/>
+            <zipfileset dir="libs" includes="gdx-backend-lwjgl-natives.jar"/>
+            <zipfileset dir="libs" includes="gdx-natives.jar"/>
+	    <zipfileset dir="../ZombieLord-android/assets"/>
             <fileset dir="../ZombieLord/bin"/>
+            <zipfileset dir="../ZombieLord/libs" includes="bodyeditor-loader.jar"/>
+            <zipfileset dir="../ZombieLord/libs" includes="gdx.jar"/>
+            <zipfileset dir="../ZombieLord/libs" includes="tween-engine-api.jar"/>
         </jar>
-        <delete dir="bin/zombie-lord_lib"/>
-        <mkdir dir="bin/zombie-lord_lib"/>
-        <copy file="libs/gdx-backend-lwjgl.jar" todir="bin/zombie-lord_lib"/>
-        <copy file="libs/gdx-backend-lwjgl-natives.jar" todir="bin/zombie-lord_lib"/>
-        <copy file="libs/gdx-natives.jar" todir="bin/zombie-lord_lib"/>
-	<copy file="../ZombieLord/libs/bodyeditor-loader.jar" todir="bin/zombie-lord_lib"/>
-	<copy file="../ZombieLord/libs/gdx.jar" todir="bin/zombie-lord_lib"/>
-	<copy file="../ZombieLord/libs/tween-engine-api.jar" todir="bin/zombie-lord_lib"/>
     </target>
 </project>
