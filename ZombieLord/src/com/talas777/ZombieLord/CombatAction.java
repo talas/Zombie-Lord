@@ -16,6 +16,7 @@
 
 package com.talas777.ZombieLord;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class CombatAction {
@@ -48,9 +49,9 @@ public class CombatAction {
 	public int mpCost;
 	
 	/**
-	 * A sprite that will be overlayed those that are affected by the action
+	 * An image that will be overlaid those that are affected by the action
 	 */
-	public Sprite overlaySprite;
+	public Texture effect;
 	
 	/**
 	 * Can be negative to deal damage, or positive to heal.

@@ -177,9 +177,10 @@ public class Combat {
 		return false; // TODO: keep your zalbatrunk!
 	}
 	
-	public void applyAction(CurrentAction action){
+	public LinkedList<Combatant> applyAction(CurrentAction action){
 		if(action.action == null){
 			// no action == defend/wait
+			return null;
 		}
 		else {
 			
@@ -189,6 +190,8 @@ public class Combat {
 			LinkedList<Combatant> enemies = new LinkedList<Combatant>();
 			
 			LinkedList<Combatant> allies = new LinkedList<Combatant>();
+			
+			LinkedList<Combatant> affected = new LinkedList<Combatant>();
 			
 			if(action.caster instanceof Monster){
 				for(int i = 0; i < liveCombatants.size(); i++){
@@ -221,6 +224,7 @@ public class Combat {
 			case CombatAction.TARGET_ALLY_SINGLE:
 			case CombatAction.TARGET_ENEMY_SINGLE:
 				action.primaryTarget.health += damage;
+				affected.add(action.primaryTarget);
 				if(action.primaryTarget.health < 0)
 					action.primaryTarget.health = 0;
 				else if(action.primaryTarget.health > action.primaryTarget.health_max)
@@ -229,6 +233,7 @@ public class Combat {
 			case CombatAction.TARGET_ALL:
 				for(int i = 0; i < liveCombatants.size(); i++){
 					liveCombatants.get(i).health += damage;
+					affected.add(liveCombatants.get(i));
 					if(liveCombatants.get(i).health < 0)
 						liveCombatants.get(i).health = 0;
 					else if(liveCombatants.get(i).health > liveCombatants.get(i).health_max)
@@ -237,6 +242,7 @@ public class Combat {
 				break;
 			case CombatAction.TARGET_SELF:
 				action.caster.health += damage;
+				affected.add(action.caster);
 				if(action.caster.health < 0)
 					action.caster.health = 0;
 				else if(action.caster.health > action.caster.health_max)
@@ -246,6 +252,7 @@ public class Combat {
 				int numLive = liveCombatants.size();
 				int selected = (int)Math.floor(Math.random()*numLive);
 				liveCombatants.get(selected).health += damage;
+				affected.add(liveCombatants.get(selected));
 				if(liveCombatants.get(selected).health < 0)
 					liveCombatants.get(selected).health = 0;
 				else if(liveCombatants.get(selected).health > liveCombatants.get(selected).health_max)
@@ -256,6 +263,7 @@ public class Combat {
 					if(liveCombatants.get(i) == action.caster)
 						continue;
 					liveCombatants.get(i).health += damage;
+					affected.add(liveCombatants.get(i));
 					if(liveCombatants.get(i).health < 0)
 						liveCombatants.get(i).health = 0;
 					else if(liveCombatants.get(i).health > liveCombatants.get(i).health_max)
@@ -265,6 +273,7 @@ public class Combat {
 			case CombatAction.TARGET_ALLY_ALL:
 				for(int i = 0; i < allies.size(); i++){
 					allies.get(i).health += damage;
+					affected.add(allies.get(i));
 					if(allies.get(i).health < 0)
 						allies.get(i).health = 0;
 					else if(allies.get(i).health > allies.get(i).health_max)
@@ -274,6 +283,7 @@ public class Combat {
 			case CombatAction.TARGET_ENEMY_ALL:
 				for(int i = 0; i < enemies.size(); i++){
 					enemies.get(i).health += damage;
+					affected.add(enemies.get(i));
 					if(enemies.get(i).health < 0)
 						enemies.get(i).health = 0;
 					else if(enemies.get(i).health > enemies.get(i).health_max)
@@ -283,6 +293,7 @@ public class Combat {
 			case CombatAction.TARGET_ENEMY_RANDOM:
 				int sel = (int)Math.floor(Math.random()*enemies.size());
 				enemies.get(sel).health += damage;
+				affected.add(enemies.get(sel));
 				if(enemies.get(sel).health < 0)
 					enemies.get(sel).health = 0;
 				else if(enemies.get(sel).health > enemies.get(sel).health_max)
@@ -292,7 +303,7 @@ public class Combat {
 			
 			
 			action.caster.mana -= action.action.mpCost;// apply mpCost to caster (if any)
-		
+			return affected;
 		}
 	}
 	
@@ -434,9 +445,9 @@ public class Combat {
 				posx = (int)(w/2f+w/4f);
 			
 			if(monsterId == 0 || monsterId == 2) // first row
-				posy = (int)(w/4f+w/8f);
+				posy = (int)(h/2f+h/8f);
 			else
-				posy = (int)(w/6f);
+				posy = (int)(h/3f);
 			
 		}
 		else {

@@ -20,12 +20,6 @@ public class PartyMember extends Combatant{
 
 	public final int id;
 	
-	private long experience = 0;
-	private byte level = 1; // 127 = max, can loop! HAHA!! Negativ lvl 4 U:
-	
-	private int health = 100;
-	private int mana = 0;
-	
 	public static long getExperienceForLevel(int level){
 		return level*level;
 	}
@@ -40,9 +34,9 @@ public class PartyMember extends Combatant{
 	}
 	
 	public boolean addExperience(int exp){
-		experience += exp;
+		this.exp += exp;
 		boolean hasLevel = false;
-		while(experience > getExperienceForLevel(level+1)){
+		while(this.exp > getExperienceForLevel(level+1)){
 			// level up!
 			level++;
 			hasLevel = true;

@@ -1,3 +1,19 @@
+/* Zombie Lord - A story driven roleplaying game
+* Copyright (C) 2012  Talas (talas777@gmail.com)
+* 
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+* 
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+* 
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
 package com.talas777.ZombieLord.Levels;
 
 import java.util.LinkedList;
@@ -11,7 +27,9 @@ import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Level;
+import com.talas777.ZombieLord.Monster;
 import com.talas777.ZombieLord.MonsterArea;
+import com.talas777.ZombieLord.MonsterSetup;
 import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
 import com.talas777.ZombieLord.ZombieLord;
@@ -108,11 +126,68 @@ public class SecondTownInn2 extends Level {
 		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
 
 		
-		{ // go back downstairs
+		/*{ // go back downstairs
 			TalkScript talk = new TalkScript();
 			
 			Dialog d = new Dialog(42,57,1880,1890, "start", "THE END", talk, 0);
 			d.addLevelTransfer(new SecondTownInn1(), 48,1911, ZombieLord.DIR_SOUTH);
+			
+			dialogs.add(d);
+		}*/
+		{ // TODO: remove gameOver
+			TalkScript talk = new TalkScript();
+			talk.add("Talas", "GAME OVER!");
+			talk.add("Leoric", "What?");
+			talk.add("Tolinai", "No Way! We haven't even started.");
+			talk.add("Talas' GF", "zzzzz");
+			talk.add("Talas", "Well, it's sad but true. I just couldn't finish anymore. I'm sleepy aswell. Just look at how strange this dialog is getting.");
+			talk.add("Talas", "Anyways, theres ALOT of things I couldnt implement. As a thanks for playing, I'll let you fight 2 trolls and a manticore.");
+			talk.add("Tolinai", "Eh.. You call that a thanks?");
+			talk.add("Talas", "I'll try again then. Thanks for playing, I promise to finish the game soon. Good luck with the monsters!");
+			Dialog d = new Dialog(42,57,1880,1890, "start", "entered inn", talk, 0);
+			
+			Monster troll1 = new Monster("Troll1","troll.png",5,100,19,3,1.25f);
+			Monster troll2 = new Monster("Troll2","troll.png",5,100,19,3,1.25f);
+			
+			troll1.addCombatAction(ZombieLord.bite);
+			troll1.addCombatAction(ZombieLord.punch);
+			troll1.addCombatAction(ZombieLord.twinFist);
+			troll1.addCombatAction(ZombieLord.regrowth);
+			troll2.addCombatAction(ZombieLord.bite);
+			troll2.addCombatAction(ZombieLord.punch);
+			troll2.addCombatAction(ZombieLord.twinFist);
+			troll2.addCombatAction(ZombieLord.regrowth);
+			
+			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
+			setup1.appendMonster(troll1);
+			setup1.appendMonster(troll2);
+			
+			setup1.exp = 1000;
+
+			d.addFight(setup1);
+			d.addTimeChange("THE END");
+			
+			dialogs.add(d);
+		}
+		{ // TODO: remove gameOver
+			TalkScript talk = new TalkScript();
+
+			Dialog d = new Dialog(42,57,1880,1890, "THE END", "THE END", talk, 0);
+			
+			Monster manticore = new Monster("Manticore","manticore.png",500,200,60,9,1.25f);
+			
+			manticore.addCombatAction(ZombieLord.bite);
+			manticore.addCombatAction(ZombieLord.rouletteSting);
+			manticore.addCombatAction(ZombieLord.grandClaw);
+			manticore.addCombatAction(ZombieLord.magicArrow);
+			
+			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
+			setup1.appendMonster(manticore);
+			
+			setup1.exp = 10000000;
+
+			d.addFight(setup1);
+			d.addTimeChange("zero");
 			
 			dialogs.add(d);
 		}

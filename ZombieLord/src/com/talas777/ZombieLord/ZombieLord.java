@@ -24,6 +24,7 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL10;
@@ -80,6 +81,11 @@ public class ZombieLord implements ApplicationListener {
 	
 	public float nextCombat = 0;
 	
+	private Sprite battleWindow;
+	private Texture hpTex;
+	private Texture mpTex;
+	private Texture tmTex;
+	
 	//TextureAtlas fontAtlas;
 	BitmapFont font;
 	
@@ -91,6 +97,16 @@ public class ZombieLord implements ApplicationListener {
 	public static final int DIR_NORTH = 0;
 	public static final int DIR_EAST = 2;
 	public static final int DIR_WEST = 3;
+	
+	public static final int MODE_MOVE = 0;
+	
+	public static final int MODE_FIGHT = 1;
+	
+	public static final int MODE_VICTORY = 2;
+	
+	public static final int MODE_DIALOG = 7;
+	
+	public static final int MODE_GAMEOVER = 99;
 	
 	/**
 	 * For rain or meteor showers etc.
@@ -109,6 +125,11 @@ public class ZombieLord implements ApplicationListener {
 	private Body jumper;
 	private Body pointer;
 	
+	private Music currentMusic;
+	
+	
+	private LinkedList<Sprite> combatEffects;
+	
 
 	
 	private Box2DDebugRenderer debugRenderer;
@@ -119,16 +140,18 @@ public class ZombieLord implements ApplicationListener {
 	
 	public Party party;
 	
-	private int gameMode = 0; // 0 = walk, 1 = combat, 2 = special/Minigame
+	private int gameMode = MODE_MOVE;
 	
 	private Combat currentCombat;
 	
-	public Sound hitSound;
+	public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
 	
 	/**
 	 * Zombie bite sound
 	 */
-	public Sound biteSound;
+	public Sound biteSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
+	
+	public Sound cutSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
 	
 	public TimeTracker timeTracker;
 	
@@ -161,6 +184,8 @@ public class ZombieLord implements ApplicationListener {
 	public static final CombatAction cycloneSlash = new CombatAction("Cyclone Slash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
 	public static final CombatAction magicArrow = new CombatAction("Magic Arrow", 8, -12f, CombatAction.TARGET_ENEMY_SINGLE);
 	public static final CombatAction staffStrike = new CombatAction("Staff Strike",0, -1f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction rouletteSting = new CombatAction("Roulette Sting", 10, -50f, CombatAction.TARGET_RANDOM);
+	public static final CombatAction grandClaw = new CombatAction("Grand Claw",0, -5f, CombatAction.TARGET_ENEMY_ALL);
 	
 	public static final CombatOption escape = new CombatOption("escape");
 	public static final CombatOption item = new CombatOption("item");
@@ -181,8 +206,6 @@ public class ZombieLord implements ApplicationListener {
     TileAtlas atlas;*/
 	
 	private void returnFromCombat(){
-		// TODO: figure out where we are..
-		
 		this.loadLevel(returnLevel, (int)posx, (int)posy, lastDirection);
 	}
 	
@@ -199,7 +222,6 @@ public class ZombieLord implements ApplicationListener {
 		}
 		this.drawSprites.clear();
 		this.waitTime = 5;
-		//TODO: set background
 		
 		String[] backgrounds = this.returnLevel.getBattleBackgrounds();
 		
@@ -208,7 +230,6 @@ public class ZombieLord implements ApplicationListener {
 		
 		drawSprites.add(this.background);
 		
-		//TODO: position player
 		int bposx = (int)(w/6);
 		int bposy = (int)(h/2);
 		
@@ -242,6 +263,7 @@ public class ZombieLord implements ApplicationListener {
 
 		
 		currentCombat = new Combat(setup, party, 5);
+		this.combatEffects = new LinkedList<Sprite>();
 
 		
 		{
@@ -265,11 +287,76 @@ public class ZombieLord implements ApplicationListener {
 		
 		// Timing and stuff is taken care of in the Combat class (which is queried from the render loop)
 		
-		gameMode = 1;
+		gameMode = MODE_FIGHT;
 	}
 	
 	public void loadCombat(MonsterArea monsterArea){
 		loadCombat(monsterArea.getRandomSetup());
+	}
+	
+	private void loadCombatEffects(){
+		// bite
+		bite.effect = new Texture(Gdx.files.internal("data/combateffects/biteAttack.png"));
+		
+		// slash
+		slash.effect = new Texture(Gdx.files.internal("data/combateffects/normalCut.png"));
+		
+		// Cyclone Slash
+		cycloneSlash.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
+		
+		// staff strike
+		staffStrike.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
+		
+		// magic arrow
+		magicArrow.effect = new Texture(Gdx.files.internal("data/combateffects/magicAttack.png"));
+		
+		grandClaw.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
+		
+		rouletteSting.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
+		
+	}
+	
+	public LinkedList<Sprite> getCombatUISprites(){
+		LinkedList<Sprite> list = new LinkedList<Sprite>();
+		
+		//first make sprites for leoric.. hes always there and always nr.1 (atleast for now)
+		
+
+		PartyMember[] activeMembers = this.party.getActiveMembers();
+		
+		int num = 0;
+		
+		for(PartyMember m : activeMembers){
+			
+			int healthPerdeca = Math.max(0, Math.round(((m.getHealth()+0.0f) / m.health_max)*10));
+			
+			Sprite myHp = new Sprite(hpTex,0,0+19*healthPerdeca,106,19);
+			myHp.setX(102);
+			myHp.setY(67-32*num);
+			
+			list.add(myHp);
+			
+			int manaPerdeca = Math.max(0, Math.round(((m.getMana()+0.0f) / m.mana_max)*10));
+			
+			Sprite myMp = new Sprite(mpTex,0,0+19*manaPerdeca,106,19);
+			myMp.setX(230);
+			myMp.setY(67-32*num);
+			
+			list.add(myMp);
+			
+			
+			
+			int timePerdeca = (int) Math.max(0, Math.round(((m.actionTimer+0.0f) / 100f)*10));
+			
+			Sprite myTime = new Sprite(tmTex,0,0+19*timePerdeca,106,19);
+			myTime.setX(358);
+			myTime.setY(67-32*num);
+			
+			list.add(myTime);
+			num++;
+		}
+		
+		return list;
 	}
 	
 	@Override
@@ -286,6 +373,9 @@ public class ZombieLord implements ApplicationListener {
 		fontBatch = new SpriteBatch();
 		drawSprites = new LinkedList<Sprite>();
 		
+		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
+		biteSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
+		cutSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
 
 		// Load up the font
 		
@@ -293,7 +383,14 @@ public class ZombieLord implements ApplicationListener {
 		font = new BitmapFont(Gdx.files.internal("data/fonts/PressStart2P/PressStart2P.fnt"),false);
 		//fontAtlas.findRegion("PressStart2P"), false);
 		
+		loadCombatEffects();
 		
+		// load battle window stuffs
+		Texture battleTex = new Texture(Gdx.files.internal("data/ui/battlewindow.png"));
+		this.battleWindow = new Sprite(battleTex, 0,0,480,100);
+		hpTex = new Texture(Gdx.files.internal("data/ui/hp.png"));
+		mpTex = new Texture(Gdx.files.internal("data/ui/mp.png"));
+		tmTex = new Texture(Gdx.files.internal("data/ui/time.png"));
 		
 		party = new Party();
 		
@@ -328,9 +425,44 @@ public class ZombieLord implements ApplicationListener {
 		
 		timeTracker.addEvent("left hometown");
 		
+		// TODO: story is only done untill here roughly 1/4 of story only :<
+		
+		timeTracker.addEvent("entered inn");
+		
+		timeTracker.addEvent("talked with Bert");
+		
+		timeTracker.addEvent("accepted quest");
+		timeTracker.addEvent("entered troll cave");
+		timeTracker.addEvent("killed troll");
+		
+		timeTracker.addEvent("returned to town");
+		timeTracker.addEvent("Bert joins");
+		
+		timeTracker.addEvent("left second town");
+		
+		timeTracker.addEvent("went to west caves");
+		
+		timeTracker.addEvent("killed manticore");
+		
+		timeTracker.addEvent("entered castle inn");
+		timeTracker.addEvent("rented a room");
+		timeTracker.addEvent("went inside room");
+		
+		
+		timeTracker.addEvent("nightmare1");
+		timeTracker.addEvent("awoken");
+		
+		timeTracker.addEvent("fight1");
+		timeTracker.addEvent("fight2");
+		
+		timeTracker.addEvent("left caste");
+		
+		timeTracker.addEvent("entered beach town");
+		timeTracker.addEvent("???");
+		// although the events beyond are planned, they arent written here because of spoiling..
+		// guess ill try to keep them away from the gitlog also, when it finaly comes to that..
+		
 		timeTracker.addEvent("THE END"); // Keep this last or bugs be onto ye!
-		
-		
 		
 		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
 		Leoric.addCombatAction(slash);
@@ -359,11 +491,11 @@ public class ZombieLord implements ApplicationListener {
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
 		//loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
-		party.addMember(Tolinai); // TODO: remove this!!
-		timeTracker.setTime("left hometown"); // TODO: remove debug test
+		//party.addMember(Tolinai); // TODO: remove this!!
+		//timeTracker.setTime("east house?"); // TODO: remove debug test
 		
 		
-		loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
+		//loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
 		//loadLevel(new SecondTownInn1(),177,1814,this.DIR_NORTH);// second town inn
 		
 		MonsterArea area = new MonsterArea(0,0,20,20,0.05f);
@@ -515,7 +647,28 @@ public class ZombieLord implements ApplicationListener {
 			this.moverTimer = 0.4f;
 		}
 		
+		if(this.timeTracker.hasOccured("left hometown")){
+			// second town
+			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
+			this.currentMusic.setLooping(true);
+			this.currentMusic.play();
+		}
+		else if(this.timeTracker.getTime().equals("start")){
+			// inside hometown
+			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Mark_Subbotin_-_Phoenix.ogg"));
+			this.currentMusic.setLooping(true);
+			this.currentMusic.play();
+		}
 		
+		/*
+		if(this.currentMusic != null)
+			this.currentMusic.stop();
+		
+		if(level.getMusic() != null){
+			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal(level.getMusic()));
+			this.currentMusic.setLooping(true);
+			this.currentMusic.play();
+		}*/
 		
 		
 		
@@ -602,7 +755,7 @@ public class ZombieLord implements ApplicationListener {
 		pointer.createFixture(jf);
 		
 		
-		gameMode = 0;
+		gameMode = MODE_MOVE;
 		this.returnLevel = level; // incase we get into a fight, we want a way back :p
 	}
 
@@ -654,7 +807,7 @@ public class ZombieLord implements ApplicationListener {
 		
 		
 		
-		if(gameMode == 7){
+		if(gameMode == MODE_DIALOG){
 			// a Dialog is active;
 			if(this.dialogWait > 0){
 				dialogWait -= Gdx.graphics.getDeltaTime();
@@ -719,7 +872,7 @@ public class ZombieLord implements ApplicationListener {
 				else {
 					// No combat, no Level change..
 					// Guess we just have to go back to normal then :<
-					this.gameMode = 0;
+					this.gameMode = MODE_MOVE;
 					this.currentDialog = null;
 					return;
 				}
@@ -733,7 +886,7 @@ public class ZombieLord implements ApplicationListener {
 		boolean up = false;
 		boolean down = false;
 		
-		if(gameMode == 0){
+		if(gameMode == MODE_MOVE){
 			if(returnLevel instanceof MyHouse){
 				if(moverTimer > 0){
 					// load princess
@@ -802,7 +955,7 @@ public class ZombieLord implements ApplicationListener {
 		collisionLayer.setY(posy);
 		*/
 
-		if(gameMode == 0){
+		if(gameMode == MODE_MOVE){
 			world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
 			
 			posx = jumper.getPosition().x*this.PIXELS_PER_METER;
@@ -832,7 +985,7 @@ public class ZombieLord implements ApplicationListener {
 							
 							if(activate){
 								// Start the dialog
-								this.gameMode = 7;
+								this.gameMode = MODE_DIALOG;
 								this.currentDialog = d;
 								return;
 							}
@@ -886,7 +1039,7 @@ public class ZombieLord implements ApplicationListener {
 			}
 			
 			
-			// Keep the camera inside the level..
+			// Keep the camera inside the level.. Maybe too aggressive?
 			if(camera.position.y <= h/2+this.camMinY)
 				camera.position.y = h/2+1+this.camMinY;
 			else if(camera.position.y >= this.camMaxY-h/2)
@@ -958,7 +1111,7 @@ public class ZombieLord implements ApplicationListener {
 			}
 		}
 		
-		boolean waiting = false; //TODO: move this?
+		boolean waiting = false; //TODO: move this? guess not
 		
 		if(waitTime > 0)
 		{
@@ -966,7 +1119,7 @@ public class ZombieLord implements ApplicationListener {
 			waitTime -= Gdx.graphics.getDeltaTime();
 		}
 		
-		if(gameMode == 2){
+		if(gameMode == MODE_VICTORY){
 			// "After Combat" screen
 			if(currentCombat != null){
 				// clean up!
@@ -981,7 +1134,7 @@ public class ZombieLord implements ApplicationListener {
 				
 				currentCombat.cleanUp();
 				currentCombat = null;
-				waitTime = 10f;
+				waitTime = 4f;
 				waiting = true;
 				
 				
@@ -1002,17 +1155,16 @@ public class ZombieLord implements ApplicationListener {
 			}
 		}
 		
-		else if(gameMode == 99){
+		else if(gameMode == MODE_GAMEOVER){
 			// Game over
 			//TODO: write something 'nice' to the screen?
-			//TODO: nice musics?
 			this.backgroundTexture = new Texture(Gdx.files.internal("data/gameover.png"));
 			this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
 			
 			drawSprites.add(this.background);
 		}
 		
-		else if(gameMode == 1){
+		else if(gameMode == MODE_FIGHT){
 			
 			// Re-position all creatures..
 			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
@@ -1048,23 +1200,32 @@ public class ZombieLord implements ApplicationListener {
 				for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
 					currentCombat.getLiveCombatants().get(i).setMoveAhead(false);
 				}
+				this.combatEffects.clear();
 				
 				if(state == 1){
 					// player has won
 					waiting = true;
-					//TODO: win combat (properly)
 					System.out.println("VICTORY! :>");
 					//TODO: happy trumpet
-					gameMode = 2;
+					gameMode = MODE_VICTORY;
+					this.combatEffects.clear();
 					
 				}
 				else if(state == 2){
 					// player has lost
 					waiting = true;
-					// TODO: GAME OVER (properly)
 					System.out.println("GAME OVER. :'(");
-					// TODO: sad flute
-					gameMode = 99;
+					
+					
+					if(currentMusic != null)
+						currentMusic.stop();
+					
+					currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
+					currentMusic.setLooping(true);
+					currentMusic.play();
+
+					gameMode = MODE_GAMEOVER;
+					this.combatEffects.clear();
 				}
 				
 				//TODO: render all dead/fainted characters as such
@@ -1076,16 +1237,33 @@ public class ZombieLord implements ApplicationListener {
 					
 					CurrentAction myAction = readyMonster.getMonsterAction(party, currentCombat);
 					
-					currentCombat.applyAction(myAction);
+					LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
 					
 					if(myAction.action != null){
 						// Move monster against player to represent the attack
 						
-						// TODO: some sort of graphical representation of the attack.. effects and such
 						myAction.caster.setMoveAhead(true);
+						
+						if(myAction.action.effect != null && affected != null){
+							
+							if(myAction.action == bite){ // TODO: simple hack to get sound..
+								this.biteSound.play();
+							}
+							if(myAction.action == punch){ // TODO: simple hack to get sound..
+								this.hitSound.play();
+							}
+							
+							for(Combatant c : affected){
+								Sprite effect = new Sprite(myAction.action.effect);
+								effect.setX(c.getSprite().getX()+16);
+								effect.setY(c.getSprite().getY()+16);
+								this.combatEffects.add(effect);
+							}
+						}
+						
 					}
 					
-					readyMonster.actionTimer = readyMonster.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
+					readyMonster.actionTimer = readyMonster.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
 					
 					waiting = true;
 					waitTime = 2;
@@ -1118,7 +1296,7 @@ public class ZombieLord implements ApplicationListener {
 						//TODO: serve combat options to player
 						//TODO: in some sort of menu
 						//TODO: that lets the player select
-						//TODO: and then uses the selected option/action
+						//TODO: and then uses the selected option/action ( instead of autopilot)
 						
 						System.out.print("Actions available for "+readyMember.getName()+":");
 						for(CombatOption co : combatOptions){
@@ -1129,13 +1307,30 @@ public class ZombieLord implements ApplicationListener {
 						int chosen = (int)(Math.random()*readyMember.getCombatActions().size());
 						
 						CurrentAction myAction = new CurrentAction(readyMember.getCombatActions().get(chosen), readyMember, currentCombat.getLiveMonsters().getFirst());
-						currentCombat.applyAction(myAction);
+						LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
 						
-						if(myAction.action != null){
+						if(myAction.action != null && affected != null){
 							// Move player against monster to represent the attack
 							
-							// TODO: some sort of graphical representation of the attack.. effects and such
+							
+							if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
+								this.hitSound.play();
+							}
+							if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
+								this.cutSound.play();
+							}
+							
 							myAction.caster.setMoveAhead(true);
+							
+							if(myAction.action.effect != null && affected != null){
+								
+								for(Combatant c : affected){
+									Sprite effect = new Sprite(myAction.action.effect);
+									effect.setX(c.getSprite().getX()+16);
+									effect.setY(c.getSprite().getY()+16);
+									this.combatEffects.add(effect);
+								}
+							}
 						}
 						if(this.debug){
 							// time to stop this nonsense!
@@ -1144,7 +1339,7 @@ public class ZombieLord implements ApplicationListener {
 							}
 						}
 						
-						readyMember.actionTimer = readyMember.getBaseDelay()*(2f*Math.random());// TODO: randomize better?
+						readyMember.actionTimer = readyMember.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
 						
 						waiting = true;
 						waitTime = 2;
@@ -1176,16 +1371,31 @@ public class ZombieLord implements ApplicationListener {
 		 s.draw(batch);
 		
 		
+		if(gameMode == MODE_FIGHT){
+			// TODO: draw battle window here
+			
+			this.battleWindow.draw(batch);
+			
+			LinkedList<Sprite> uiElements = this.getCombatUISprites();
+			for(Sprite s : uiElements)
+				s.draw(batch);
+		}
+		
 		
 
 		
 		
-		if(gameMode == 0 && this.foreground != null) // drawing foreground last = ontop of everything else
+		if(gameMode == MODE_MOVE && this.foreground != null) // drawing foreground last = ontop of everything else
 			foreground.draw(batch);
+		
+		if(gameMode == MODE_FIGHT){
+			for(Sprite effect : this.combatEffects)
+				effect.draw(batch);
+		}
 		
 		batch.end();
 		
-		if(gameMode == 7 && this.curSpeaker != null){
+		if(gameMode == MODE_DIALOG && this.curSpeaker != null){
 			fontBatch.begin();
 			// Ongoing dialog, draw the talkstuffs
 			

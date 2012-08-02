@@ -19,7 +19,7 @@ package com.talas777.ZombieLord;
 import java.util.LinkedList;
 
 public class MonsterSetup {
-	//TODO: MonsterSetup, loot, gold, dialog, ++
+	//TODO: MonsterSetup, loot, gold, dialog?, ++
 	
 	public int exp;
 	
