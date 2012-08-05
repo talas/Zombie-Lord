@@ -113,7 +113,7 @@ public class SouthWestHouse extends Level {
 			MonsterSetup setup = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			Monster zombie1 = new Monster("Zombie1","malesoldierzombie.png",5,20,15,3,1.25f);
 
-			zombie1.addCombatAction(ZombieLord.bite);
+			zombie1.addCombatAction(ZombieLord.BITE);
 
 			setup.appendMonster(zombie1);
 			setup.exp = 10;

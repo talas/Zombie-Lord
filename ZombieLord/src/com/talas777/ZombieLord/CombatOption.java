@@ -16,22 +16,49 @@
 
 package com.talas777.ZombieLord;
 
+import java.util.LinkedList;
+
 public class CombatOption {
 
 	// NOTE: combat options like item, defend and escape are hardcoded.. see ZombieLord.java
-	public final CombatAction associatedAction;
+	public final LinkedList<CombatAction> associatedActions;
 	public final String name;
-	public final boolean isCombatAction;
+	public final boolean subGroup;
+	public final boolean hardCoded;
 	
+	/**
+	 * For use with combat option that has a HARDCODED action.
+	 * @param name
+	 */
 	public CombatOption(String name){
 		this.name = name;
-		this.isCombatAction = false;
-		this.associatedAction = null;
+		this.subGroup = false;
+		this.hardCoded = true;
+		this.associatedActions = null;
 	}
 	
+	/**
+	 * For use with combat option that have several actions available, and lets the player chose which action to use.
+	 * @param name
+	 * @param actions
+	 */
+	public CombatOption(String name, LinkedList<CombatAction> actions){
+		this.name = name;
+		this.subGroup = true;
+		this.hardCoded = false;
+		this.associatedActions = actions;
+	}
+	
+	/**
+	 * For use with combat options that only has one action which is automatically selected.
+	 * @param name
+	 * @param action
+	 */
 	public CombatOption(String name, CombatAction action){
 		this.name = name;
-		this.isCombatAction = true;
-		this.associatedAction = action;
+		this.subGroup = false;
+		this.hardCoded = false;
+		this.associatedActions = new LinkedList<CombatAction>();
+		this.associatedActions.add(action);
 	}
 }

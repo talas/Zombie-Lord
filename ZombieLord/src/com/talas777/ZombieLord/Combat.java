@@ -29,6 +29,8 @@ public class Combat {
 	MonsterSetup setup;
 	Party party;
 	
+	public boolean waitingForPlayerCommand = false;
+	
 	/**
 	 * Array of creatures in this Combat
 	 * TODO: use this
@@ -165,6 +167,68 @@ public class Combat {
 					}
 				}
 			}
+		}
+		return null;
+	}
+	
+	public boolean canUse(CombatOption option, PartyMember player){
+		if(option.hardCoded || option.subGroup)
+			return true;
+		
+		// else, mana check..
+		//NOTE: there is no HP check.. for spells that cost hp, we are happy to kill the player (even if he didnt have enough hp).
+		CombatAction action = option.associatedActions.getFirst();
+		if(action.mpCost > player.mana)
+			return false;
+		else
+			return true;
+	}
+	
+	public LinkedList<Combatant> getValidTargets(CombatAction action, Combatant caster){
+		LinkedList<Combatant> targets = new LinkedList<Combatant>();
+		
+		LinkedList<Combatant> liveCombatants = getLiveCombatants();
+		LinkedList<Combatant> enemies = new LinkedList<Combatant>();
+		LinkedList<Combatant> allies = new LinkedList<Combatant>();
+		
+		if(caster instanceof Monster){
+			for(int i = 0; i < liveCombatants.size(); i++){
+				if(liveCombatants.get(i) instanceof Monster)
+					allies.add(liveCombatants.get(i));
+				else
+					enemies.add(liveCombatants.get(i));
+			}
+		}
+		else {
+			for(int i = 0; i < liveCombatants.size(); i++){
+				if(liveCombatants.get(i) instanceof PartyMember)
+					allies.add(liveCombatants.get(i));
+				else
+					enemies.add(liveCombatants.get(i));
+			}
+		}
+
+		
+		
+		switch(action.targetType){
+		case CombatAction.TARGET_SELF:
+			targets.add(caster);
+			return targets;
+		case CombatAction.TARGET_ALL:
+		case CombatAction.TARGET_RANDOM:
+			return liveCombatants;
+		case CombatAction.TARGET_ALL_OTHER:
+			for(Combatant c : liveCombatants)
+				if(c != caster)
+					targets.add(c);
+			return targets;
+		case CombatAction.TARGET_ALLY_ALL:
+		case CombatAction.TARGET_ALLY_SINGLE:
+			return allies;
+		case CombatAction.TARGET_ENEMY_ALL:
+		case CombatAction.TARGET_ENEMY_SINGLE:
+		case CombatAction.TARGET_ENEMY_RANDOM:
+			return enemies;
 		}
 		return null;
 	}

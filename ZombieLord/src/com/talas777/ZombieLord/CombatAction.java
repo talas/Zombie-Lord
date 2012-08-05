@@ -49,6 +49,11 @@ public class CombatAction {
 	public int mpCost;
 	
 	/**
+	 * 
+	 */
+	public final ActionCategory category;
+	
+	/**
 	 * An image that will be overlaid those that are affected by the action
 	 */
 	public Texture effect;
@@ -71,7 +76,7 @@ public class CombatAction {
 	 * @param healthChange how this action affects the health of the target
 	 * @param targetType what this action targets
 	 */
-	public CombatAction(String name, String description, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, int targetType){
+	public CombatAction(String name, String description, ActionCategory category, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, int targetType){
 		this.name = name;
 		this.description = description;
 		this.minLevel = minLevel;
@@ -80,6 +85,7 @@ public class CombatAction {
 		this.mpCost = mpCost;
 		this.healthChange = healthChange;
 		this.targetType = targetType;
+		this.category = category;
 	}
 	
 	/**
@@ -89,11 +95,11 @@ public class CombatAction {
 	 * @param healthChange
 	 * @param targetType
 	 */
-	public CombatAction(String name, int mpCost, float healthChange, int targetType){
-		this(name, "",0,0,0,mpCost,healthChange,targetType);
+	public CombatAction(String name, ActionCategory category, int mpCost, float healthChange, int targetType){
+		this(name, "", category,0,0,0,mpCost,healthChange,targetType);
 	}
 	
-	public CombatAction(String name, String description, int mpCost, float healthChange, int targetType){
-		this(name, description,0,0,0,mpCost,healthChange,targetType);
+	public CombatAction(String name, String description, ActionCategory category, int mpCost, float healthChange, int targetType){
+		this(name, description,category,0,0,0,mpCost,healthChange,targetType);
 	}
 }

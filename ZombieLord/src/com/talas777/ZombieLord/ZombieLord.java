@@ -24,9 +24,11 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -49,7 +51,7 @@ import com.badlogic.gdx.physics.box2d.World;
 //import com.badlogic.gdx.graphics.g2d.tiled.*;
 import com.badlogic.gdx.utils.Array;
 
-public class ZombieLord implements ApplicationListener {
+public class ZombieLord implements ApplicationListener, InputProcessor {
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 	private SpriteBatch fontBatch;
@@ -85,12 +87,21 @@ public class ZombieLord implements ApplicationListener {
 	private Texture hpTex;
 	private Texture mpTex;
 	private Texture tmTex;
+	private Texture selectionHand;
 	
 	//TextureAtlas fontAtlas;
 	BitmapFont font;
 	
 	private String curSentence = null;
 	private String curSpeaker = null;
+	
+	public LinkedList<CombatOption> currentCombatOptions;
+	public CombatOption selectedCombatOption;
+	public boolean finishedChoosing;
+	public PartyMember combatOptionCaster;
+	public Combatant selectedTarget;
+	public boolean finishedTargeting;
+	public LinkedList<Combatant> validTargets;
 	
 	
 	public static final int DIR_SOUTH = 1;
@@ -176,16 +187,23 @@ public class ZombieLord implements ApplicationListener {
 	public static PartyMember Kuriko;
 	
 	
-	public static final CombatAction bite = new CombatAction("Bite",0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction punch = new CombatAction("Punch",0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction twinFist = new CombatAction("TwinFist",3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction regrowth = new CombatAction("Regrowth",5,50f,CombatAction.TARGET_SELF);
-	public static final CombatAction slash = new CombatAction("Slash",0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction cycloneSlash = new CombatAction("Cyclone Slash",9,-20f,CombatAction.TARGET_ENEMY_ALL);
-	public static final CombatAction magicArrow = new CombatAction("Magic Arrow", 8, -12f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction staffStrike = new CombatAction("Staff Strike",0, -1f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction rouletteSting = new CombatAction("Roulette Sting", 10, -50f, CombatAction.TARGET_RANDOM);
-	public static final CombatAction grandClaw = new CombatAction("Grand Claw",0, -5f, CombatAction.TARGET_ENEMY_ALL);
+	public static final ActionCategory OFFENSIVE_MAGIC = new ActionCategory((byte)0);
+	public static final ActionCategory DEFENSIVE_MAGIC = new ActionCategory((byte)1);
+	public static final ActionCategory SPECIAL = new ActionCategory((byte)2);
+	public static final ActionCategory SUMMON = new ActionCategory((byte)3);
+	public static final ActionCategory ATTACK = new ActionCategory((byte)4);
+	public static final ActionCategory MONSTER_ABILITY = new ActionCategory((byte)7);
+	
+	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction PUNCH = new CombatAction("Punch",ATTACK,0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction TWINFIST = new CombatAction("TwinFist",MONSTER_ABILITY,3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction REGROWTH = new CombatAction("Regrowth",MONSTER_ABILITY,5,50f,CombatAction.TARGET_SELF);
+	public static final CombatAction SLASH = new CombatAction("Slash",ATTACK,0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction CYCLONE_SLASH = new CombatAction("Cyclone Slash",OFFENSIVE_MAGIC,9,-20f,CombatAction.TARGET_ENEMY_ALL);
+	public static final CombatAction MAGIC_ARROW = new CombatAction("Magic Arrow",OFFENSIVE_MAGIC,8, -12f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction STAFF_STRIKE = new CombatAction("Staff Strike",ATTACK,0, -1f, CombatAction.TARGET_ENEMY_SINGLE);
+	public static final CombatAction ROULETTE_STING = new CombatAction("Roulette Sting",MONSTER_ABILITY,10, -50f, CombatAction.TARGET_RANDOM);
+	public static final CombatAction GRAND_CLAW = new CombatAction("Grand Claw",MONSTER_ABILITY,0, -5f, CombatAction.TARGET_ENEMY_ALL);
 	
 	public static final CombatOption escape = new CombatOption("escape");
 	public static final CombatOption item = new CombatOption("item");
@@ -280,7 +298,7 @@ public class ZombieLord implements ApplicationListener {
 				//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 				int[] xy = currentCombat.getMonsterPosition(i, (int)w, (int)h);
 				monsterSprite.setPosition(xy[0], xy[1]);
-				drawSprites.add(monsterSprite);
+				//drawSprites.add(monsterSprite);
 				System.out.println("Added monster:x"+xy[0]+",y"+xy[1]);
 			}
 		}
@@ -296,23 +314,23 @@ public class ZombieLord implements ApplicationListener {
 	
 	private void loadCombatEffects(){
 		// bite
-		bite.effect = new Texture(Gdx.files.internal("data/combateffects/biteAttack.png"));
+		BITE.effect = new Texture(Gdx.files.internal("data/combateffects/biteAttack.png"));
 		
 		// slash
-		slash.effect = new Texture(Gdx.files.internal("data/combateffects/normalCut.png"));
+		SLASH.effect = new Texture(Gdx.files.internal("data/combateffects/normalCut.png"));
 		
 		// Cyclone Slash
-		cycloneSlash.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
+		CYCLONE_SLASH.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
 		
 		// staff strike
-		staffStrike.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
+		STAFF_STRIKE.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
 		
 		// magic arrow
-		magicArrow.effect = new Texture(Gdx.files.internal("data/combateffects/magicAttack.png"));
+		MAGIC_ARROW.effect = new Texture(Gdx.files.internal("data/combateffects/magicAttack.png"));
 		
-		grandClaw.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
+		GRAND_CLAW.effect = new Texture(Gdx.files.internal("data/combateffects/cutAttack.png"));
 		
-		rouletteSting.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
+		ROULETTE_STING.effect = new Texture(Gdx.files.internal("data/combateffects/blunt.png"));
 		
 	}
 	
@@ -377,6 +395,9 @@ public class ZombieLord implements ApplicationListener {
 		biteSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
 		cutSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
 
+		
+		Gdx.input.setInputProcessor(this);
+		
 		// Load up the font
 		
 		//fontAtlas = new TextureAtlas("data");
@@ -391,6 +412,8 @@ public class ZombieLord implements ApplicationListener {
 		hpTex = new Texture(Gdx.files.internal("data/ui/hp.png"));
 		mpTex = new Texture(Gdx.files.internal("data/ui/mp.png"));
 		tmTex = new Texture(Gdx.files.internal("data/ui/time.png"));
+		
+		this.selectionHand = new Texture(Gdx.files.internal("data/ui/selectionhand.png"));
 		
 		party = new Party();
 		
@@ -464,24 +487,25 @@ public class ZombieLord implements ApplicationListener {
 		
 		timeTracker.addEvent("THE END"); // Keep this last or bugs be onto ye!
 		
-		Leoric = new PartyMember(0,"Leoric",250,250,5,5,0); // Male hero (swordsman)
-		Leoric.addCombatAction(slash);
-		Leoric.addCombatAction(cycloneSlash);
+		
+		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0); // Male hero (swordsman)
+		Leoric.addCombatAction(SLASH);
+		Leoric.addCombatAction(CYCLONE_SLASH);
 		
 		party.addMember(Leoric);
 		
 		Tolinai = new PartyMember(1,"Tolinai",50,50,40,40,0); // Female, hero gf (offensive mage)
-		Tolinai.addCombatAction(staffStrike);
-		Tolinai.addCombatAction(magicArrow);
+		Tolinai.addCombatAction(STAFF_STRIKE);
+		Tolinai.addCombatAction(MAGIC_ARROW);
 		
 		Bert = new PartyMember(2,"Bert",250,250,5,5,0); // Male, archer
-		Bert.addCombatAction(punch);
+		Bert.addCombatAction(PUNCH);
 		
 		Berzenor = new PartyMember(3,"Berzenor",250,250,5,5,0); // Male, defensive mage
-		Berzenor.addCombatAction(punch);
+		Berzenor.addCombatAction(PUNCH);
 		
 		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0); // Female, rogue
-		Kuriko.addCombatAction(punch);
+		Kuriko.addCombatAction(PUNCH);
 		
 		loadLevel(new Church(),522,414,1);// church the real start point
 		
@@ -814,7 +838,11 @@ public class ZombieLord implements ApplicationListener {
 		if(gameMode == MODE_DIALOG){
 			// a Dialog is active;
 			if(this.dialogWait > 0){
-				dialogWait -= Gdx.graphics.getDeltaTime();
+				if(Gdx.input.isButtonPressed(Keys.ENTER))// Speed up the dialog a bit
+					dialogWait -= 17f*Gdx.graphics.getDeltaTime();
+				else
+					dialogWait -= Gdx.graphics.getDeltaTime();
+				
 			}
 			else if(this.currentDialog.hasNextUtterance()){
 				//TODO: this has to be done more nicely somehow..
@@ -828,10 +856,9 @@ public class ZombieLord implements ApplicationListener {
 				this.curSentence = u.sentence;
 
 				dialogWait = (u.sentence.length()*0.07f); // TODO: hum hum
-				if(dialogWait < 1)
-					dialogWait = 1;
+				if(dialogWait < 1.7f)
+					dialogWait = 1.7f;
 
-				
 			}
 			else {
 				// apply secondary effects and change gameMode back to whatever normal is
@@ -946,7 +973,7 @@ public class ZombieLord implements ApplicationListener {
 		
 
 		
-		if(Gdx.input.isKeyPressed(Keys.ESCAPE))
+		if(Gdx.input.isKeyPressed(Keys.ESCAPE)) //TODO: confirm dialog
 			Gdx.app.exit();
 		
 		//camera.lookAt(princess.getX(), princess.getY(), 0);
@@ -962,8 +989,8 @@ public class ZombieLord implements ApplicationListener {
 		if(gameMode == MODE_MOVE){
 			world.step(Gdx.app.getGraphics().getDeltaTime(), 3, 3);
 			
-			posx = jumper.getPosition().x*this.PIXELS_PER_METER;
-			posy = jumper.getPosition().y*this.PIXELS_PER_METER;
+			posx = jumper.getPosition().x*PIXELS_PER_METER;
+			posy = jumper.getPosition().y*PIXELS_PER_METER;
 			leoricSprite.setX(posx-32);
 			leoricSprite.setY(posy-10);
 			pointer.setTransform(jumper.getPosition().x, jumper.getPosition().y, 0);
@@ -1041,6 +1068,8 @@ public class ZombieLord implements ApplicationListener {
 				this.debug = ! this.debug;
 				System.out.println("debug :"+(this.debug?"On":"Off"));
 			}
+			
+			
 			
 			
 			// Keep the camera inside the level.. Maybe too aggressive?
@@ -1122,6 +1151,8 @@ public class ZombieLord implements ApplicationListener {
 			waiting = true;
 			waitTime -= Gdx.graphics.getDeltaTime();
 		}
+		if(gameMode == MODE_FIGHT && this.currentCombat.waitingForPlayerCommand)
+			waiting = true;
 		
 		if(gameMode == MODE_VICTORY){
 			// "After Combat" screen
@@ -1174,9 +1205,6 @@ public class ZombieLord implements ApplicationListener {
 			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
 				Combatant current = currentCombat.getLiveCombatants().get(i);
 				
-				if(current.health <= 0){
-					// Render as dead/fainted
-				}
 				switch(current.getState()){
 					case Combat.STATE_STONE:
 						// render as grey (as stone)
@@ -1197,120 +1225,30 @@ public class ZombieLord implements ApplicationListener {
 				}
 			}
 			
-			//check if battle is over.
-			if(!waiting){
-				byte state = currentCombat.getBattleState();
+			// carry out player commands
+			if(this.currentCombat.waitingForPlayerCommand && this.finishedChoosing == true){
 				
-				for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
-					currentCombat.getLiveCombatants().get(i).setMoveAhead(false);
-				}
-				this.combatEffects.clear();
 				
-				if(state == 1){
-					// player has won
-					waiting = true;
-					System.out.println("VICTORY! :>");
-					//TODO: happy trumpet
-					gameMode = MODE_VICTORY;
-					this.combatEffects.clear();
-					
-				}
-				else if(state == 2){
-					// player has lost
-					waiting = true;
-					System.out.println("GAME OVER. :'(");
-					
-					
-					if(currentMusic != null)
-						currentMusic.stop();
-					
-					currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
-					currentMusic.setLooping(true);
-					currentMusic.play();
-
-					gameMode = MODE_GAMEOVER;
-					this.combatEffects.clear();
-				}
 				
-				//TODO: render all dead/fainted characters as such
 				
-				//TODO: render status changes (those that are visible)
-				
-				Monster readyMonster = currentCombat.getFirstReadiedMonster();
-				if(readyMonster != null){
+				if(this.selectedCombatOption.subGroup == false){
+					// player has selected an option which we can carry out.. so lets!
+					// TODO: actually, target selection would be nice..
 					
-					CurrentAction myAction = readyMonster.getMonsterAction(party, currentCombat);
 					
-					LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
 					
-					if(myAction.action != null){
-						// Move monster against player to represent the attack
-						
-						myAction.caster.setMoveAhead(true);
-						
-						if(myAction.action.effect != null && affected != null){
-							
-							if(myAction.action == bite){ // TODO: simple hack to get sound..
-								this.biteSound.play();
-							}
-							if(myAction.action == punch){ // TODO: simple hack to get sound..
-								this.hitSound.play();
-							}
-							
-							for(Combatant c : affected){
-								Sprite effect = new Sprite(myAction.action.effect);
-								effect.setX(c.getSprite().getX()+16);
-								effect.setY(c.getSprite().getY()+16);
-								this.combatEffects.add(effect);
-							}
-						}
-						
+					if(!this.finishedTargeting && this.selectedTarget == null){
+						// TODO: well?
+						this.validTargets = this.currentCombat.getValidTargets(this.selectedCombatOption.associatedActions.getFirst(),
+								this.combatOptionCaster);
+						// NOTE: for attacks that raget 'all *' or 'random *', this is also fine and handled elsewhere.
+						this.selectedTarget = validTargets.getFirst();
 					}
 					
-					readyMonster.actionTimer = readyMonster.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
-					
-					waiting = true;
-					waitTime = 2;
-					// Only 1 attacker per turn.
-				}
-				if(!waiting){
-					PartyMember readyMember = currentCombat.getFirstReadiedPlayer();
-					if(readyMember != null){
+					else if(this.finishedTargeting){
+						CurrentAction myAction = new CurrentAction(this.selectedCombatOption.associatedActions.getFirst(),
+								this.combatOptionCaster, this.selectedTarget);
 						
-						// Find the options..
-						
-						LinkedList<CombatOption> combatOptions = new LinkedList<CombatOption>();
-						
-
-						
-						if(currentCombat.isEscapeAllowed()){
-							combatOptions.add(escape); // RUN AWAAY!!
-						}
-						if(currentCombat.isItemAllowed() && party.hasCombatItem()){
-							combatOptions.add(item); // use some item (potion, etc..)
-						}
-						combatOptions.add(defend); // spend the turn to increase defense (+50% def to ALL damage)
-						
-						for(CombatAction ca : readyMember.getCombatActions()){
-							if(ca.mpCost <= readyMember.getMana()) {
-								combatOptions.add(new CombatOption(ca.name, ca));
-							}
-						}
-						
-						//TODO: serve combat options to player
-						//TODO: in some sort of menu
-						//TODO: that lets the player select
-						//TODO: and then uses the selected option/action ( instead of autopilot)
-						
-						System.out.print("Actions available for "+readyMember.getName()+":");
-						for(CombatOption co : combatOptions){
-							System.out.print(" "+co.name);
-						}
-						System.out.println(".");
-						
-						int chosen = (int)(Math.random()*readyMember.getCombatActions().size());
-						
-						CurrentAction myAction = new CurrentAction(readyMember.getCombatActions().get(chosen), readyMember, currentCombat.getLiveMonsters().getFirst());
 						LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
 						
 						if(myAction.action != null && affected != null){
@@ -1343,13 +1281,272 @@ public class ZombieLord implements ApplicationListener {
 							}
 						}
 						
-						readyMember.actionTimer = readyMember.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
+						myAction.caster.actionTimer = myAction.caster.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
 						
 						waiting = true;
 						waitTime = 2;
+						this.currentCombat.waitingForPlayerCommand = false;
+						this.selectedCombatOption = null;
+						this.currentCombatOptions = null;
+						this.combatOptionCaster = null;
+						this.finishedTargeting = false;
+						this.finishedChoosing = false;
+						this.validTargets = null;
+						this.selectedTarget = null;
+					}
+				}
+				else {
+					// this action has a subgroup.. player needs to choose from these also
+					LinkedList<CombatAction> actions = this.selectedCombatOption.associatedActions;
+					this.currentCombatOptions = new LinkedList<CombatOption>();
+					for(CombatAction act : actions)
+						this.currentCombatOptions.add(new CombatOption(act.name,act));
+					
+					this.selectedCombatOption = this.currentCombatOptions.getFirst();
+					this.finishedChoosing = false;
+					System.out.println("subgroup");
+					
+					
+				}
+				
+			}
+			
+			for(Combatant c : this.currentCombat.getCombatants()){
+				if(c.health <= 0){
+					// dead..
+					if(c instanceof PartyMember){
+						// TODO: some effect here
+					}
+					else if(c instanceof Monster)
+					{
+						Monster m = (Monster)c;
+						Color d = Color.BLACK;
+						
+						int i = (int)Float.MAX_VALUE;
+						if(m.alpha == Monster.ALPHA_START){
+							Color red = Color.RED;
+							m.getSprite().setColor(red);
+						}
+						if(m.alpha > 0f){
+							m.alpha -= m.fadeSpeed * Gdx.graphics.getDeltaTime();
+						}
+						if(m.alpha < 0){
+							m.alpha = 0;
+						}
+					}
+				}
+			}
+			
+			//check if battle is over.
+			if(!waiting){
+				byte state = currentCombat.getBattleState();
+				
+				for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
+					currentCombat.getLiveCombatants().get(i).setMoveAhead(false);
+				}
+				this.combatEffects.clear();
+				
+				if(state == 1){
+					// player has won
+					// check if all monsters are done fading out..
+					boolean fadingDone = true;
+					for(Combatant c : currentCombat.getCombatants())
+						if(c instanceof Monster && ((Monster)c).alpha != 0)
+							fadingDone = false;
+					
+					if(fadingDone){ // WIN
+						waiting = true;
+						System.out.println("VICTORY! :>");
+						//TODO: happy trumpet
+						gameMode = MODE_VICTORY;
+						this.combatEffects.clear();
+					}
+					// else, wait for fading to finish..
+					
+				}
+				else if(state == 2){
+					// player has lost
+					waiting = true;
+					System.out.println("GAME OVER. :'(");
+					
+					
+					if(currentMusic != null)
+						currentMusic.stop();
+					
+					currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
+					currentMusic.setLooping(true);
+					currentMusic.play();
+
+					gameMode = MODE_GAMEOVER;
+					this.combatEffects.clear();
+				}
+				
+				
+				
+				//TODO: render status changes (those that are visible)
+				
+				Monster readyMonster = currentCombat.getFirstReadiedMonster();
+				if(readyMonster != null && currentCombat.getLivePlayers().size() > 0){
+					
+					CurrentAction myAction = readyMonster.getMonsterAction(party, currentCombat);
+					
+					LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
+					
+					if(myAction.action != null){
+						// Move monster against player to represent the attack
+						
+						myAction.caster.setMoveAhead(true);
+						
+						if(myAction.action.effect != null && affected != null){
+							
+							if(myAction.action == BITE){ // TODO: simple hack to get sound..
+								this.biteSound.play();
+							}
+							if(myAction.action == PUNCH){ // TODO: simple hack to get sound..
+								this.hitSound.play();
+							}
+							
+							for(Combatant c : affected){
+								Sprite effect = new Sprite(myAction.action.effect);
+								effect.setX(c.getSprite().getX()+16);
+								effect.setY(c.getSprite().getY()+16);
+								this.combatEffects.add(effect);
+							}
+						}
 						
 					}
 					
+					readyMonster.actionTimer = readyMonster.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
+					
+					waiting = true;
+					waitTime = 2;
+					// Only 1 attacker per turn.
+				}
+				if(!waiting && currentCombat.getLiveMonsters().size() > 0){
+					PartyMember readyMember = currentCombat.getFirstReadiedPlayer();
+					if(readyMember != null){
+						
+						// Find the options..
+						
+						/*LinkedList<CombatOption> combatOptions = new LinkedList<CombatOption>();
+						
+
+						
+						if(currentCombat.isEscapeAllowed()){
+							combatOptions.add(escape); // RUN AWAAY!!
+						}
+						if(currentCombat.isItemAllowed() && party.hasCombatItem()){
+							combatOptions.add(item); // use some item (potion, etc..)
+						}
+						combatOptions.add(defend); // spend the turn to increase defense (+50% def to ALL damage)
+						
+						for(CombatAction ca : readyMember.getCombatActions()){
+							if(ca.mpCost <= readyMember.getMana()) {
+								combatOptions.add(new CombatOption(ca.name, ca));
+							}
+						}*/
+						
+						// find out which 'global groups are available..
+						boolean haveItem = currentCombat.isItemAllowed();
+						boolean canEscape = currentCombat.isEscapeAllowed();
+						boolean canDefend = false; // TODO: maybe have some setting to allow some of the characters to defend..
+						
+						CombatAction attack = null;
+						
+						LinkedList<CombatAction> magic = new LinkedList<CombatAction>();
+						
+						LinkedList<CombatAction> summons = new LinkedList<CombatAction>();
+						
+						for(CombatAction ca : readyMember.getCombatActions()){
+							
+							if(ca.category == this.OFFENSIVE_MAGIC || ca.category == this.DEFENSIVE_MAGIC)
+								magic.add(ca);
+							else if(ca.category == this.ATTACK)
+								attack = ca;
+							else if(ca.category == this.SUMMON)
+								summons.add(ca);
+						}
+						
+						this.currentCombatOptions = new LinkedList<CombatOption>();
+						this.selectedCombatOption = null;
+						if(attack != null)
+							currentCombatOptions.add(new CombatOption("Attack",attack));
+						if(canDefend)
+							currentCombatOptions.add(this.defend);
+						if(magic.size() > 0)
+							currentCombatOptions.add(new CombatOption("Magic",magic));
+						if(summons.size() > 0)
+							currentCombatOptions.add(new CombatOption("Summon",summons));
+						if(haveItem)
+							currentCombatOptions.add(this.item);
+						if(canEscape)
+							currentCombatOptions.add(this.escape);
+						
+						this.selectedCombatOption = this.currentCombatOptions.getFirst();
+						this.finishedChoosing = false;
+						this.combatOptionCaster = readyMember;
+						
+						this.currentCombat.waitingForPlayerCommand = true;
+						
+						this.selectedTarget = null;
+						
+						this.finishedTargeting = false;
+						this.validTargets = null;
+						
+						
+						//TODO: serve combat options to player
+						//TODO: in some sort of menu
+						//TODO: that lets the player select
+						//TODO: and then uses the selected option/action ( instead of autopilot)
+						/*if(false){
+							System.out.print("Actions available for "+readyMember.getName()+":");
+							for(CombatOption co : combatOptions){
+								System.out.print(" "+co.name);
+							}
+							System.out.println(".");
+							
+							int chosen = (int)(Math.random()*readyMember.getCombatActions().size());
+							
+							CurrentAction myAction = new CurrentAction(readyMember.getCombatActions().get(chosen), readyMember, currentCombat.getLiveMonsters().getFirst());
+							LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
+							
+							if(myAction.action != null && affected != null){
+								// Move player against monster to represent the attack
+								
+								
+								if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
+									this.hitSound.play();
+								}
+								if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
+									this.cutSound.play();
+								}
+								
+								myAction.caster.setMoveAhead(true);
+								
+								if(myAction.action.effect != null && affected != null){
+									
+									for(Combatant c : affected){
+										Sprite effect = new Sprite(myAction.action.effect);
+										effect.setX(c.getSprite().getX()+16);
+										effect.setY(c.getSprite().getY()+16);
+										this.combatEffects.add(effect);
+									}
+								}
+							}
+							if(this.debug){
+								// time to stop this nonsense!
+								for(Monster m : currentCombat.getLiveMonsters()){
+									m.health = 0;
+								}
+							}
+							
+							readyMember.actionTimer = readyMember.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
+							
+							waiting = true;
+							waitTime = 2;
+							
+						}*/
+					}
 				}
 			}
 			
@@ -1359,7 +1556,6 @@ public class ZombieLord implements ApplicationListener {
 			camera.update();
 			if(!waiting){
 				currentCombat.tick(Gdx.graphics.getDeltaTime()*5*2);
-				//TODO: some sort of representation of combat timers (atleast for players..)
 			}
 		}
 		
@@ -1376,7 +1572,6 @@ public class ZombieLord implements ApplicationListener {
 		
 		
 		if(gameMode == MODE_FIGHT){
-			// TODO: draw battle window here
 			
 			this.battleWindow.draw(batch);
 			
@@ -1393,11 +1588,103 @@ public class ZombieLord implements ApplicationListener {
 			foreground.draw(batch);
 		
 		if(gameMode == MODE_FIGHT){
+			
+			for(Combatant monst : this.currentCombat.getCombatants()){
+				if(monst instanceof Monster){
+					Monster m = (Monster)monst;
+					// draw the monster with correct alpha..
+					// thus we can fade out dead monsters
+					m.getSprite().draw(batch,m.alpha);
+				}
+			}
+			
+			// draw battle effects last.. unless you dont want them ontop anymore..
 			for(Sprite effect : this.combatEffects)
 				effect.draw(batch);
 		}
 		
 		batch.end();
+		
+		if(gameMode == MODE_FIGHT && this.currentCombat.waitingForPlayerCommand){
+			fontBatch.begin();
+			if(this.finishedChoosing && ! this.finishedTargeting){
+				// NOTE, for 'all * and random *' selectedTarget is wrong, but. we know how to draw those i guess..
+				switch(this.selectedCombatOption.associatedActions.getFirst().targetType){
+				case CombatAction.TARGET_ALL:
+				case CombatAction.TARGET_RANDOM:
+					//one hand for each live combatant
+					for(Combatant c : this.currentCombat.getLiveCombatants()){
+						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
+						cursor.setX(c.getSprite().getX());
+						cursor.setY(c.getSprite().getY());
+						cursor.draw(fontBatch);
+					}
+					break;
+				case CombatAction.TARGET_ALL_OTHER:
+					//one hand for each live combatant (except caster)
+					for(Combatant c : this.currentCombat.getLiveCombatants()){
+						if(c != this.combatOptionCaster){
+							Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
+							cursor.setX(c.getSprite().getX());
+							cursor.setY(c.getSprite().getY());
+							cursor.draw(fontBatch);
+						}
+					}
+					break;
+				case CombatAction.TARGET_ALLY_ALL:
+					//one hand for each live ally
+					for(Combatant c : this.currentCombat.getLivePlayers()){
+						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
+						cursor.setX(c.getSprite().getX());
+						cursor.setY(c.getSprite().getY());
+						cursor.draw(fontBatch);
+					}
+					break;
+				case CombatAction.TARGET_ENEMY_ALL:
+				case CombatAction.TARGET_ENEMY_RANDOM:
+					//one hand for each live enemy
+					for(Combatant c : this.currentCombat.getLiveMonsters()){
+						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
+						cursor.setX(c.getSprite().getX());
+						cursor.setY(c.getSprite().getY());
+						cursor.draw(fontBatch);
+					}
+					break;
+				default:
+					// one hand for the current target
+					Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
+					cursor.setX(this.selectedTarget.getSprite().getX());
+					cursor.setY(this.selectedTarget.getSprite().getY());
+					cursor.draw(fontBatch);
+					break;
+				}
+			}
+			
+			int offset = 16;
+			int curOffset = 0;
+			for(CombatOption opt : this.currentCombatOptions){
+				
+				font.setColor(Color.WHITE);
+				
+				if(this.currentCombat.canUse(opt, this.combatOptionCaster)){
+					if(this.selectedCombatOption == opt)
+						font.setColor(Color.YELLOW);
+					else
+						font.setColor(Color.WHITE);
+				}
+				else {
+					if(this.selectedCombatOption == opt)
+						font.setColor(Color.RED);
+					else
+						font.setColor(Color.GRAY);
+				}
+				
+				font.draw(fontBatch, opt.name, w/4, h/2-curOffset);
+				curOffset += offset;
+			}
+			fontBatch.end();
+			font.setColor(Color.WHITE);
+		}
 		
 		if(gameMode == MODE_DIALOG && this.curSpeaker != null){
 			fontBatch.begin();
@@ -1446,5 +1733,163 @@ public class ZombieLord implements ApplicationListener {
 
 	@Override
 	public void resume() {
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		
+		// if we are in combat mode and waiting for user and user has not selected yet.
+		//   and keycode == up or down, then move selection
+		//   if keycode == enter, then finalize selection
+		
+		if(this.gameMode == MODE_FIGHT){
+			if(this.finishedChoosing && !this.finishedTargeting && this.currentCombat.waitingForPlayerCommand){
+				if(keycode == Keys.ENTER){
+					finishedTargeting = true;
+				}
+				else if(keycode == Keys.UP){
+					// next
+					boolean found = false;
+					for(Combatant c : this.validTargets){
+						if(c == this.selectedTarget){
+							found = true;
+						}
+						else if(found){
+							this.selectedTarget = c;
+							return true;
+						}
+					}
+					this.selectedTarget = this.validTargets.getFirst();
+					return true;
+				}
+				else if(keycode == Keys.DOWN){
+					// prev
+					Combatant prev = null;
+					
+					for(Combatant c : this.validTargets){
+						if(c == this.selectedTarget){
+							if(prev != null)
+								this.selectedTarget = prev;
+							else
+								this.selectedTarget = this.validTargets.getLast();
+							return true;
+						}
+						else
+							prev = c;
+					}
+				}
+				else if(keycode == Keys.BACKSPACE){
+					// cancel?
+					this.finishedChoosing = false;
+					this.validTargets = null;
+					this.selectedTarget = null;
+				}
+			}
+			else if(this.currentCombat.waitingForPlayerCommand && this.finishedChoosing == false && this.currentCombat.waitingForPlayerCommand){
+				
+				// moved up or down?
+				if(keycode == Keys.UP){
+					// select the previous option
+					CombatOption prev = null;
+					for(CombatOption o : this.currentCombatOptions){
+						if(o == this.selectedCombatOption){
+							// found it..
+							if(prev != null)
+								this.selectedCombatOption = prev;
+							else
+								this.selectedCombatOption = this.currentCombatOptions.getLast();
+							return true;
+						}
+						else
+							prev = o;
+					}
+				}
+				else if(keycode == Keys.DOWN){
+					// select the next option
+					boolean found = false;
+					for(CombatOption o : this.currentCombatOptions){
+						if(o == this.selectedCombatOption){
+							// found it..
+							found = true;
+						}
+						else if (found){
+							this.selectedCombatOption = o;
+							return true;
+						}
+					}
+					if(found){
+						// the current was the last.. so select the first
+						this.selectedCombatOption = this.currentCombatOptions.getFirst();
+					}
+				}
+				else if(keycode == Keys.ENTER){
+					if(!this.currentCombat.canUse(this.selectedCombatOption, this.combatOptionCaster)){
+						// TODO: play some "DERP!" sound, to make the player feel stupid/confused/angry..
+						System.out.println("Nop!");
+					}
+					else
+						this.finishedChoosing = true; // done selecting, yay!
+				}
+				else if(keycode == Keys.BACKSPACE){
+					// cancel?
+					this.currentCombatOptions = null;
+					this.currentCombat.waitingForPlayerCommand = false;
+					this.selectedCombatOption = null;
+					this.finishedChoosing = false;
+				}
+				else {
+					//TODO: anything else, or dont care??
+				}
+				
+			}
+			
+			return true;
+		}
+		
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int x, int y, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int x, int y, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchMoved(int x, int y) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

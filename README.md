@@ -25,11 +25,17 @@ Java version 1.6 is required.
 
 To build, run ant in the desktop folder:  
 
-  $ cd ZombieLord-desktop
-  $ javac src/com/talas777/ZombieLord/Main.java -sourcepath src:../ZombieLord/src -d bin -classpath libs/*:../ZombieLord/libs/*
-  $ ant
+  $ cd ZombieLord-desktop  
+  $ javac src/com/talas777/ZombieLord/Main.java -sourcepath src:../ZombieLord/src -d bin -classpath libs/*:../ZombieLord/libs/*  
+  $ ant  
 
 then run the program like:  
 
   $ java -jar zombie-lord.jar
 
+Controls
+--------
+
+Move around using the arrow keys.
+Enter confirms and backspace cancels.
+So, when you get stuck in a menu with no valid options, press backspace.

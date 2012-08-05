@@ -27,6 +27,13 @@ public class Monster extends Combatant{
 	 * filename of monsters avatar
 	 */
 	public String textureName;
+	
+	public static final float ALPHA_START = 1f;
+	
+	
+	public float fadeSpeed = 0.5f;
+	
+	public float alpha = ALPHA_START;
 
 	
 	/**

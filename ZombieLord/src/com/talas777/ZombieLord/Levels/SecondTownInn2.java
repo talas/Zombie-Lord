@@ -149,14 +149,14 @@ public class SecondTownInn2 extends Level {
 			Monster troll1 = new Monster("Troll1","troll.png",5,100,19,3,1.25f);
 			Monster troll2 = new Monster("Troll2","troll.png",5,100,19,3,1.25f);
 			
-			troll1.addCombatAction(ZombieLord.bite);
-			troll1.addCombatAction(ZombieLord.punch);
-			troll1.addCombatAction(ZombieLord.twinFist);
-			troll1.addCombatAction(ZombieLord.regrowth);
-			troll2.addCombatAction(ZombieLord.bite);
-			troll2.addCombatAction(ZombieLord.punch);
-			troll2.addCombatAction(ZombieLord.twinFist);
-			troll2.addCombatAction(ZombieLord.regrowth);
+			troll1.addCombatAction(ZombieLord.BITE);
+			troll1.addCombatAction(ZombieLord.PUNCH);
+			troll1.addCombatAction(ZombieLord.TWINFIST);
+			troll1.addCombatAction(ZombieLord.REGROWTH);
+			troll2.addCombatAction(ZombieLord.BITE);
+			troll2.addCombatAction(ZombieLord.PUNCH);
+			troll2.addCombatAction(ZombieLord.TWINFIST);
+			troll2.addCombatAction(ZombieLord.REGROWTH);
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(troll1);
@@ -176,10 +176,10 @@ public class SecondTownInn2 extends Level {
 			
 			Monster manticore = new Monster("Manticore","manticore.png",500,200,60,9,1.25f);
 			
-			manticore.addCombatAction(ZombieLord.bite);
-			manticore.addCombatAction(ZombieLord.rouletteSting);
-			manticore.addCombatAction(ZombieLord.grandClaw);
-			manticore.addCombatAction(ZombieLord.magicArrow);
+			manticore.addCombatAction(ZombieLord.BITE);
+			manticore.addCombatAction(ZombieLord.ROULETTE_STING);
+			manticore.addCombatAction(ZombieLord.GRAND_CLAW);
+			manticore.addCombatAction(ZombieLord.MAGIC_ARROW);
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(manticore);

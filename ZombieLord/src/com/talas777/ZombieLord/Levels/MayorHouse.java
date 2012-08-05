@@ -129,10 +129,10 @@ public class MayorHouse extends Level {
 			Monster zombie2 = new Monster("Zombie2","malesoldierzombie.png",5,20,15,3,1.25f);
 			Monster zombie3 = new Monster("Zombie3","malesoldierzombie.png",5,20,15,3,1.25f);
 			Monster zombie4 = new Monster("Zombie4","malesoldierzombie.png",5,20,15,3,1.25f);
-			zombie1.addCombatAction(ZombieLord.bite);
-			zombie2.addCombatAction(ZombieLord.bite);
-			zombie3.addCombatAction(ZombieLord.bite);
-			zombie4.addCombatAction(ZombieLord.bite);
+			zombie1.addCombatAction(ZombieLord.BITE);
+			zombie2.addCombatAction(ZombieLord.BITE);
+			zombie3.addCombatAction(ZombieLord.BITE);
+			zombie4.addCombatAction(ZombieLord.BITE);
 			setup.appendMonster(zombie1);
 			setup.appendMonster(zombie2);
 			setup.appendMonster(zombie3);
