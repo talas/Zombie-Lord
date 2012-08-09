@@ -16,9 +16,11 @@
 
 package com.talas777.ZombieLord;
 
+import com.talas777.ZombieLord.Items.ConsumeableItem;
 import com.talas777.ZombieLord.Levels.*;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -52,28 +54,41 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 public class ZombieLord implements ApplicationListener, InputProcessor {
+	
+	// Global Graphics stuff
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 	private SpriteBatch fontBatch;
-	//private Texture texture;
+	
 	private Texture texture2;
-	//private Sprite sprite;
 	private LinkedList<Sprite> drawSprites;
 	private Sprite leoricSprite;
-	private float w;
-	private float h;
+	
+	private float w; // width of resoultion
+	private float h; // height of resolution
+	
 	private Sprite background;
 	private Texture backgroundTexture;
 	private Sprite foreground;
-	public Sprite mover;
+	
+	public Sprite mover; // TODO: replace temporary hack with a LevelObject
 	public float moverTimer = 0;
-	//private Sprite collisionLayer;
+	
+	// Position
 	public float posx = -1;
 	public float posy = -1;
+	public int lastDirection = 0;
+	
+	public static final int DIR_SOUTH = 1;
+	public static final int DIR_NORTH = 0;
+	public static final int DIR_EAST = 2;
+	public static final int DIR_WEST = 3;
+	
+	// Animation variables
 	public float currentWalkFrame = 0;
 	public float stillTime = 0;
-	public int lastDirection = 0;
-	public float waitTime = 0;
+	
+	
 	
 	public int camMinY = 0;
 	public int camMaxY = 0;
@@ -89,12 +104,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private Texture tmTex;
 	private Texture selectionHand;
 	
-	//TextureAtlas fontAtlas;
+	// Dialog Stuff
 	BitmapFont font;
 	
 	private String curSentence = null;
 	private String curSpeaker = null;
+	public Dialog currentDialog;
+	public float dialogWait = 0;
 	
+	// Combat Stuff
 	public LinkedList<CombatOption> currentCombatOptions;
 	public CombatOption selectedCombatOption;
 	public boolean finishedChoosing;
@@ -103,20 +121,18 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public boolean finishedTargeting;
 	public LinkedList<Combatant> validTargets;
 	
+	private LinkedList<Sprite> combatEffects;
+	private Combat currentCombat;
+	public float waitTime = 0;
+	private Targeting targeting;
 	
-	public static final int DIR_SOUTH = 1;
-	public static final int DIR_NORTH = 0;
-	public static final int DIR_EAST = 2;
-	public static final int DIR_WEST = 3;
+	
+	
 	
 	public static final int MODE_MOVE = 0;
-	
 	public static final int MODE_FIGHT = 1;
-	
 	public static final int MODE_VICTORY = 2;
-	
 	public static final int MODE_DIALOG = 7;
-	
 	public static final int MODE_GAMEOVER = 99;
 	
 	/**
@@ -139,7 +155,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private Music currentMusic;
 	
 	
-	private LinkedList<Sprite> combatEffects;
+
 	
 
 	
@@ -153,81 +169,75 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	
 	private int gameMode = MODE_MOVE;
 	
-	private Combat currentCombat;
+	
 	
 	public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
-	
-	/**
-	 * Zombie bite sound
-	 */
 	public Sound biteSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
-	
 	public Sound cutSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
 	
 	public TimeTracker timeTracker;
+	public QuestTracker questTracker;
 	
 	private LinkedList<MonsterArea> activeMonsterAreas;
 	
 	private LinkedList<Dialog> activeDialogs;
 	
-	public Dialog currentDialog;
-	public float dialogWait = 0;
+	private LinkedList<LevelObject> levelObjects;
+	
+	
 	/**
 	 * used to let new levels load before starting dialogs..
 	 * otherwise things will get quite clunky
 	 */
 	public float levelLoadGraceTime = 0;
 	
-
+	/**
+	 * Which level to return to after combat.
+	 */
+	private Level returnLevel;
 	
+
+	// Player characters
 	public static PartyMember Leoric;
 	public static PartyMember Tolinai;
 	public static PartyMember Bert;
 	public static PartyMember Berzenor;
 	public static PartyMember Kuriko;
 	
-	
+	// Combat Action categories
 	public static final ActionCategory OFFENSIVE_MAGIC = new ActionCategory((byte)0);
 	public static final ActionCategory DEFENSIVE_MAGIC = new ActionCategory((byte)1);
 	public static final ActionCategory SPECIAL = new ActionCategory((byte)2);
 	public static final ActionCategory SUMMON = new ActionCategory((byte)3);
 	public static final ActionCategory ATTACK = new ActionCategory((byte)4);
+	public static final ActionCategory ITEM_ACTION = new ActionCategory((byte)5);
 	public static final ActionCategory MONSTER_ABILITY = new ActionCategory((byte)7);
 	
-	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, -4f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction PUNCH = new CombatAction("Punch",ATTACK,0, -5f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction TWINFIST = new CombatAction("TwinFist",MONSTER_ABILITY,3,-10f,CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction REGROWTH = new CombatAction("Regrowth",MONSTER_ABILITY,5,50f,CombatAction.TARGET_SELF);
-	public static final CombatAction SLASH = new CombatAction("Slash",ATTACK,0, -3f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction CYCLONE_SLASH = new CombatAction("Cyclone Slash",OFFENSIVE_MAGIC,9,-20f,CombatAction.TARGET_ENEMY_ALL);
-	public static final CombatAction MAGIC_ARROW = new CombatAction("Magic Arrow",OFFENSIVE_MAGIC,8, -12f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction STAFF_STRIKE = new CombatAction("Staff Strike",ATTACK,0, -1f, CombatAction.TARGET_ENEMY_SINGLE);
-	public static final CombatAction ROULETTE_STING = new CombatAction("Roulette Sting",MONSTER_ABILITY,10, -50f, CombatAction.TARGET_RANDOM);
-	public static final CombatAction GRAND_CLAW = new CombatAction("Grand Claw",MONSTER_ABILITY,0, -5f, CombatAction.TARGET_ENEMY_ALL);
+	// Combat Actions
+	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, -4f, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction PUNCH = new CombatAction("Punch",ATTACK,0, -5f, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction TWINFIST = new CombatAction("TwinFist",MONSTER_ABILITY,3,-10f,Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction REGROWTH = new CombatAction("Regrowth",MONSTER_ABILITY,5,50f,Targeting.TARGET_SELF);
+	public static final CombatAction SLASH = new CombatAction("Slash",ATTACK,0, -3f, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction CYCLONE_SLASH = new CombatAction("Cyclone Slash",OFFENSIVE_MAGIC,9,-20f,Targeting.TARGET_ENEMY_ALL);
+	public static final CombatAction MAGIC_ARROW = new CombatAction("Magic Arrow",OFFENSIVE_MAGIC,8, -12f, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction STAFF_STRIKE = new CombatAction("Staff Strike",ATTACK,0, -1f, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction ROULETTE_STING = new CombatAction("Roulette Sting",MONSTER_ABILITY,10, -50f, Targeting.TARGET_RANDOM);
+	public static final CombatAction GRAND_CLAW = new CombatAction("Grand Claw",MONSTER_ABILITY,0, -5f, Targeting.TARGET_ENEMY_ALL);
 	
+	// HardCoded CombatOptions
 	public static final CombatOption escape = new CombatOption("escape");
 	public static final CombatOption item = new CombatOption("item");
 	public static final CombatOption defend = new CombatOption("defend");
 	
+	// Item textures
 	
-	/*public static final String[] backgrounds = new String[]{
-		"hometown.png", // 0
-		"myhouse.png", // 1
-		"church.png", // 2
-		"hometown-night.png", // 3
-		"battle1.png" // 4
-	};*/
-	
-	
-	/*TileMapRenderer tileMapRenderer;
-    TiledMap map;
-    TileAtlas atlas;*/
 	
 	private void returnFromCombat(){
 		this.loadLevel(returnLevel, (int)posx, (int)posy, lastDirection);
 	}
 	
-	private Level returnLevel;
+
 	
 	public void loadCombat(MonsterSetup setup){
 		this.fallingTexture = null;
@@ -245,8 +255,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		this.backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+backgrounds[(int)(Math.random()*backgrounds.length)  ]));
 		this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
-		
-		drawSprites.add(this.background);
 		
 		int bposx = (int)(w/6);
 		int bposy = (int)(h/2);
@@ -383,8 +391,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		h = Gdx.graphics.getHeight();
 		
 		
-		/*camera = new OrthographicCamera();
-		camera.setToOrtho(false, w, h);*/
 		camera = new OrthographicCamera(w, h);
 		camera.position.set(0, 0, 0);
 		batch = new SpriteBatch();
@@ -448,7 +454,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		timeTracker.addEvent("left hometown");
 		
-		// TODO: story is only done untill here roughly 1/4 of story only :<
+		// TODO: story is only done untill here roughly 1/8 of story only :<
 		
 		timeTracker.addEvent("entered inn");
 		
@@ -487,6 +493,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		timeTracker.addEvent("THE END"); // Keep this last or bugs be onto ye!
 		
+		questTracker = new QuestTracker();
+		questTracker.registerQuest("First potion.");
+		
 		
 		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0); // Male hero (swordsman)
 		Leoric.addCombatAction(SLASH);
@@ -506,6 +515,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0); // Female, rogue
 		Kuriko.addCombatAction(PUNCH);
+		
+		
+		party.giveItem(Item.Potion, (byte)3); // give some potions, to make the start easier
 		
 		loadLevel(new Church(),522,414,1);// church the real start point
 		
@@ -566,7 +578,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		batch.dispose();
 		fontBatch.dispose();
 		backgroundTexture.dispose();
-		//texture.dispose();
 		texture2.dispose();
 	}
 	
@@ -578,7 +589,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		this.drawSprites.clear();
 		if(backgroundTexture != null)
 			backgroundTexture.dispose();
-		//backgroundTexture = new Texture(Gdx.files.internal("data/"+backgrounds[levelCode]));
 		backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getBackground()));
 		
 		if(this.foreground != null){
@@ -587,7 +597,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		}
 		
 		if(level.getForeground() != null){
-			
 			// Level has a foreground image
 			Texture foregroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getForeground()));
 			
@@ -595,8 +604,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		}
 		
 		this.levelLoadGraceTime = 0.5f;
-		
-		//TextureRegion backgroundTex = new TextureRegion(texture, 0, 0, 3200, 3200);
 		
 		this.camMinX = level.getCamMinX();
 		this.camMaxX = level.getCamMaxX();
@@ -607,51 +614,20 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		this.posy = posy;
 		this.lastDirection = direction;
 		
-		//switch (levelCode) {
-		//case 0://hometown
-			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			/*lastDirection = 1;
-			posx = 1775;
-			posy = 305;
-			break;*/
-			// TODO: add music
-		//case 1://my house
-			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-			/*lastDirection = 1;
-			posx = 1775;
-			posy = 305;*/
-			//break;
-			// TODO: add music
-		//case 2: //church
-			//background = new Sprite(backgroundTexture, 0, 0, 1024, 1024);
-			/*lastDirection = 1;
-			posx = 522;
-			posy = 414;*/
-			//break;
-		//case 3: //hometown night
-			//background = new Sprite(backgroundTexture, 0, 0, 3200, 3200);
-
-			/*lastDirection = 1;
-			posx = 1775;
-			posy = 305;*/
-			// TODO: add wind effect
-			// TODO: add ambient sounds
-			//break;
-		//default:
-			//System.err.println("Case Switched, Learn2Code talas!");
-		//}
 		background = level.background(backgroundTexture);
-			
-		drawSprites.add(background);
 		
 		this.activeMonsterAreas = level.getMonsterAreas(timeTracker);
 		this.activeDialogs = level.getLevelDialogs();
+		this.levelObjects = level.getLevelObjects(questTracker);
+
 		
 		
 		// Hard Coded strange things goes here.. SPOLIER ALERT, etc..
 		
 		if(level instanceof HomeTownNight)
 			this.fallingTexture = new Texture(Gdx.files.internal("data/raindrop.png"));
+		// TODO: add wind effect
+		// TODO: add ambient sounds
 		
 
 		if(level instanceof Church){
@@ -700,24 +676,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		
 		
-		/*
-		texture = new Texture(Gdx.files.internal("data/col1-test.png"));
-		collisionLayer = new Sprite(texture, 0, 0, 3200, 3200);
-		drawSprites.add(collisionLayer);
-		*/
-		
-		/*{
-			texture = new Texture(Gdx.files.internal("data/libgdx.png"));
-			//texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-			
-			TextureRegion region = new TextureRegion(texture, 0, 0, 512, 275);
-			
-			sprite = new Sprite(region);
-			sprite.setSize(0.9f, 0.9f * sprite.getHeight() / sprite.getWidth());
-			sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
-			sprite.setPosition(20, 20);
-			drawSprites.add(sprite);
-		}*/
 		{
 			if(level instanceof HomeTownNight)
 				texture2 = new Texture(Gdx.files.internal("data/BRivera-malesoldier-dark.png"));
@@ -742,7 +700,21 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		world = new World(new Vector2(0.0f, 0.0f), true);
 		
-		level.applyCollisionBoundaries(world, PIXELS_PER_METER);
+		level.applyCollisionBoundaries(world, PIXELS_PER_METER); // Added level collision data (except dynamic objects)
+		
+		if(this.levelObjects != null){
+			// add dynamic level object collision data
+			BodyDef groundBodyDef = new BodyDef();
+			groundBodyDef.type = BodyDef.BodyType.StaticBody;
+			Body groundBody = world.createBody(groundBodyDef);
+			for(LevelObject object : this.levelObjects){
+				ChainShape s = object.getCollisionBoundary();
+				if(s == null)
+					continue;
+				groundBody.createFixture(s, 0);
+				s.dispose();
+			}
+		}
 
 		BodyDef jumperBodyDef = new BodyDef();
 		jumperBodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -999,6 +971,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			camera.position.y = leoricSprite.getY()+16;
 			
 			
+			
+			
 			if((left || right || up || down) && this.levelLoadGraceTime <= 0){
 				// Only attract monsters and dialogs when moving
 				
@@ -1177,7 +1151,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				this.backgroundTexture = new Texture(Gdx.files.internal("data/victory.png"));
 				this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
 				
-				drawSprites.add(this.background);
 				
 			}
 			
@@ -1196,7 +1169,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			this.backgroundTexture = new Texture(Gdx.files.internal("data/gameover.png"));
 			this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
 			
-			drawSprites.add(this.background);
 		}
 		
 		else if(gameMode == MODE_FIGHT){
@@ -1207,21 +1179,28 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				
 				switch(current.getState()){
 					case Combat.STATE_STONE:
+						current.getSprite().setColor(Color.GRAY);
 						// render as grey (as stone)
 						break;
 					case Combat.STATE_POISONED:
+						current.getSprite().setColor(Color.GREEN);
 						// render as green
 						break;
 					case Combat.STATE_FURY:
+						current.getSprite().setColor(Color.RED);
 						// render as red
 						break;
 					case Combat.STATE_WEAKNESS:
+						current.getSprite().setColor(Color.YELLOW);
 						// render as pale yellow
 						break;
 					case Combat.STATE_DOOM:
+						current.getSprite().setColor(Color.BLACK);
 						// render as dark
 						break;
-					
+					default:
+						current.getSprite().setColor(Color.WHITE);
+						break;
 				}
 			}
 			
@@ -1229,62 +1208,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			if(this.currentCombat.waitingForPlayerCommand && this.finishedChoosing == true){
 				
 				
-				
-				
-				if(this.selectedCombatOption.subGroup == false){
-					// player has selected an option which we can carry out.. so lets!
-					// TODO: actually, target selection would be nice..
-					
-					
-					
-					if(!this.finishedTargeting && this.selectedTarget == null){
-						// TODO: well?
-						this.validTargets = this.currentCombat.getValidTargets(this.selectedCombatOption.associatedActions.getFirst(),
-								this.combatOptionCaster);
-						// NOTE: for attacks that raget 'all *' or 'random *', this is also fine and handled elsewhere.
-						this.selectedTarget = validTargets.getFirst();
-					}
-					
-					else if(this.finishedTargeting){
-						CurrentAction myAction = new CurrentAction(this.selectedCombatOption.associatedActions.getFirst(),
-								this.combatOptionCaster, this.selectedTarget);
-						
-						LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
-						
-						if(myAction.action != null && affected != null){
-							// Move player against monster to represent the attack
-							
-							
-							if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
-								this.hitSound.play();
-							}
-							if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
-								this.cutSound.play();
-							}
-							
-							myAction.caster.setMoveAhead(true);
-							
-							if(myAction.action.effect != null && affected != null){
-								
-								for(Combatant c : affected){
-									Sprite effect = new Sprite(myAction.action.effect);
-									effect.setX(c.getSprite().getX()+16);
-									effect.setY(c.getSprite().getY()+16);
-									this.combatEffects.add(effect);
-								}
-							}
-						}
-						if(this.debug){
-							// time to stop this nonsense!
-							for(Monster m : currentCombat.getLiveMonsters()){
-								m.health = 0;
-							}
-						}
-						
-						myAction.caster.actionTimer = myAction.caster.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
+				if(this.selectedCombatOption.subGroup == false && this.selectedCombatOption.hardCoded){
+					// player chose a hardcoded option.
+					if(this.selectedCombatOption == this.defend){
+						// TODO: defend if possible
+						// For now, we just wait a turn when defending (so its near useless).
+						this.currentCombat.resetActionTimer(this.combatOptionCaster);
 						
 						waiting = true;
-						waitTime = 2;
+						waitTime = 0.3f;
 						this.currentCombat.waitingForPlayerCommand = false;
 						this.selectedCombatOption = null;
 						this.currentCombatOptions = null;
@@ -1293,6 +1225,188 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						this.finishedChoosing = false;
 						this.validTargets = null;
 						this.selectedTarget = null;
+					}
+					else if(this.selectedCombatOption == this.escape){
+						if(Math.random() < this.currentCombat.getEscapeChance()){
+							// escape!
+							this.returnFromCombat();
+							return;
+						}
+						else {
+							waiting = true;
+							waitTime = 0.3f;
+							this.currentCombat.waitingForPlayerCommand = false;
+							this.selectedCombatOption = null;
+							this.currentCombatOptions = null;
+							this.combatOptionCaster = null;
+							this.finishedTargeting = false;
+							this.finishedChoosing = false;
+							this.validTargets = null;
+							this.selectedTarget = null;
+						}
+					}
+					else if(this.selectedCombatOption == this.item){
+						// have to pull up a submenu with all combat items.
+						this.currentCombatOptions = new LinkedList<CombatOption>();
+						Inventory inventory = party.getInventory();
+						LinkedList<Item> items = inventory.getCombatItems();
+						for(Item i : items){
+							this.currentCombatOptions.add(new CombatOption(i));
+						}
+						
+						this.selectedCombatOption = this.currentCombatOptions.getFirst();
+						this.finishedChoosing = false;
+						System.out.println("subgroup");		
+						
+						
+						// TODO: make combatoptions for each combat item (+ count)
+						// then serve to player just like with magics
+					}
+				}
+				else if(this.selectedCombatOption.subGroup == false){
+					// player has selected an option which we can carry out.. so lets!
+					
+					
+					if(!this.finishedTargeting && this.selectedTarget == null){
+						// TODO: well?
+						
+						if(this.selectedCombatOption.item == null){
+							// Not trying to use an item
+							CombatAction action = this.selectedCombatOption.associatedActions.getFirst();
+							
+							
+							this.validTargets = this.currentCombat.getValidTargets(action,
+									this.combatOptionCaster);
+							// NOTE: for attacks that target 'all *' or 'random *', this is also fine and handled elsewhere.
+							this.selectedTarget = validTargets.getFirst();
+							
+							
+							
+							this.targeting = new Targeting(action.targetType,validTargets,this.combatOptionCaster,action.offensive);
+							
+						}
+						else {
+							// Trying to use an item
+							// targeting for items is a little strange i guess..
+							if(this.selectedCombatOption.item instanceof ConsumeableItem){
+								ConsumeableItem item = (ConsumeableItem)this.selectedCombatOption.item;
+								CombatAction action = item.getEffect();
+								
+								this.validTargets = new LinkedList<Combatant>();
+								for(Combatant c : this.currentCombat.getLiveCombatants())
+									this.validTargets.add(c);
+								if(item.offensive){
+									// target first enemy..
+									this.selectedTarget = this.currentCombat.getLiveMonsters().getFirst();
+								}
+								else {
+									// target self
+									this.selectedTarget = this.combatOptionCaster;
+								}
+								System.out.println("item");
+								
+								this.targeting = new Targeting(action.targetType,validTargets,this.combatOptionCaster,item.offensive);
+								
+							}
+							else {
+								// TODO: non-consumable items in combat?
+								System.err.println("[ERROR] Non consumeable item in combat? Have to write the code first then! 1");
+							}
+						}
+					}
+					
+					else if(this.finishedTargeting){
+						if(this.selectedCombatOption.item != null){
+							// player wants to use an item
+							if(this.selectedCombatOption.item instanceof ConsumeableItem){
+								ConsumeableItem i = (ConsumeableItem) this.selectedCombatOption.item;
+								CurrentAction myAction = new CurrentAction(i.getEffect(),
+										this.combatOptionCaster, this.targeting);
+								LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
+								
+								myAction.caster.setMoveAhead(true);
+								
+								if(myAction.action.effect != null && affected != null){
+									
+									for(Combatant c : affected){
+										Sprite effect = new Sprite(myAction.action.effect);
+										effect.setX(c.getSprite().getX()+16);
+										effect.setY(c.getSprite().getY()+16);
+										this.combatEffects.add(effect);
+									}
+								}
+								
+								// take the item
+								party.getInventory().removeItem(i,(byte)1);
+								
+								this.currentCombat.resetActionTimer(this.combatOptionCaster);
+								
+								waiting = true;
+								waitTime = 2;
+								this.currentCombat.waitingForPlayerCommand = false;
+								this.selectedCombatOption = null;
+								this.currentCombatOptions = null;
+								this.combatOptionCaster = null;
+								this.finishedTargeting = false;
+								this.finishedChoosing = false;
+								this.validTargets = null;
+								this.selectedTarget = null;
+								
+								
+							}
+							else {
+								System.err.println("[ERROR] Non consumeable item in combat? Have to write the code first then! 2");
+							}
+						}
+						else {
+							CurrentAction myAction = new CurrentAction(this.selectedCombatOption.associatedActions.getFirst(),
+									this.combatOptionCaster, this.targeting);
+							
+							LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
+							
+							if(myAction.action != null && affected != null){
+								// Move player against monster to represent the attack
+								
+								
+								if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
+									this.hitSound.play();
+								}
+								if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
+									this.cutSound.play();
+								}
+								
+								myAction.caster.setMoveAhead(true);
+								
+								if(myAction.action.effect != null && affected != null){
+									
+									for(Combatant c : affected){
+										Sprite effect = new Sprite(myAction.action.effect);
+										effect.setX(c.getSprite().getX()+16);
+										effect.setY(c.getSprite().getY()+16);
+										this.combatEffects.add(effect);
+									}
+								}
+							}
+							if(this.debug){
+								// time to stop this nonsense!
+								for(Monster m : currentCombat.getLiveMonsters()){
+									m.health = 0;
+								}
+							}
+							
+							this.currentCombat.resetActionTimer(this.combatOptionCaster);
+							
+							waiting = true;
+							waitTime = 2;
+							this.currentCombat.waitingForPlayerCommand = false;
+							this.selectedCombatOption = null;
+							this.currentCombatOptions = null;
+							this.combatOptionCaster = null;
+							this.finishedTargeting = false;
+							this.finishedChoosing = false;
+							this.validTargets = null;
+							this.selectedTarget = null;
+						}
 					}
 				}
 				else {
@@ -1428,24 +1542,6 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						
 						// Find the options..
 						
-						/*LinkedList<CombatOption> combatOptions = new LinkedList<CombatOption>();
-						
-
-						
-						if(currentCombat.isEscapeAllowed()){
-							combatOptions.add(escape); // RUN AWAAY!!
-						}
-						if(currentCombat.isItemAllowed() && party.hasCombatItem()){
-							combatOptions.add(item); // use some item (potion, etc..)
-						}
-						combatOptions.add(defend); // spend the turn to increase defense (+50% def to ALL damage)
-						
-						for(CombatAction ca : readyMember.getCombatActions()){
-							if(ca.mpCost <= readyMember.getMana()) {
-								combatOptions.add(new CombatOption(ca.name, ca));
-							}
-						}*/
-						
 						// find out which 'global groups are available..
 						boolean haveItem = currentCombat.isItemAllowed();
 						boolean canEscape = currentCombat.isEscapeAllowed();
@@ -1492,60 +1588,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						
 						this.finishedTargeting = false;
 						this.validTargets = null;
-						
-						
-						//TODO: serve combat options to player
-						//TODO: in some sort of menu
-						//TODO: that lets the player select
-						//TODO: and then uses the selected option/action ( instead of autopilot)
-						/*if(false){
-							System.out.print("Actions available for "+readyMember.getName()+":");
-							for(CombatOption co : combatOptions){
-								System.out.print(" "+co.name);
-							}
-							System.out.println(".");
-							
-							int chosen = (int)(Math.random()*readyMember.getCombatActions().size());
-							
-							CurrentAction myAction = new CurrentAction(readyMember.getCombatActions().get(chosen), readyMember, currentCombat.getLiveMonsters().getFirst());
-							LinkedList<Combatant> affected = currentCombat.applyAction(myAction);
-							
-							if(myAction.action != null && affected != null){
-								// Move player against monster to represent the attack
-								
-								
-								if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
-									this.hitSound.play();
-								}
-								if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
-									this.cutSound.play();
-								}
-								
-								myAction.caster.setMoveAhead(true);
-								
-								if(myAction.action.effect != null && affected != null){
-									
-									for(Combatant c : affected){
-										Sprite effect = new Sprite(myAction.action.effect);
-										effect.setX(c.getSprite().getX()+16);
-										effect.setY(c.getSprite().getY()+16);
-										this.combatEffects.add(effect);
-									}
-								}
-							}
-							if(this.debug){
-								// time to stop this nonsense!
-								for(Monster m : currentCombat.getLiveMonsters()){
-									m.health = 0;
-								}
-							}
-							
-							readyMember.actionTimer = readyMember.getBaseDelay()*(1.5f*Math.random()+0.5f);// TODO: randomize better?
-							
-							waiting = true;
-							waitTime = 2;
-							
-						}*/
+						this.targeting = null;
 					}
 				}
 			}
@@ -1567,6 +1610,19 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+		
+		background.draw(batch);
+		
+		if(this.gameMode == MODE_MOVE){
+			// draw level objects
+			if(this.levelObjects != null){
+				for(LevelObject object : this.levelObjects){
+					object.draw(batch);
+				}
+			}
+		}
+		
+		
 		for(Sprite s : drawSprites)
 		 s.draw(batch);
 		
@@ -1582,7 +1638,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		
 
-		
+
 		
 		if(gameMode == MODE_MOVE && this.foreground != null) // drawing foreground last = ontop of everything else
 			foreground.draw(batch);
@@ -1605,58 +1661,21 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		batch.end();
 		
+
+		
 		if(gameMode == MODE_FIGHT && this.currentCombat.waitingForPlayerCommand){
 			fontBatch.begin();
 			if(this.finishedChoosing && ! this.finishedTargeting){
 				// NOTE, for 'all * and random *' selectedTarget is wrong, but. we know how to draw those i guess..
-				switch(this.selectedCombatOption.associatedActions.getFirst().targetType){
-				case CombatAction.TARGET_ALL:
-				case CombatAction.TARGET_RANDOM:
-					//one hand for each live combatant
-					for(Combatant c : this.currentCombat.getLiveCombatants()){
-						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
-						cursor.setX(c.getSprite().getX());
-						cursor.setY(c.getSprite().getY());
-						cursor.draw(fontBatch);
-					}
-					break;
-				case CombatAction.TARGET_ALL_OTHER:
-					//one hand for each live combatant (except caster)
-					for(Combatant c : this.currentCombat.getLiveCombatants()){
-						if(c != this.combatOptionCaster){
-							Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
-							cursor.setX(c.getSprite().getX());
-							cursor.setY(c.getSprite().getY());
-							cursor.draw(fontBatch);
-						}
-					}
-					break;
-				case CombatAction.TARGET_ALLY_ALL:
-					//one hand for each live ally
-					for(Combatant c : this.currentCombat.getLivePlayers()){
-						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
-						cursor.setX(c.getSprite().getX());
-						cursor.setY(c.getSprite().getY());
-						cursor.draw(fontBatch);
-					}
-					break;
-				case CombatAction.TARGET_ENEMY_ALL:
-				case CombatAction.TARGET_ENEMY_RANDOM:
-					//one hand for each live enemy
-					for(Combatant c : this.currentCombat.getLiveMonsters()){
-						Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
-						cursor.setX(c.getSprite().getX());
-						cursor.setY(c.getSprite().getY());
-						cursor.draw(fontBatch);
-					}
-					break;
-				default:
-					// one hand for the current target
+				
+				LinkedList<Combatant> targets = targeting.getCurrentTargets();
+				
+				//one hand for each target
+				for(Combatant c : targets){
 					Sprite cursor = new Sprite(this.selectionHand,0,0,32,32);
-					cursor.setX(this.selectedTarget.getSprite().getX());
-					cursor.setY(this.selectedTarget.getSprite().getY());
+					cursor.setX(c.getSprite().getX());
+					cursor.setY(c.getSprite().getY());
 					cursor.draw(fontBatch);
-					break;
 				}
 			}
 			
@@ -1679,7 +1698,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						font.setColor(Color.GRAY);
 				}
 				
-				font.draw(fontBatch, opt.name, w/4, h/2-curOffset);
+				String t = opt.name;
+				if(opt.item != null)
+					t = party.getInventory().getItemCount(opt.item)+"x "+opt.name;
+				
+				font.draw(fontBatch, t, w/4, h/2-curOffset);
 				curOffset += offset;
 			}
 			fontBatch.end();
@@ -1689,6 +1712,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		if(gameMode == MODE_DIALOG && this.curSpeaker != null){
 			fontBatch.begin();
 			// Ongoing dialog, draw the talkstuffs
+			// TODO: char by char?
 			
 			int length = this.curSpeaker.length()+2+this.curSentence.length();
 			float cposx = w/2;
@@ -1725,6 +1749,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 
 	@Override
 	public void resize(int width, int height) {
+		// Verboten?
 	}
 
 	@Override
@@ -1738,6 +1763,42 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	@Override
 	public boolean keyDown(int keycode) {
 		
+		if(this.gameMode == MODE_MOVE){
+			if(keycode == Keys.I){
+				// bring up inventory.
+				// TODO: I guess its a shortcut, there will be a catch-all menu one day.
+				Inventory i = party.getInventory();
+				StringBuilder sb = new StringBuilder();
+				sb.append("Items: ");
+				for(Item item : i.getItems()){
+					sb.append(i.getItemCount(item)+"x "+item.name+" ");
+				}
+				System.out.println(sb.toString());
+			}
+			if(this.levelObjects != null && keycode == Keys.ENTER){
+				// check if there are any objects to interract with..
+				ListIterator<LevelObject> iter = this.levelObjects.listIterator();
+				while(iter.hasNext()){
+					LevelObject object = iter.next();
+					if(object.isNear((int)posx, (int)posy)){
+						object.interact(party, questTracker);
+						if(object instanceof LevelItem){
+							if(object.shouldBeDeleted()){
+								// TODO: play sound to confirm the player got some items
+								// TODO: draw some text that tells the player he acquired some items (ingame).
+								System.out.println("Acquired a " + ((LevelItem)object).getItemType().name+"!");
+								iter.remove();
+							}
+							else {
+								// TODO: draw some text to tell the player he can't carry more (ingame)..
+								System.out.println("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		// if we are in combat mode and waiting for user and user has not selected yet.
 		//   and keycode == up or down, then move selection
 		//   if keycode == enter, then finalize selection
@@ -1749,34 +1810,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				}
 				else if(keycode == Keys.UP){
 					// next
-					boolean found = false;
-					for(Combatant c : this.validTargets){
-						if(c == this.selectedTarget){
-							found = true;
-						}
-						else if(found){
-							this.selectedTarget = c;
-							return true;
-						}
-					}
-					this.selectedTarget = this.validTargets.getFirst();
-					return true;
+					targeting.next();
 				}
 				else if(keycode == Keys.DOWN){
 					// prev
-					Combatant prev = null;
-					
-					for(Combatant c : this.validTargets){
-						if(c == this.selectedTarget){
-							if(prev != null)
-								this.selectedTarget = prev;
-							else
-								this.selectedTarget = this.validTargets.getLast();
-							return true;
-						}
-						else
-							prev = c;
-					}
+					targeting.previous();
 				}
 				else if(keycode == Keys.BACKSPACE){
 					// cancel?

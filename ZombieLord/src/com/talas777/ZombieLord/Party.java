@@ -27,13 +27,24 @@ public class Party {
 	public Party(){
 		this.activeMembers = new LinkedList<PartyMember>();
 		this.members = new LinkedList<PartyMember>();
+		this.inventory = new Inventory(99);
 	}
 	
 	private LinkedList<PartyMember> members;
 	private LinkedList<PartyMember> activeMembers;
+	private Inventory inventory;
 	
-	public boolean hasCombatItem(){
+	public boolean giveItem(Item i, byte count){
+		
+		return (inventory.addItem(i, count));
+	}
+	
+	/*public boolean hasCombatItem(){
 		return false; // TODO: actually, we have no items at all..
+	}*/
+	
+	public Inventory getInventory(){
+		return inventory;
 	}
 	
 	public void addExperience(int ammount){
@@ -72,6 +83,10 @@ public class Party {
 			active[i] = member;
 		}
 		return active;*/
+	}
+
+	public boolean hasCombatItem() {
+		return (inventory.getCombatItems().size() > 0);
 	}
 
 }

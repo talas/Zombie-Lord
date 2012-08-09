@@ -25,6 +25,7 @@ public class CombatOption {
 	public final String name;
 	public final boolean subGroup;
 	public final boolean hardCoded;
+	public final Item item;
 	
 	/**
 	 * For use with combat option that has a HARDCODED action.
@@ -35,6 +36,7 @@ public class CombatOption {
 		this.subGroup = false;
 		this.hardCoded = true;
 		this.associatedActions = null;
+		item = null;
 	}
 	
 	/**
@@ -47,6 +49,7 @@ public class CombatOption {
 		this.subGroup = true;
 		this.hardCoded = false;
 		this.associatedActions = actions;
+		item = null;
 	}
 	
 	/**
@@ -60,5 +63,14 @@ public class CombatOption {
 		this.hardCoded = false;
 		this.associatedActions = new LinkedList<CombatAction>();
 		this.associatedActions.add(action);
+		item = null;
+	}
+	
+	public CombatOption(Item item){
+		this.name = item.name;
+		this.subGroup = false;
+		this.hardCoded = false;
+		this.associatedActions = null;
+		this.item = item;
 	}
 }

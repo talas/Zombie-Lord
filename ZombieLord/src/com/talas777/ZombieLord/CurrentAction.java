@@ -21,18 +21,29 @@ public class CurrentAction {
 	public final Combatant primaryTarget;
 	public final Combatant secondaryTarget;
 	public final Combatant caster;
+	public final Targeting targeting;
 	
-	public CurrentAction(CombatAction action, Combatant caster){
+	/*public CurrentAction(CombatAction action, Combatant caster){
 		this.action = action;
 		this.caster = caster;
 		this.primaryTarget = null;
 		this.secondaryTarget = null;
+		this.targeting = null;
 	}
 	
 	public CurrentAction(CombatAction action, Combatant caster, Combatant target){
 		this.action = action;
 		this.caster = caster;
 		this.primaryTarget = target;
+		this.targeting = null;
 		this.secondaryTarget = null;
+	}*/
+	
+	public CurrentAction(CombatAction action, Combatant caster, Targeting targeting){
+		this.action = action;
+		this.caster = caster;
+		this.primaryTarget = null;
+		this.secondaryTarget = null;
+		this.targeting = targeting;
 	}
 }

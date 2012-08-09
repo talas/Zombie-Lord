@@ -13,7 +13,7 @@ Building and running
 --------------------
 
 Steps to compile depends on which platform the game is being compiled for.
-ZombieLord folder contains main platform independent code.
+The ZombieLord folder contains main platform independent code.
 The 3 other folders are for desktop, android and html5 specific code.
 
 
@@ -26,16 +26,16 @@ Java version 1.6 is required.
 To build, run ant in the desktop folder:  
 
   $ cd ZombieLord-desktop  
-  $ javac src/com/talas777/ZombieLord/Main.java -sourcepath src:../ZombieLord/src -d bin -classpath libs/*:../ZombieLord/libs/*  
-  $ ant  
+  $ ./compile.sh  
 
 then run the program like:  
 
-  $ java -jar zombie-lord.jar
+  $ java -jar ZombieLord.jar
 
 Controls
 --------
 
 Move around using the arrow keys.
-Enter confirms and backspace cancels.
+Enter confirms and iteracts.
+Backspace cancels or takes you back to the previous menu.
 So, when you get stuck in a menu with no valid options, press backspace.

@@ -4,7 +4,7 @@
     <!--ANT 1.7 is required                                        -->
     
     <target name="create_run_jar">
-        <jar destfile="zombie-lord.jar">
+        <jar destfile="ZombieLord.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="com.talas777.ZombieLord.Main"/>

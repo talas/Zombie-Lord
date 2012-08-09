@@ -27,8 +27,12 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.talas777.ZombieLord.Dialog;
+import com.talas777.ZombieLord.Item;
 import com.talas777.ZombieLord.Level;
+import com.talas777.ZombieLord.LevelItem;
+import com.talas777.ZombieLord.LevelObject;
 import com.talas777.ZombieLord.MonsterArea;
+import com.talas777.ZombieLord.QuestTracker;
 import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
 import com.talas777.ZombieLord.ZombieLord;
@@ -136,6 +140,18 @@ public class MyHouse extends Level {
 	public Sprite foreground(Texture t) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	@Override
+	public LinkedList<LevelObject> getLevelObjects(QuestTracker tracker){
+		LinkedList<LevelObject> objects = new LinkedList<LevelObject>();
+		
+		if(!tracker.isCompleted("First potion.")){
+			LevelItem topas = new LevelItem(400, 450, Item.Potion, (byte)1, "First potion.");
+			objects.add(topas);
+		}
+		
+		return objects;
 	}
 
 }

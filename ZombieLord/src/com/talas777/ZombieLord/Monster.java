@@ -142,15 +142,15 @@ public class Monster extends Combatant{
 					// Check if it can be used on me and my allies :>
 					
 					switch(current.targetType){ // switch case from hell
-						case CombatAction.TARGET_ALLY_ALL:
-						case CombatAction.TARGET_ALLY_SINGLE:
-						case CombatAction.TARGET_SELF:
+						case Targeting.TARGET_ALLY_ALL:
+						case Targeting.TARGET_ALLY_SINGLE:
+						case Targeting.TARGET_SELF:
 							// Found a "perfect one"
 							chosenAction = current;
 							chosenTarget = this;
 							break;
-						case CombatAction.TARGET_ALL:
-						case CombatAction.TARGET_RANDOM:
+						case Targeting.TARGET_ALL:
+						case Targeting.TARGET_RANDOM:
 							// Found a "mediocre one"
 							// check if VERY desperate..
 							if(combat.getLiveMonsters().size() == 1 && this.health < this.health_max/4f){// last enemy and with critical health = critical measures
@@ -173,15 +173,15 @@ public class Monster extends Combatant{
 						// Check if it can be used on me and my allies :>
 						
 						switch(current.targetType){ // switch case from hell
-							case CombatAction.TARGET_ENEMY_ALL:
+							case Targeting.TARGET_ENEMY_ALL:
 								// Good, unless theres only a single enemy..?
 								if(!singleEnemy || (Math.random()*100f) >= 70  ){ // 30% chance to use against single enemy
 									chosenAction = current;
 									chosenTarget = combat.getLivePlayers().getFirst();
 								}
 								break;
-							case CombatAction.TARGET_ENEMY_RANDOM:
-							case CombatAction.TARGET_ENEMY_SINGLE:
+							case Targeting.TARGET_ENEMY_RANDOM:
+							case Targeting.TARGET_ENEMY_SINGLE:
 								// these 2 are the same for monsters..
 								// and both of them are good
 								int numPlayers = combat.getLivePlayers().size();
@@ -189,8 +189,8 @@ public class Monster extends Combatant{
 								chosenAction = current;
 								chosenTarget = combat.getLivePlayers().get(chosenPlayer);
 								break;
-							case CombatAction.TARGET_ALL_OTHER:
-							case CombatAction.TARGET_RANDOM:
+							case Targeting.TARGET_ALL_OTHERS:
+							case Targeting.TARGET_RANDOM:
 								// Found a "mediocre one"
 								// check if VERY desperate..
 								if(combat.getLiveMonsters().size() == 1 || this.health < this.health_max/4f){// last enemy and with critical health = critical measures
@@ -198,7 +198,7 @@ public class Monster extends Combatant{
 									mediocreTarget = this;
 								}
 								break;
-							case CombatAction.TARGET_ALL:
+							case Targeting.TARGET_ALL:
 								// Found a "mediocre one"
 								// check if VERY desperate..
 								if(Math.random()*100 > 80 || (combat.getLiveMonsters().size() == 1 && this.health > this.health_max/3f)){
@@ -220,10 +220,15 @@ public class Monster extends Combatant{
 		}
 		if(chosenAction == null){
 			System.err.println("Failed to find an action for "+this.getName()+" lvl"+this.level);
-			return new CurrentAction(null, this);
+			return new CurrentAction(null, this, null);
 		}
 		
-		return new CurrentAction(chosenAction, this, chosenTarget);
+		LinkedList<Combatant> target = new LinkedList<Combatant>();
+		target.add(chosenTarget);
+		
+		Targeting t = new Targeting(chosenAction.targetType, target, this, true);
+		
+		return new CurrentAction(chosenAction, this, t);
 	}
 	
 	public int getBaseDelay(){

@@ -26,6 +26,7 @@ public class CombatAction {
 	 * will be hard-coded somewhere else (?) 
 	 */
 	
+	/*
 	public static final int TARGET_ENEMY_SINGLE = 0;
 	public static final int TARGET_ENEMY_ALL = 1;
 	public static final int TARGET_SELF = 2;
@@ -36,6 +37,9 @@ public class CombatAction {
 	public static final int TARGET_RANDOM = 7;
 	public static final int TARGET_ALL = 8;
 	public static final int TARGET_ALL_OTHER = 9;
+	*/
+	
+	public boolean offensive = true;
 	
 	public boolean isDistanceAttack = false;
 	
@@ -63,7 +67,7 @@ public class CombatAction {
 	 */
 	public float healthChange;
 	
-	public int targetType;
+	public byte targetType;
 	
 	/**
 	 * Full constructor
@@ -76,7 +80,7 @@ public class CombatAction {
 	 * @param healthChange how this action affects the health of the target
 	 * @param targetType what this action targets
 	 */
-	public CombatAction(String name, String description, ActionCategory category, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, int targetType){
+	public CombatAction(String name, String description, ActionCategory category, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, byte targetType){
 		this.name = name;
 		this.description = description;
 		this.minLevel = minLevel;
@@ -95,11 +99,11 @@ public class CombatAction {
 	 * @param healthChange
 	 * @param targetType
 	 */
-	public CombatAction(String name, ActionCategory category, int mpCost, float healthChange, int targetType){
+	public CombatAction(String name, ActionCategory category, int mpCost, float healthChange, byte targetType){
 		this(name, "", category,0,0,0,mpCost,healthChange,targetType);
 	}
 	
-	public CombatAction(String name, String description, ActionCategory category, int mpCost, float healthChange, int targetType){
+	public CombatAction(String name, String description, ActionCategory category, int mpCost, float healthChange, byte targetType){
 		this(name, description,category,0,0,0,mpCost,healthChange,targetType);
 	}
 }

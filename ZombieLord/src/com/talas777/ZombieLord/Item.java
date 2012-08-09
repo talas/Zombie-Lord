@@ -16,18 +16,62 @@
 
 package com.talas777.ZombieLord;
 
-public class Item {
+import com.talas777.ZombieLord.Items.*;
 
+public abstract class Item {
+	
+	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,50f,Targeting.TARGET_SINGLE);
+	private static final CombatAction heal250 = new CombatAction("Hi-Potion",ZombieLord.ITEM_ACTION,0,250f,Targeting.TARGET_SINGLE);
+	public static final Item Potion = new ConsumeableItem("Potion",true,heal50,false,false);
+	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,heal250,false,false);
+	
+	
+	@Override
+	public boolean equals(Object o){
+		if(o instanceof Item){
+			Item p = (Item)o;
+			return this.equals(p);
+		}
+		return false;
+	}
+	
+
+	public boolean equals(Item i){
+		if(i.combat == this.combat){
+			if(i.maxStack == this.maxStack){
+				if(i.name.equals(this.name)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
 	public final String name;
 	
 	private final boolean combat;
+	
+	public final byte maxStack;
 	
 	
 	public Item(String name, boolean isCombatItem){
 		this.name = name;
 		this.combat = isCombatItem;
+		this.maxStack = 99;
 	}
 	
+	public Item(String name, boolean isCombatItem, byte maxStack){
+		this.name = name;
+		this.combat = isCombatItem;
+		this.maxStack = maxStack;
+	}
+	
+	/**
+	 * Whether or not this item may be used in combat.
+	 * Grenades, potions and such would be combat items.
+	 * @return
+	 */
 	public boolean isCombatItem(){
 		return combat;
 	}

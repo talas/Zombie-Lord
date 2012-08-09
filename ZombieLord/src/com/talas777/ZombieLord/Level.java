@@ -99,5 +99,9 @@ public abstract class Level {
 	}
 	
 	public abstract LinkedList<Dialog> getLevelDialogs();
+	
+	public LinkedList<LevelObject> getLevelObjects(QuestTracker tracker){
+		return null;
+	}
 
 }

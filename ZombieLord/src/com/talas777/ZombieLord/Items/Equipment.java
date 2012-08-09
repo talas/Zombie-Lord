@@ -14,32 +14,14 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-package com.talas777.ZombieLord;
+package com.talas777.ZombieLord.Items;
 
-public class ActionCategory {
-	
-	
-	private final byte id;
+import com.talas777.ZombieLord.Item;
 
-	public ActionCategory(byte id){
-		this.id = id;
+public abstract class Equipment extends Item {
+
+	public Equipment(String name) {
+		super(name, false,(byte)1);
 	}
-	
-	public String getCategoryName(){
-		switch(id){
-		case 0:
-			return "Offensive Magic";
-		case 1:
-			return "Defensive Magic";
-		case 2:
-			return "Special";
-		case 3:
-			return "Summon";
-		case 4:
-			return "Attack";
-		default:
-			return "Monster Ability";
-		}
-		
-	}
+
 }
