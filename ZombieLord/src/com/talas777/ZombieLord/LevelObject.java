@@ -38,7 +38,7 @@ public abstract class LevelObject {
 	
 	private int nearRadius = 48;
 	private int collisionRadius = 3;
-	private Sprite sprite;
+	protected Sprite sprite;
 	
 	private boolean collision;
 	

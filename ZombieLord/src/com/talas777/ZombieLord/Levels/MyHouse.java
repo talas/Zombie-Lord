@@ -26,6 +26,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.talas777.ZombieLord.Chest;
 import com.talas777.ZombieLord.Dialog;
 import com.talas777.ZombieLord.Item;
 import com.talas777.ZombieLord.Level;
@@ -150,6 +151,10 @@ public class MyHouse extends Level {
 			LevelItem topas = new LevelItem(400, 450, Item.Potion, (byte)1, "First potion.");
 			objects.add(topas);
 		}
+		Chest north = new Chest(400,530, true, Item.Potion, (byte)1, "MyHouse-ChestN", tracker.isCompleted("MyHouse-ChestN"));
+		objects.add(north);
+		Chest west = new Chest(240,398, false, Item.Hi_Potion, (byte)1, "MyHouse-ChestW", tracker.isCompleted("MyHouse-ChestW"));
+		objects.add(west);
 		
 		return objects;
 	}

@@ -154,7 +154,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	
 	private Music currentMusic;
 	
-	
+	private String announcement;
+	private float announcementTimeout;
 
 	
 
@@ -496,6 +497,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		questTracker = new QuestTracker();
 		questTracker.registerQuest("First potion.");
 		
+		questTracker.registerQuest("MyHouse-ChestN");
+		questTracker.registerQuest("MyHouse-ChestW");
 		
 		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0); // Male hero (swordsman)
 		Leoric.addCombatAction(SLASH);
@@ -1041,6 +1044,10 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			if(Gdx.input.isKeyPressed(Keys.D)){
 				this.debug = ! this.debug;
 				System.out.println("debug :"+(this.debug?"On":"Off"));
+				if(debug)
+					this.moveSpeed += 0.02f;
+				else
+					this.moveSpeed -= 0.02f;
 			}
 			
 			
@@ -1375,6 +1382,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 									this.cutSound.play();
 								}
 								
+								this.announce(myAction.action.name);
 								myAction.caster.setMoveAhead(true);
 								
 								if(myAction.action.effect != null && affected != null){
@@ -1509,6 +1517,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					if(myAction.action != null){
 						// Move monster against player to represent the attack
 						
+						this.announce(myAction.action.name);
 						myAction.caster.setMoveAhead(true);
 						
 						if(myAction.action.effect != null && affected != null){
@@ -1659,9 +1668,20 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				effect.draw(batch);
 		}
 		
+
+		
 		batch.end();
 		
 
+		if(this.announcement != null){
+			if(this.announcementTimeout > 0){
+				fontBatch.begin();
+				font.setColor(Color.WHITE);
+				font.draw(fontBatch, announcement, w/2-announcement.length()*6, h-24);
+				announcementTimeout -= Gdx.graphics.getDeltaTime();
+				fontBatch.end();
+			}
+		}
 		
 		if(gameMode == MODE_FIGHT && this.currentCombat.waitingForPlayerCommand){
 			fontBatch.begin();
@@ -1786,12 +1806,23 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 							if(object.shouldBeDeleted()){
 								// TODO: play sound to confirm the player got some items
 								// TODO: draw some text that tells the player he acquired some items (ingame).
+								this.announce("Acquired a " + ((LevelItem)object).getItemType().name+"!");
 								System.out.println("Acquired a " + ((LevelItem)object).getItemType().name+"!");
 								iter.remove();
 							}
 							else {
 								// TODO: draw some text to tell the player he can't carry more (ingame)..
+								this.announce("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
 								System.out.println("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
+							}
+						}
+						else if(object instanceof Chest){
+							Chest chest = (Chest)object;
+							String msg = chest.getDialogString();
+							if(msg != null){
+								// TODO: proper ingame announcement
+								this.announce(msg);
+								System.out.println(msg);
 							}
 						}
 					}
@@ -1886,6 +1917,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	private void announce(String text){
+		this.announcement = text;
+		this.announcementTimeout = 2f;
 	}
 
 	@Override
