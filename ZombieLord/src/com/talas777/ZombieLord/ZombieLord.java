@@ -36,6 +36,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -51,6 +52,10 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.ChainShape;
 import com.badlogic.gdx.physics.box2d.World;
 //import com.badlogic.gdx.graphics.g2d.tiled.*;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.badlogic.gdx.utils.Array;
 
 public class ZombieLord implements ApplicationListener, InputProcessor {
@@ -135,6 +140,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public static final int MODE_DIALOG = 7;
 	public static final int MODE_GAMEOVER = 99;
 	
+
+	
 	/**
 	 * For rain or meteor showers etc.
 	 */
@@ -170,7 +177,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	
 	private int gameMode = MODE_MOVE;
 	
-	
+
+	private NinePatch dialogBackground;
+	private NinePatch announcementBackground;
 	
 	public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
 	public Sound biteSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
@@ -391,6 +400,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		w = Gdx.graphics.getWidth();
 		h = Gdx.graphics.getHeight();
 		
+		
+		dialogBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/dialog_background.png")), 12, 12, 12, 12);
+		announcementBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/announcement_background.png")), 12, 12, 12, 12);
 		
 		camera = new OrthographicCamera(w, h);
 		camera.position.set(0, 0, 0);
@@ -814,7 +826,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			// a Dialog is active;
 			if(this.dialogWait > 0){
 				if(Gdx.input.isButtonPressed(Keys.ENTER))// Speed up the dialog a bit
-					dialogWait -= 17f*Gdx.graphics.getDeltaTime();
+					dialogWait = 0;
 				else
 					dialogWait -= Gdx.graphics.getDeltaTime();
 				
@@ -1139,9 +1151,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			// "After Combat" screen
 			if(currentCombat != null){
 				// clean up!
-				for(Sprite s : drawSprites){
+				//for(Sprite s : drawSprites){
 					//s.getTexture().dispose();
-				}
+				//}
 				drawSprites.clear();
 				
 				//TODO: display some info about the fight..
@@ -1217,7 +1229,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				
 				if(this.selectedCombatOption.subGroup == false && this.selectedCombatOption.hardCoded){
 					// player chose a hardcoded option.
-					if(this.selectedCombatOption == this.defend){
+					if(this.selectedCombatOption == ZombieLord.defend){
 						// TODO: defend if possible
 						// For now, we just wait a turn when defending (so its near useless).
 						this.currentCombat.resetActionTimer(this.combatOptionCaster);
@@ -1233,7 +1245,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						this.validTargets = null;
 						this.selectedTarget = null;
 					}
-					else if(this.selectedCombatOption == this.escape){
+					else if(this.selectedCombatOption == ZombieLord.escape){
 						if(Math.random() < this.currentCombat.getEscapeChance()){
 							// escape!
 							this.returnFromCombat();
@@ -1252,7 +1264,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 							this.selectedTarget = null;
 						}
 					}
-					else if(this.selectedCombatOption == this.item){
+					else if(this.selectedCombatOption == ZombieLord.item){
 						// have to pull up a submenu with all combat items.
 						this.currentCombatOptions = new LinkedList<CombatOption>();
 						Inventory inventory = party.getInventory();
@@ -1442,9 +1454,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					else if(c instanceof Monster)
 					{
 						Monster m = (Monster)c;
-						Color d = Color.BLACK;
 						
-						int i = (int)Float.MAX_VALUE;
 						if(m.alpha == Monster.ALPHA_START){
 							Color red = Color.RED;
 							m.getSprite().setColor(red);
@@ -1564,11 +1574,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						
 						for(CombatAction ca : readyMember.getCombatActions()){
 							
-							if(ca.category == this.OFFENSIVE_MAGIC || ca.category == this.DEFENSIVE_MAGIC)
+							if(ca.category == ZombieLord.OFFENSIVE_MAGIC || ca.category == ZombieLord.DEFENSIVE_MAGIC)
 								magic.add(ca);
-							else if(ca.category == this.ATTACK)
+							else if(ca.category == ZombieLord.ATTACK)
 								attack = ca;
-							else if(ca.category == this.SUMMON)
+							else if(ca.category == ZombieLord.SUMMON)
 								summons.add(ca);
 						}
 						
@@ -1577,15 +1587,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						if(attack != null)
 							currentCombatOptions.add(new CombatOption("Attack",attack));
 						if(canDefend)
-							currentCombatOptions.add(this.defend);
+							currentCombatOptions.add(ZombieLord.defend);
 						if(magic.size() > 0)
 							currentCombatOptions.add(new CombatOption("Magic",magic));
 						if(summons.size() > 0)
 							currentCombatOptions.add(new CombatOption("Summon",summons));
 						if(haveItem)
-							currentCombatOptions.add(this.item);
+							currentCombatOptions.add(ZombieLord.item);
 						if(canEscape)
-							currentCombatOptions.add(this.escape);
+							currentCombatOptions.add(ZombieLord.escape);
 						
 						this.selectedCombatOption = this.currentCombatOptions.getFirst();
 						this.finishedChoosing = false;
@@ -1668,14 +1678,13 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				effect.draw(batch);
 		}
 		
-
-		
 		batch.end();
 		
 
 		if(this.announcement != null){
 			if(this.announcementTimeout > 0){
 				fontBatch.begin();
+				announcementBackground.draw(fontBatch, w/2-announcement.length()*6-4, h-24-13, announcement.length()*13, 20+2);
 				font.setColor(Color.WHITE);
 				font.draw(fontBatch, announcement, w/2-announcement.length()*6, h-24);
 				announcementTimeout -= Gdx.graphics.getDeltaTime();
@@ -1734,15 +1743,19 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			// Ongoing dialog, draw the talkstuffs
 			// TODO: char by char?
 			
+			
 			int length = this.curSpeaker.length()+2+this.curSentence.length();
 			float cposx = w/2;
 			float cposy = h/2;
+			
+			
 			if(length > 32){
 				// needs to be split
 				int remain = length;
 				int num = 0;
 				int start = 0;
-
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(length/32)), 32*13, 20+(16*(length/32))+2 );
+				
 				while(remain > 0){
 					int printed = Math.min(32, remain);
 					
@@ -1754,6 +1767,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			}
 			else {
 				// print everything in one go
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16, length*13, 20+2);
 				font.draw(fontBatch, this.curSpeaker+": "+this.curSentence, cposx-w/2, cposy+h/2-h/4);
 			}
 			fontBatch.end();
@@ -1766,6 +1780,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					PIXELS_PER_METER,
 					PIXELS_PER_METER));
 	}
+	
+
 
 	@Override
 	public void resize(int width, int height) {

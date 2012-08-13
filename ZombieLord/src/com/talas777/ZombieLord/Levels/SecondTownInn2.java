@@ -146,8 +146,8 @@ public class SecondTownInn2 extends Level {
 			talk.add("Talas", "I'll try again then. Thanks for playing, I promise to finish the game soon. Good luck with the monsters!");
 			Dialog d = new Dialog(42,57,1880,1890, "start", "entered inn", talk, 0);
 			
-			Monster troll1 = new Monster("Troll1","troll.png",5,100,19,3,1.25f);
-			Monster troll2 = new Monster("Troll2","troll.png",5,100,19,3,1.25f);
+			Monster troll1 = new Monster("Troll1","monsters/troll.png",5,100,19,3,1.25f);
+			Monster troll2 = new Monster("Troll2","monsters/troll.png",5,100,19,3,1.25f);
 			
 			troll1.addCombatAction(ZombieLord.BITE);
 			troll1.addCombatAction(ZombieLord.PUNCH);
@@ -174,7 +174,7 @@ public class SecondTownInn2 extends Level {
 
 			Dialog d = new Dialog(42,57,1880,1890, "THE END", "THE END", talk, 0);
 			
-			Monster manticore = new Monster("Manticore","manticore.png",500,200,60,9,1.25f);
+			Monster manticore = new Monster("Manticore","monsters/manticore.png",500,200,60,9,1.25f);
 			
 			manticore.addCombatAction(ZombieLord.BITE);
 			manticore.addCombatAction(ZombieLord.ROULETTE_STING);

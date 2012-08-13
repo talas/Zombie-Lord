@@ -108,8 +108,8 @@ public class EastHouse extends Level {
 			d.addTimeChange("leave east house");
 			
 			MonsterSetup setup = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
-			Monster zombie1 = new Monster("Zombie1","malesoldierzombie.png",5,20,15,3,1.25f);
-			Monster zombie2 = new Monster("Zombie2","malesoldierzombie.png",5,20,15,3,1.25f);
+			Monster zombie1 = new Monster("Zombie1","monsters/malesoldierzombie.png",5,20,15,3,1.25f);
+			Monster zombie2 = new Monster("Zombie2","monsters/malesoldierzombie.png",5,20,15,3,1.25f);
 			zombie1.addCombatAction(ZombieLord.BITE);
 			zombie2.addCombatAction(ZombieLord.BITE);
 			setup.appendMonster(zombie1);
