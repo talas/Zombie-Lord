@@ -106,7 +106,7 @@ public class SecondTownInn2 extends Level {
 	@Override
 	public String getMusic() {
 		// TODO Auto-generated method stub
-		return null;
+		return "data/music/Nebur_Maik_-_Pretty_Baby__only_bells_.ogg";
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class SecondTownInn2 extends Level {
 
 			Dialog d = new Dialog(42,57,1880,1890, "THE END", "THE END", talk, 0);
 			
-			Monster manticore = new Monster("Manticore","monsters/manticore.png",500,200,60,9,1.25f);
+			Monster manticore = new Monster("Manticore","monsters/manticore.png",500,700,60,9,1.25f);
 			
 			manticore.addCombatAction(ZombieLord.BITE);
 			manticore.addCombatAction(ZombieLord.ROULETTE_STING);

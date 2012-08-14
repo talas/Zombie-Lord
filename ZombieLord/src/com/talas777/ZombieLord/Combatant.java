@@ -22,6 +22,31 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public abstract class Combatant {
 	
+	
+	public float getDamageMultiplier(byte element, boolean magic){
+		
+		return 1f;
+	}
+	
+	
+	
+	
+	
+	// Stats / atributes. These are used in combat calculations
+	private int physicalAttack; // strength increase atk
+	private int physicalDefense; // vitality increase health and defense
+	private int speed; // dexterity increase combat speed
+	private int evasion; // agility increase chance to dodge
+	private int magicAttack; // intelligence gives magic atk power
+	private int magicReserve; // wisdom gives mana
+	private int magicDefense; // spirit increase magic defense
+	
+	
+	
+	
+	
+	
+	
 	private Sprite drawSprite;
 	
 	/*

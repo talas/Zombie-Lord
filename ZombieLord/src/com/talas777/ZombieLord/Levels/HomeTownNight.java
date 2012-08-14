@@ -48,7 +48,6 @@ public class HomeTownNight extends HomeTown {
 	
 	@Override
 	public String getMusic() {
-		// TODO Auto-generated method stub
 		return "data/music/Mark_Subbotin_-_Phoenix.ogg";
 	}
 	
@@ -162,7 +161,7 @@ public class HomeTownNight extends HomeTown {
 		{ // talk when entering mayors house
 			TalkScript talk = new TalkScript();
 			
-			Dialog d = new Dialog(2070,2097,1530,1559, "mayors house?", talk, 0);
+			Dialog d = new Dialog(2070,2112,1530,1559, "mayors house?", talk, 0);
 			d.addLevelTransfer(new MayorHouse(), 337, 52, ZombieLord.DIR_NORTH);
 			
 			dialogs.add(d);

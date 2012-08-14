@@ -159,7 +159,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private Body jumper;
 	private Body pointer;
 	
-	private Music currentMusic;
+	private MusicInstance currentMusic;
+	private MusicInstance combatMusic;
 	
 	private String announcement;
 	private float announcementTimeout;
@@ -268,6 +269,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		int bposx = (int)(w/6);
 		int bposy = (int)(h/2);
+		
+		
+		if(this.currentMusic != null){
+			this.currentMusic.pause();
+			this.combatMusic = new MusicInstance("data/music/Vadim_Danilenko_-_Lunapark.ogg");
+			
+			this.combatMusic.setLooping(true);
+			this.combatMusic.play();
+		}
 		
 		if(party.isActive(Tolinai)){
 			Texture texture2 = new Texture(Gdx.files.internal("data/princess.png"));
@@ -662,32 +672,40 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			this.moverTimer = 0.4f;
 		}
 		
-		if(this.timeTracker.getTime().equals("left hometown")){
-			// second town
-			if(this.currentMusic != null)
-				this.currentMusic.stop();
-			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
-			this.currentMusic.setLooping(true);
-			this.currentMusic.play();
-		}
-		else if(this.timeTracker.getTime().equals("start")){
-			// inside hometown
-			if(this.currentMusic != null)
-				this.currentMusic.stop();
-			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Mark_Subbotin_-_Phoenix.ogg"));
-			this.currentMusic.setLooping(true);
+		String newMusic = level.getMusic();
+		
+		if(this.combatMusic != null){
+			this.combatMusic.stop();
+			this.combatMusic.dispose();
+			this.combatMusic = null;
 			this.currentMusic.play();
 		}
 		
-		/*
-		if(this.currentMusic != null)
-			this.currentMusic.stop();
-		
-		if(level.getMusic() != null){
-			this.currentMusic = Gdx.audio.newMusic(Gdx.files.internal(level.getMusic()));
-			this.currentMusic.setLooping(true);
-			this.currentMusic.play();
-		}*/
+		if(this.currentMusic != null){
+			if(this.currentMusic.isSame(newMusic)){
+				// just keep playing
+			}
+			else {
+				// stop this one
+				// TODO: fading out would be nicer..
+				this.currentMusic.stop();
+				this.currentMusic.dispose();
+				this.currentMusic = null;
+				
+				if(level.getMusic() != null){
+					this.currentMusic = new MusicInstance(newMusic);
+					this.currentMusic.setLooping(true);
+					this.currentMusic.play();
+				}
+			}
+		}
+		else {
+			if(level.getMusic() != null){
+				this.currentMusic = new MusicInstance(newMusic);
+				this.currentMusic.setLooping(true);
+				this.currentMusic.play();
+			}
+		}
 		
 		
 		
@@ -1505,7 +1523,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					if(currentMusic != null)
 						currentMusic.stop();
 					
-					currentMusic = Gdx.audio.newMusic(Gdx.files.internal("data/music/Renich_-_Rola_Z.ogg"));
+					currentMusic = new MusicInstance("data/music/Renich_-_Rola_Z.ogg");
 					currentMusic.setLooping(true);
 					currentMusic.play();
 

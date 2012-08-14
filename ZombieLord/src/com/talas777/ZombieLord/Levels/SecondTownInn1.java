@@ -96,7 +96,7 @@ public class SecondTownInn1 extends Level {
 	@Override
 	public String getMusic() {
 		// TODO Auto-generated method stub
-		return null;
+		return "data/music/Nebur_Maik_-_Pretty_Baby__only_bells_.ogg";
 	}
 
 	@Override

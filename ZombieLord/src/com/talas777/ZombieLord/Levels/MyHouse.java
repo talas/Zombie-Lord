@@ -79,8 +79,7 @@ public class MyHouse extends Level {
 
 	@Override
 	public String getMusic() {
-		// TODO Auto-generated method stub
-		return null;
+		return "data/music/Mark_Subbotin_-_Phoenix.ogg";
 	}
 
 	@Override
