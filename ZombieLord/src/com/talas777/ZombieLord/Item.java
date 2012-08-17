@@ -20,8 +20,11 @@ import com.talas777.ZombieLord.Items.*;
 
 public abstract class Item {
 	
-	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,50f,Targeting.TARGET_SINGLE);
-	private static final CombatAction heal250 = new CombatAction("Hi-Potion",ZombieLord.ITEM_ACTION,0,250f,Targeting.TARGET_SINGLE);
+	private static final CombatEffect heal50effect = new CombatEffect(CombatEffect.TYPE_ITEM,50,false);
+	private static final CombatEffect heal250effect = new CombatEffect(CombatEffect.TYPE_ITEM,250,false);
+	
+	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,heal50effect,Targeting.TARGET_SINGLE);
+	private static final CombatAction heal250 = new CombatAction("Hi-Potion",ZombieLord.ITEM_ACTION,0,heal250effect,Targeting.TARGET_SINGLE);
 	public static final Item Potion = new ConsumeableItem("Potion",true,heal50,false,false);
 	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,heal250,false,false);
 	

@@ -139,7 +139,7 @@ public class Combat {
 		for(int i = 0; i < combatants.length; i++){
 			if(combatants[i] instanceof Monster){
 				if(combatants[i].actionTimer <= 0 && combatants[i].health > 0){
-					switch(combatants[i].getState()){
+					switch(combatants[i].getTerminalState()){
 					case STATE_STOP:
 					case STATE_STONE:
 					case STATE_PARALYZED:
@@ -157,7 +157,7 @@ public class Combat {
 		for(int i = 0; i < combatants.length; i++){
 			if(combatants[i] instanceof PartyMember){
 				if(combatants[i].actionTimer <= 0 && combatants[i].health > 0){
-					switch(combatants[i].getState()){
+					switch(combatants[i].getTerminalState()){
 					case STATE_STOP:
 					case STATE_STONE:
 					case STATE_PARALYZED:
@@ -269,21 +269,24 @@ public class Combat {
 			
 			LinkedList<Combatant> affected = action.targeting.getCurrentTargets();
 			
+			
+			/*
 			double abs = Math.abs(action.action.healthChange);
 			
 			float damage = (float)Math.floor(abs + Math.sqrt(action.caster.level*abs));
 			
 			if(action.action.healthChange < 0){
 				damage *= -1;
-			}
+			}*/
 			
-			System.out.println(action.caster.getName()+"("+action.caster.health+","+action.caster.mana+")"+" uses "+action.action.name+"(" + Math.abs(damage) + ") on "+(affected.size() > 1? "all":affected.getFirst())+"!");
+			System.out.println(action.caster.getName()+"("+action.caster.health+","+action.caster.mana+")"+" uses "+action.action.name+" on "+(affected.size() > 1? "all":affected.getFirst())+"!");
 			for(Combatant c : affected){
-				c.health += damage;
+				action.action.combatEffect.applyEffect(action.caster, c);
+				/*c.health += damage;
 				if(c.health < 0)
 					c.health = 0;
 				else if(c.health > c.health_max)
-					c.health = c.health_max;
+					c.health = c.health_max;*/
 			}
 			
 			
@@ -431,7 +434,7 @@ public class Combat {
 		LinkedList<Combatant> liveCombatants = new LinkedList<Combatant>();
 		for(int i = 0; i < combatants.length; i++){
 				if(combatants[i].health > 0){
-					switch(combatants[i].getState()){
+					switch(combatants[i].getTerminalState()){
 					case STATE_STOP:
 					case STATE_STONE:
 					case STATE_PARALYZED:
@@ -449,7 +452,7 @@ public class Combat {
 		for(int i = 0; i < combatants.length; i++){
 			if(combatants[i] instanceof Monster){
 				if(combatants[i].health > 0){
-					switch(combatants[i].getState()){
+					switch(combatants[i].getTerminalState()){
 					case STATE_STOP:
 					case STATE_STONE:
 					case STATE_PARALYZED:
@@ -488,7 +491,7 @@ public class Combat {
 		for(int i = 0; i < combatants.length; i++){
 			if(combatants[i] instanceof PartyMember){
 				if(combatants[i].health > 0){
-					switch(combatants[i].getState()){
+					switch(combatants[i].getTerminalState()){
 					case STATE_STOP:
 					case STATE_STONE:
 					case STATE_PARALYZED:

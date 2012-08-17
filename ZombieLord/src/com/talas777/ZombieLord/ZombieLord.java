@@ -224,17 +224,30 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public static final ActionCategory ITEM_ACTION = new ActionCategory((byte)5);
 	public static final ActionCategory MONSTER_ABILITY = new ActionCategory((byte)7);
 	
+	// Combat Effects
+	
+	public static final CombatEffect biteEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-4f,false);
+	public static final CombatEffect punchEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false);
+	public static final CombatEffect twinFistEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-10f,false);
+	public static final CombatEffect regrowthEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,50f,false);
+	public static final CombatEffect slashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-3f,false);
+	public static final CombatEffect cycloneSlashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-20f,false);
+	public static final CombatEffect magicArrowEffect = new CombatEffect(CombatEffect.TYPE_MAGICAL,-12f,false);
+	public static final CombatEffect staffStrikeEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-1f,false);
+	public static final CombatEffect rouletteStingEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-50f,false);
+	public static final CombatEffect grandClawEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false);
+	
 	// Combat Actions
-	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, -4f, Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction PUNCH = new CombatAction("Punch",ATTACK,0, -5f, Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction TWINFIST = new CombatAction("TwinFist",MONSTER_ABILITY,3,-10f,Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction REGROWTH = new CombatAction("Regrowth",MONSTER_ABILITY,5,50f,Targeting.TARGET_SELF);
-	public static final CombatAction SLASH = new CombatAction("Slash",ATTACK,0, -3f, Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction CYCLONE_SLASH = new CombatAction("Cyclone Slash",OFFENSIVE_MAGIC,9,-20f,Targeting.TARGET_ENEMY_ALL);
-	public static final CombatAction MAGIC_ARROW = new CombatAction("Magic Arrow",OFFENSIVE_MAGIC,8, -12f, Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction STAFF_STRIKE = new CombatAction("Staff Strike",ATTACK,0, -1f, Targeting.TARGET_ENEMY_SINGLE);
-	public static final CombatAction ROULETTE_STING = new CombatAction("Roulette Sting",MONSTER_ABILITY,10, -50f, Targeting.TARGET_RANDOM);
-	public static final CombatAction GRAND_CLAW = new CombatAction("Grand Claw",MONSTER_ABILITY,0, -5f, Targeting.TARGET_ENEMY_ALL);
+	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, biteEffect, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction PUNCH = new CombatAction("Punch",ATTACK,0, punchEffect, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction TWINFIST = new CombatAction("TwinFist",MONSTER_ABILITY,3,twinFistEffect,Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction REGROWTH = new CombatAction("Regrowth",MONSTER_ABILITY,5,regrowthEffect,Targeting.TARGET_SELF);
+	public static final CombatAction SLASH = new CombatAction("Slash",ATTACK,0, slashEffect, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction CYCLONE_SLASH = new CombatAction("Cyclone Slash",OFFENSIVE_MAGIC,9, cycloneSlashEffect,Targeting.TARGET_ENEMY_ALL);
+	public static final CombatAction MAGIC_ARROW = new CombatAction("Magic Arrow",OFFENSIVE_MAGIC,8, magicArrowEffect, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction STAFF_STRIKE = new CombatAction("Staff Strike",ATTACK,0, staffStrikeEffect, Targeting.TARGET_ENEMY_SINGLE);
+	public static final CombatAction ROULETTE_STING = new CombatAction("Roulette Sting",MONSTER_ABILITY,10, rouletteStingEffect, Targeting.TARGET_RANDOM);
+	public static final CombatAction GRAND_CLAW = new CombatAction("Grand Claw",MONSTER_ABILITY,0, grandClawEffect, Targeting.TARGET_ENEMY_ALL);
 	
 	// HardCoded CombatOptions
 	public static final CombatOption escape = new CombatOption("escape");
@@ -410,6 +423,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		w = Gdx.graphics.getWidth();
 		h = Gdx.graphics.getHeight();
 		
+		Monsters.initiate();
+		
 		
 		dialogBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/dialog_background.png")), 12, 12, 12, 12);
 		announcementBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/announcement_background.png")), 12, 12, 12, 12);
@@ -522,23 +537,28 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		questTracker.registerQuest("MyHouse-ChestN");
 		questTracker.registerQuest("MyHouse-ChestW");
 		
-		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0); // Male hero (swordsman)
+		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0,
+				20, 20, 10, 10, 10, 10, 15); // Male hero (swordsman)
 		Leoric.addCombatAction(SLASH);
 		Leoric.addCombatAction(CYCLONE_SLASH);
 		
 		party.addMember(Leoric);
 		
-		Tolinai = new PartyMember(1,"Tolinai",50,50,40,40,0); // Female, hero gf (offensive mage)
+		Tolinai = new PartyMember(1,"Tolinai",50,50,40,40,0,
+				6, 10, 10, 20, 15, 17, 5); // Female, hero gf (offensive mage)
 		Tolinai.addCombatAction(STAFF_STRIKE);
 		Tolinai.addCombatAction(MAGIC_ARROW);
 		
-		Bert = new PartyMember(2,"Bert",250,250,5,5,0); // Male, archer
+		Bert = new PartyMember(2,"Bert",250,250,5,5,0,
+				15, 12, 20, 13, 12, 12, 10); // Male, archer
 		Bert.addCombatAction(PUNCH);
 		
-		Berzenor = new PartyMember(3,"Berzenor",250,250,5,5,0); // Male, defensive mage
+		Berzenor = new PartyMember(3,"Berzenor",250,250,5,5,0,
+				5, 10, 10, 18, 16, 20, 10); // Male, defensive mage
 		Berzenor.addCombatAction(PUNCH);
 		
-		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0); // Female, rogue
+		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0,
+				16, 12, 20, 13, 14, 14, 16); // Female, rogue
 		Kuriko.addCombatAction(PUNCH);
 		
 		
@@ -1205,6 +1225,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			//TODO: write something 'nice' to the screen?
 			this.backgroundTexture = new Texture(Gdx.files.internal("data/gameover.png"));
 			this.background = new Sprite(backgroundTexture, 0, 0, 480, 320);
+			this.drawSprites.clear();
 			
 		}
 		
@@ -1214,7 +1235,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			for(int i = 0; i < currentCombat.getLiveCombatants().size(); i++){
 				Combatant current = currentCombat.getLiveCombatants().get(i);
 				
-				switch(current.getState()){
+				switch(current.getTerminalState()){
 					case Combat.STATE_STONE:
 						current.getSprite().setColor(Color.GRAY);
 						// render as grey (as stone)
@@ -1523,6 +1544,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					if(currentMusic != null)
 						currentMusic.stop();
 					
+					if(combatMusic != null)
+						combatMusic.stop();
+					
 					currentMusic = new MusicInstance("data/music/Renich_-_Rola_Z.ogg");
 					currentMusic.setLooping(true);
 					currentMusic.play();
@@ -1772,7 +1796,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				int remain = length;
 				int num = 0;
 				int start = 0;
-				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(length/32)), 32*13, 20+(16*(length/32))+2 );
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(int)Math.floor(length/32)), 32*13, 20+(16*(length/32))+2 );
 				
 				while(remain > 0){
 					int printed = Math.min(32, remain);

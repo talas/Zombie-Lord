@@ -65,7 +65,7 @@ public class CombatAction {
 	/**
 	 * Can be negative to deal damage, or positive to heal.
 	 */
-	public float healthChange;
+	public CombatEffect combatEffect;
 	
 	public byte targetType;
 	
@@ -77,17 +77,17 @@ public class CombatAction {
 	 * @param maxLevel maximum xp level to use the action
 	 * @param hpCost health consumed by using the action
 	 * @param mpCost mana consumed by using the action
-	 * @param healthChange how this action affects the health of the target
+	 * @param effect how this action affects the health of the target
 	 * @param targetType what this action targets
 	 */
-	public CombatAction(String name, String description, ActionCategory category, int minLevel, int maxLevel, int hpCost, int mpCost, float healthChange, byte targetType){
+	public CombatAction(String name, String description, ActionCategory category, int minLevel, int maxLevel, int hpCost, int mpCost, CombatEffect effect, byte targetType){
 		this.name = name;
 		this.description = description;
 		this.minLevel = minLevel;
 		this.maxLevel = maxLevel;
 		this.hpCost = hpCost;
 		this.mpCost = mpCost;
-		this.healthChange = healthChange;
+		this.combatEffect = effect;
 		this.targetType = targetType;
 		this.category = category;
 	}
@@ -96,14 +96,14 @@ public class CombatAction {
 	 * Constructor for most monster actions
 	 * @param name
 	 * @param mpCost
-	 * @param healthChange
+	 * @param effect
 	 * @param targetType
 	 */
-	public CombatAction(String name, ActionCategory category, int mpCost, float healthChange, byte targetType){
-		this(name, "", category,0,0,0,mpCost,healthChange,targetType);
+	public CombatAction(String name, ActionCategory category, int mpCost, CombatEffect effect, byte targetType){
+		this(name, "", category,0,0,0,mpCost,effect,targetType);
 	}
 	
-	public CombatAction(String name, String description, ActionCategory category, int mpCost, float healthChange, byte targetType){
-		this(name, description,category,0,0,0,mpCost,healthChange,targetType);
+	public CombatAction(String name, String description, ActionCategory category, int mpCost, CombatEffect effect, byte targetType){
+		this(name, description,category,0,0,0,mpCost,effect,targetType);
 	}
 }

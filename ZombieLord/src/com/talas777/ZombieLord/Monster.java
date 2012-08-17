@@ -28,6 +28,8 @@ public class Monster extends Combatant{
 	 */
 	public String textureName;
 	
+	public MonsterType monsterType;
+	
 	public static final float ALPHA_START = 1f;
 	
 	
@@ -57,9 +59,13 @@ public class Monster extends Combatant{
 	 * @param level
 	 * @param attack
 	 */
-	public Monster(String name, String textureName, int exp, int health_max, int mana_max, int level, float attack){
-		super(name, health_max, health_max, mana_max, mana_max, exp, level);
-		this.textureName = textureName;
+	public Monster(MonsterType monsterType, int exp, int health_max, int mana_max, int level, float attack){
+		super(monsterType.getName(), health_max, health_max, mana_max, mana_max, exp, level,
+				monsterType.getStrength(level), monsterType.getVitality(level), monsterType.getAgility(level),
+				monsterType.getIntelligence(level), monsterType.getWisdom(level), monsterType.getSpirit(level),
+				monsterType.getLuck(level));
+		this.textureName = monsterType.getImageFileName();
+		this.monsterType = monsterType;
 		this.combatActionWeights = new LinkedList<Float>();
 	}
 	/**
@@ -74,9 +80,13 @@ public class Monster extends Combatant{
 	 * @param level
 	 * @param attack
 	 */
-	public Monster(String name, String textureName, int exp, int health, int mana, int health_max, int mana_max, int level, float attack){
-		super(name, health, health_max, mana, mana_max, exp, level);
-		this.textureName = textureName;
+	public Monster(MonsterType monsterType, int exp, int health, int mana, int health_max, int mana_max, int level, float attack){
+		super(monsterType.getName(), health, health_max, mana, mana_max, exp, level,
+				monsterType.getStrength(level), monsterType.getVitality(level), monsterType.getAgility(level),
+				monsterType.getIntelligence(level), monsterType.getWisdom(level), monsterType.getSpirit(level),
+				monsterType.getLuck(level));
+		this.textureName = monsterType.getImageFileName();
+		this.monsterType = monsterType;
 		this.combatActionWeights = new LinkedList<Float>();
 	}
 	
@@ -138,7 +148,7 @@ public class Monster extends Combatant{
 				if(chosenAction != null) // dont keep looking if we already found a good one
 					break;
 				CombatAction current = viableActions.get(i);
-				if(current.healthChange > 0 && current.mpCost <= this.mana){ // AKA heals instead of damages
+				if((!current.combatEffect.isDamaging()) && current.mpCost <= this.mana){ // AKA heals instead of damages
 					// Check if it can be used on me and my allies :>
 					
 					switch(current.targetType){ // switch case from hell
@@ -154,6 +164,8 @@ public class Monster extends Combatant{
 							// Found a "mediocre one"
 							// check if VERY desperate..
 							if(combat.getLiveMonsters().size() == 1 && this.health < this.health_max/4f){// last enemy and with critical health = critical measures
+								// TODO: decide if monsters should be suicidal.
+								// if they are, it makes the game harder.. as monster could suicide to trigger a game over..
 								mediocreChoice = current;
 								mediocreTarget = this;
 							}
@@ -169,7 +181,7 @@ public class Monster extends Combatant{
 					if(chosenAction != null) // dont keep looking if we already found a good one
 						break;
 					CombatAction current = viableActions.get(i);
-					if(current.healthChange < 0  && current.mpCost <= this.mana){ // we want to deal damage
+					if(current.combatEffect.isDamaging() && current.mpCost <= this.mana){ // we want to deal damage
 						// Check if it can be used on me and my allies :>
 						
 						switch(current.targetType){ // switch case from hell

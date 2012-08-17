@@ -23,23 +23,17 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 public abstract class Combatant {
 	
 	
-	public float getDamageMultiplier(byte element, boolean magic){
-		
-		return 1f;
-	}
-	
-	
 	
 	
 	
 	// Stats / atributes. These are used in combat calculations
-	private int physicalAttack; // strength increase atk
-	private int physicalDefense; // vitality increase health and defense
-	private int speed; // dexterity increase combat speed
-	private int evasion; // agility increase chance to dodge
-	private int magicAttack; // intelligence gives magic atk power
-	private int magicReserve; // wisdom gives mana
-	private int magicDefense; // spirit increase magic defense
+	private int strength; // strength increase atk
+	private int vitality; // vitality increase health and defense
+	private int agility; // agility increase chance to dodge (evasion)
+	private int intelligence; // intelligence gives magic atk power
+	private int wisdom; // wisdom gives mana
+	private int spirit; // spirit increase magic defense
+	private int luck; // luck increase combat speed
 	
 	
 	
@@ -59,7 +53,20 @@ public abstract class Combatant {
 	 */
 	private boolean movedAhead = false;
 	
-	public Combatant(String name, int health, int health_max, int mana, int mana_max, int exp, int level){
+	public Combatant(String name, int health, int health_max, int mana, int mana_max, int exp, int level,
+			int strength,int vitality,int agility,int intelligence, int wisdom, int spirit, int luck){
+		
+		this.strength = strength;
+		this.vitality = vitality;
+		this.agility = agility;
+		this.intelligence = intelligence;
+		this.wisdom = wisdom;
+		this.spirit = spirit;
+		this.luck = luck;
+		
+		
+		
+		
 		this.name = name;
 		this.health = health;
 		this.health_max = health_max;
@@ -70,6 +77,11 @@ public abstract class Combatant {
 		this.combatActions = new LinkedList<CombatAction>();
 		this.drawSprite = null;
 		
+		this.statusChanges = new LinkedList<Status>();
+		
+		
+		// set all states to normal.
+		//TODO:!!
 	}
 	
 	/**
@@ -87,7 +99,221 @@ public abstract class Combatant {
 	 * What state the creature is in
 	 * Can be normal, poisoned, slow, haste, stop, stone, paralyzed, fury, weakness or doom
 	 */
-	private int state;
+	private LinkedList<Status> statusChanges;
+	
+	private class Status {
+		/*
+		 * About the different statuses:
+		 * Poison lasts until cured and comes in different strength
+		 * Slow, haste and fury lasts for a set of time and wear off when the time is up.
+		 * Doom has no effect until the time is up, which then causes the combatant to instantly die.
+		 * Stop, Stone and paralyzed lasts untill cured and makes the combatant effectively dead.
+		 * Weakness lasts until the time is up and always halves most of the combatants abilities.
+		 */
+		
+		/**
+		 * ID, comparable to Combat.STATE_???
+		 */
+		public int id;
+		/**
+		 * If the status is active or not.
+		 */
+		public boolean state;
+		/**
+		 * For poison its the strength, for others its the time left.
+		 * Not all status types use it (like  Stop, Stone and paralyze).
+		 */
+		public int data;
+		
+		/**
+		 * Used to count more accurately
+		 */
+		public float delta;
+	}
+	
+	public void tickStatusChanges(float time){
+		for(Status s : this.statusChanges){
+			if(s.state){
+				switch(s.id){
+				case STATE_WEAKNESS:
+				case STATE_FURY:
+				case STATE_HASTE:
+				case STATE_SLOW:
+					s.data -= time;
+					if(s.data <= 0){
+						s.data = 0;
+						s.state = false;
+					}
+					break;
+				case STATE_DOOM:
+					s.delta += time;
+					while(s.delta >= 1){
+						s.data -= 1;
+						s.delta -=1f;
+					}
+					
+					if(s.data <= 0){
+						s.data = 0;
+						s.state = false;
+						this.health = 0;
+					}
+					break;
+				case STATE_POISONED:
+					s.delta += time;
+					while(s.delta >= 1){
+						s.delta -= 1f;
+						this.health = Math.max(0, this.health - s.data);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * afflicts or cures this combatants given status
+	 * @param statusId
+	 * @param newState
+	 * @param strength
+	 */
+	public void addStatusChange(int statusId, boolean newState, int strength){
+		for(Status s : this.statusChanges){
+			if(s.id == statusId){
+				if(s.state){
+					// already on.
+					if(newState){
+						// trying to turn on, when already on..
+						// effect depends on status type.
+						switch(s.id){
+						case STATE_POISONED:
+							// increase poison strength
+							if(s.data >= strength)
+								s.data = (int)(s.data + strength/1.5f);
+							else
+								s.data = (int)(s.data/1.5f + strength);
+							break;
+						case STATE_WEAKNESS:
+						case STATE_FURY:
+						case STATE_HASTE:
+						case STATE_SLOW:
+							// increase timer
+							s.data += strength;
+							break;
+						case STATE_DOOM:
+							// decrease timer a little
+							s.data = (int)Math.ceil(s.data / 1.3f);
+							break;
+						}
+					}
+					else {
+						// trying to turn off
+						s.state = false;
+						s.data = 0;
+					}
+				}
+				else {
+					if(newState){
+						// Trying to turn on, when off
+						switch(s.id){
+						case STATE_POISONED:
+						case STATE_WEAKNESS:
+						case STATE_FURY:
+						case STATE_HASTE:
+						case STATE_SLOW:
+							s.data = strength;
+							s.state = true;
+							break;
+						case STATE_DOOM:
+							s.data = 30;
+							s.state = true;
+							break;
+						default:
+							s.state = true;
+						}
+					}
+					// else, trying to turn off, when off => no effect
+				}
+			}
+		}
+		// TODO: this is what you're working on.
+		// TODO: stop with your new bright idea and finish this first.
+	}
+	
+	public LinkedList<Integer> getActiveStatusChanges(){
+		LinkedList<Integer> statuses = new LinkedList<Integer>();
+		
+		for(Status s : this.statusChanges){
+			if(s.state)
+				statuses.add(s.id);
+		}
+		
+		return statuses;
+	}
+	
+	public int getPoisonStrength(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_POISONED){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public int getSlowTimeLeft(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_SLOW){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public int getHasteTimeLeft(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_HASTE){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public int getFuryTimeLeft(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_FURY){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public int getDoomTimeLeft(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_DOOM){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public int getWeaknessTimeLeft(){
+		for(Status s : this.statusChanges){
+			if(s.id == STATE_WEAKNESS){
+				if(s.state){
+					return s.data;
+				}
+			}
+		}
+		return 0;
+	}
 	
 	public static final int STATE_NORMAL = 0;
 	public static final int STATE_POISONED = 1;
@@ -149,8 +375,19 @@ public abstract class Combatant {
 		return combatActions;
 	}
 	
-	public int getState(){
-		return state;
+	public int getTerminalState(){
+		for(Status s : this.statusChanges){
+			if(s.state){
+				switch(s.id){
+				case Combat.STATE_STONE:
+				case Combat.STATE_PARALYZED:
+				case Combat.STATE_STOP:
+					return (int)s.id;
+				}
+			}
+		}
+		// NOTE: not in a terminal state
+		return Combat.STATE_NORMAL;
 	}
 	
 	public void setSprite(Sprite s){
@@ -162,8 +399,28 @@ public abstract class Combatant {
 		return this.drawSprite;
 	}
 	
-	public void setState(int newState){
-		state = newState;
+	public void setState(int stateId, boolean state){
+		
+		for(Status status : this.statusChanges){
+			if(status.id == stateId)
+				status.state = state;
+		}
+	}
+	
+	public int getMATK(){
+		return this.intelligence;
+	}
+	
+	public int getMDEF(){
+		return this.spirit;
+	}
+	
+	public int getATK(){
+		return this.strength;
+	}
+	
+	public int getDEF(){
+		return this.vitality;
 	}
 	
 	public abstract int getBaseDelay();

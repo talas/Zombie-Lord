@@ -16,21 +16,20 @@
 
 package com.talas777.ZombieLord;
 
-import java.util.HashMap;
 public class Monsters {
 
 	
-	HashMap<String,Monster> monsterList;
+	public static final MonsterType Zombie = new MonsterType("Zombie", 5, 2, 1, 1, 1, 1, 1);
 	
-	public Monsters(){
-		monsterList = new HashMap<String,Monster>();
-	}
+	public static final MonsterType Troll = new MonsterType("Troll", 10, 13, 2, 3, 4, 9, 4);
 	
-	public void addMonster(Monster monster){
-		monsterList.put(monster.getName(), monster);
-	}
+	public static final MonsterType Manticore = new MonsterType("Manticore", 20, 12, 9, 6, 5, 14, 8);
 	
-	public Monster getMonster(String name){
-		return monsterList.get(name);
+	
+	
+	public static void initiate(){
+		Zombie.setImage("monsters/malesoldierzombie.png", 128, 128);
+		Troll.setImage("monsters/troll.png", 128, 128);
+		Manticore.setImage("monsters/manticore.png", 128, 128);
 	}
 }

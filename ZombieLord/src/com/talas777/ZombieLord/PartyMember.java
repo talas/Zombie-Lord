@@ -24,9 +24,28 @@ public class PartyMember extends Combatant{
 		return level*level;
 	}
 	
-	public PartyMember(int id, String name, int healthMax, int healthNow, int manaMax, int manaNow, int exp){
-		super(name, healthNow, healthMax, manaNow, manaMax, exp, getLevel(exp));
+	public PartyMember(int id, String name, int healthMax, int healthNow, int manaMax, int manaNow, int exp,
+			int baseSTR, int baseVIT, int baseAGI, int baseINT, int baseWIS,
+			int baseSPR, int baseLUCK){
+		super(name, healthNow, healthMax, manaNow, manaMax, exp, getLevel(exp),
+				baseSTR, baseVIT, baseAGI, baseINT, baseWIS, baseSPR,baseLUCK);
 		this.id = id;
+	}
+	
+	public int getMATK(){ // TODO: account for temporary attributes
+		return super.getMATK();
+	}
+	
+	public int getMDEF(){ // TODO: account for temporary attributes
+		return super.getMDEF();
+	}
+	
+	public int getATK(){ // TODO: account for temporary attributes
+		return super.getATK();
+	}
+	
+	public int getDEF(){ // TODO: account for temporary attributes
+		return super.getDEF();
 	}
 	
 	public static int getLevel(int experience){
