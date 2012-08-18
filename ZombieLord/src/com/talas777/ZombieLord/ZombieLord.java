@@ -1738,7 +1738,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		background.draw(batch);
 		
-		if(this.gameMode == MODE_MOVE){
+		if(this.gameMode == MODE_MOVE || this.gameMode == MODE_DIALOG){
 			// draw level objects
 			if(this.levelObjects != null){
 				for(LevelObject object : this.levelObjects){

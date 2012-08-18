@@ -95,7 +95,7 @@ public abstract class Level {
 	public abstract LinkedList<MonsterArea> getMonsterAreas(TimeTracker timer);
 	
 	public String[] getBattleBackgrounds(){
-		return new String[]{"hometown/battle1.png"};
+		return new String[]{"hometown/battle1.png", "hometown/battle2.png", "hometown/battle3.png"};
 	}
 	
 	public abstract LinkedList<Dialog> getLevelDialogs();
