@@ -144,6 +144,8 @@ public class MyHouse extends Level {
 	
 	@Override
 	public LinkedList<LevelObject> getLevelObjects(QuestTracker tracker){
+		ZombieLord.playSound("data/sound/darkBell.wav",2f);
+		ZombieLord.pauseMusic(2);
 		LinkedList<LevelObject> objects = new LinkedList<LevelObject>();
 		
 		if(!tracker.isCompleted("First potion.")){
@@ -152,7 +154,7 @@ public class MyHouse extends Level {
 		}
 		Chest north = new Chest(400,530, true, Item.Potion, (byte)1, "MyHouse-ChestN", tracker.isCompleted("MyHouse-ChestN"));
 		objects.add(north);
-		Chest west = new Chest(240,398, false, Item.Hi_Potion, (byte)1, "MyHouse-ChestW", tracker.isCompleted("MyHouse-ChestW"));
+		Chest west = new Chest(240,398, false, Item.Antidote, (byte)1, "MyHouse-ChestW", tracker.isCompleted("MyHouse-ChestW"));
 		objects.add(west);
 		
 		return objects;

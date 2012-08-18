@@ -22,12 +22,19 @@ public abstract class Item {
 	
 	private static final CombatEffect heal50effect = new CombatEffect(CombatEffect.TYPE_ITEM,50,false);
 	private static final CombatEffect heal250effect = new CombatEffect(CombatEffect.TYPE_ITEM,250,false);
+	private static final CombatEffect antidoteEffect = new CombatEffect(CombatEffect.TYPE_ITEM);
 	
 	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,heal50effect,Targeting.TARGET_SINGLE);
 	private static final CombatAction heal250 = new CombatAction("Hi-Potion",ZombieLord.ITEM_ACTION,0,heal250effect,Targeting.TARGET_SINGLE);
+	private static final CombatAction antidote = new CombatAction("Antidote", ZombieLord.ITEM_ACTION,0,antidoteEffect, Targeting.TARGET_SINGLE);
 	public static final Item Potion = new ConsumeableItem("Potion",true,heal50,false,false);
 	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,heal250,false,false);
+	public static final Item Antidote = new ConsumeableItem("Antidote",true, antidote, false, false);
 	
+	
+	protected final static void initiate(){
+		antidoteEffect.addStatusChange(Combat.STATE_POISONED, 1.0f, false, 0);
+	}
 	
 	@Override
 	public boolean equals(Object o){

@@ -16,20 +16,21 @@
 
 package com.talas777.ZombieLord;
 
-public class Monsters {
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 
+public class SoundInstance {
+	private Sound s;
 	
-	public static final MonsterType Zombie = new MonsterType("Zombie", 5, 2, 1, 1, 1, 1, 1);
-	
-	public static final MonsterType Troll = new MonsterType("Troll", 10, 13, 2, 3, 4, 9, 4);
-	
-	public static final MonsterType Manticore = new MonsterType("Manticore", 20, 12, 9, 6, 5, 14, 8);
-	
-	
-	
-	protected final static void initiate(){
-		Zombie.setImage("monsters/malesoldierzombie.png", 128, 128);
-		Troll.setImage("monsters/troll.png", 128, 128);
-		Manticore.setImage("monsters/manticore.png", 128, 128);
+	public SoundInstance(String fileName, float volume){
+		s = Gdx.audio.newSound(Gdx.files.internal(fileName));
+		
+		s.play(volume);
 	}
+	
+	public void dispose(){
+		s.stop();
+		s.dispose();
+	}
+	
 }

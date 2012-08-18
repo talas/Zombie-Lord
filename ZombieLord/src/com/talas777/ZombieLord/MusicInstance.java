@@ -37,8 +37,21 @@ public class MusicInstance {
 		return music;
 	}
 	
-	public void play(){
+	public void playNow(){
 		music.play();
+	}
+	
+	public void play(){
+		if(music.getPosition() == 0){
+			// music hasnt been started yet.
+			// play as normal
+			music.play();
+		}
+		else {
+			// music was paused.
+			// fade in..
+			ZombieLord.fadeMusicIn(this);
+		}
 	}
 	
 	public void stop(){

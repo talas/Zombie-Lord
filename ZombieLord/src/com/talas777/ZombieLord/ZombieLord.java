@@ -261,9 +261,26 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		this.loadLevel(returnLevel, (int)posx, (int)posy, lastDirection);
 	}
 	
+	private static LinkedList<SoundInstance> sounds = new LinkedList<SoundInstance>();
+	
+	public static void playSound(String file, float volume){
+		sounds.add(new SoundInstance(file,volume));
+	}
+	
+	private static double musicPause = 0;
+	
+	public static void pauseMusic(double time){
+		musicPause = time;
+	}
+	
 
 	
 	public void loadCombat(MonsterSetup setup){
+		
+		for(SoundInstance s : sounds)
+			s.dispose();
+		sounds.clear();
+		
 		this.fallingTexture = null;
 		for(Sprite s : drawSprites){
 			s.getTexture().dispose();
@@ -641,6 +658,10 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			this.foreground = null;
 		}
 		
+		for(SoundInstance s : sounds)
+			s.dispose();
+		sounds.clear();
+		
 		if(level.getForeground() != null){
 			// Level has a foreground image
 			Texture foregroundTexture = new Texture(Gdx.files.internal("data/prerenders/"+level.getForeground()));
@@ -811,9 +832,52 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		gameMode = MODE_MOVE;
 		this.returnLevel = level; // incase we get into a fight, we want a way back :p
 	}
+	
+	private static float musicVolume = 1f;
+	private static MusicInstance fadingMusic;
+	
+	public static void fadeMusicIn(MusicInstance music){
+		System.out.println("fading music in..");
+		music.playNow();
+		music.setVolume(0.1f);
+		musicVolume = 0.1f;
+		fadingMusic = music;
+	}
 
 	@Override
 	public void render() {
+		
+		if(musicVolume < 1f){
+			musicVolume += Gdx.graphics.getDeltaTime()/10f;
+			if(musicVolume > 1f){
+				musicVolume = 1f;
+				System.out.println("Done fading..");
+			}
+			fadingMusic.setVolume(musicVolume);
+		}
+		
+		
+		if(musicPause > 0){
+			musicPause -= Gdx.graphics.getDeltaTime();
+			if(musicPause <= 0){
+				musicPause = 0;
+				// resume music
+				if(this.combatMusic != null)
+					this.combatMusic.play();
+				
+				else if(this.currentMusic != null)
+					this.currentMusic.play();
+			}
+			
+			else {
+				// pause music or keep it paused
+				if(this.combatMusic != null)
+					this.combatMusic.pause();
+				
+				if(this.currentMusic != null)
+					this.currentMusic.pause();
+			}
+		}
 		
 		if(this.fallingTexture != null){
 			if(this.falling == null){
@@ -1866,6 +1930,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 								// TODO: draw some text that tells the player he acquired some items (ingame).
 								this.announce("Acquired a " + ((LevelItem)object).getItemType().name+"!");
 								System.out.println("Acquired a " + ((LevelItem)object).getItemType().name+"!");
+								ZombieLord.playSound("data/sound/pickupItem.wav",1.5f);
 								iter.remove();
 							}
 							else {
@@ -1880,6 +1945,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 							if(msg != null){
 								// TODO: proper ingame announcement
 								this.announce(msg);
+								ZombieLord.playSound("data/sound/pickupItem.wav",1.5f);
 								System.out.println(msg);
 							}
 						}
