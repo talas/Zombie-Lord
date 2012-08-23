@@ -18,6 +18,10 @@ package com.talas777.ZombieLord;
 
 import com.talas777.ZombieLord.Items.ConsumeableItem;
 import com.talas777.ZombieLord.Levels.*;
+import com.talas777.ZombieLord.Minigames.ZombieDefense;
+import com.talas777.ZombieLord.Minigames.TowerDefense.Attacker;
+import com.talas777.ZombieLord.Minigames.TowerDefense.Defender;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -131,12 +135,16 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public float waitTime = 0;
 	private Targeting targeting;
 	
+	// Zombie Defense stuff
+	private ZombieDefense zombieDefense;
+	
 	
 	
 	
 	public static final int MODE_MOVE = 0;
 	public static final int MODE_FIGHT = 1;
 	public static final int MODE_VICTORY = 2;
+	public static final int MODE_ZOMBIE_DEFENSE = 3;
 	public static final int MODE_DIALOG = 7;
 	public static final int MODE_GAMEOVER = 99;
 	
@@ -344,13 +352,14 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		{
 			for(int i = 0; i < currentCombat.getNumEnemies(); i++){
-				Texture monsterTexture = new Texture(Gdx.files.internal("data/"+currentCombat.getMonster(i).textureName));
+				Monster m = currentCombat.getMonster(i);
+				Texture monsterTexture = new Texture(Gdx.files.internal("data/"+m.textureName));
 				//texture2.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			
 			
-				Sprite monsterSprite = new Sprite(monsterTexture, 0, 0, 64, 64);
+				Sprite monsterSprite = new Sprite(monsterTexture, 0, 0, m.monsterType.getImageSizeX(), m.monsterType.getImageSizeY());
 				
-				currentCombat.getMonster(i).setSprite(monsterSprite);
+				m.setSprite(monsterSprite);
 				//princess.setSize(64, 64);
 				//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 				//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
@@ -364,6 +373,122 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		// Timing and stuff is taken care of in the Combat class (which is queried from the render loop)
 		
 		gameMode = MODE_FIGHT;
+	}
+	
+	public void loadZombieDefense(ZombieDefense zd){
+		
+		this.fallingTexture = null;
+		for(Sprite s : drawSprites){
+			s.getTexture().dispose();
+		}
+		this.drawSprites.clear();
+		if(backgroundTexture != null)
+			backgroundTexture.dispose();
+		backgroundTexture = new Texture(Gdx.files.internal("data/prerenders/hometown/zombiedefense.png"));
+		
+		background = new Sprite(backgroundTexture, 480, 320);
+		
+		if(this.foreground != null){
+			this.foreground.getTexture().dispose();
+			this.foreground = null;
+		}
+		
+		for(SoundInstance s : sounds)
+			s.dispose();
+		sounds.clear();
+		this.gameMode = MODE_ZOMBIE_DEFENSE;
+		
+		
+		this.zombieDefense = zd;
+		this.zombieDefense.attackers = this.zombieDefense.getWave(this.zombieDefense.getCurrentWaveNumber());
+		
+		
+		
+		// Zombie Defense. A variant of tower defense where the player must defend a town against waves of
+		// zombies coming from the edges of the map, trying to reach the town entrance.
+		// The player can place walls, warriors and traps.
+		// In the first level, there is only one wall type (wooden), one warrior type (archer) and one trap type (resetting bear trap).
+		// If the player tries to completely wall off the entrance, the zombie lord will randomly make a hole in the players wall.
+		// The player gains points for each zombie that didnt reach the entrance.
+		
+
+	}
+	
+	private void gameOver(){
+		System.out.println("GAME OVER. :'(");
+		
+		if(currentMusic != null)
+			currentMusic.stop();
+		
+		if(combatMusic != null)
+			combatMusic.stop();
+		
+		currentMusic = new MusicInstance("data/music/Renich_-_Rola_Z.ogg");
+		currentMusic.setLooping(true);
+		currentMusic.play();
+
+		gameMode = MODE_GAMEOVER;
+		if(this.combatEffects != null)
+			this.combatEffects.clear();
+	}
+	
+	private void tickZombieDefense(float deltaTime){
+		// TODO: moving targeting cursor around with arrow keys
+		// TODO: target cursor snaps to 32x32 grid? 480/32 = 16.87, 320/32 = 10
+		
+		// TODO: selecting things using the targeting cursor and an eaction button (enter?)
+		// TODO: chosing actions for the selected thing in a menu
+		
+		// TODO: spawn zombies from the edge that try to get to the gate.
+		// TODO: zombie lord magically destroys walls that completely block zombie access.
+		
+		// TODO: earn random ammount of monies from killing zombies..
+		// TODO: go back to gamemode MODE_MOVE after winning
+		// TODO: go to gamemode MODE_GAMEOVER after losing
+		
+		if(this.zombieDefense.getHealthLeft() <= 0){
+			// lost..
+			if(this.zombieDefense.isDefeatAllowed()){
+				// whatever, go back to MODE_MOVE
+				this.loadLevel(this.zombieDefense.getNextLevel(),
+						this.zombieDefense.getNextLevelX(), this.zombieDefense.getNextLevelY(), this.lastDirection);
+				return;
+			}
+			else {
+				// game over, this one may not be lost.
+				this.gameOver();
+				return;
+			}
+		}
+		
+		
+		if(this.zombieDefense.attackers.isEmpty()){
+			// all the zombies are dead..
+			// goto next wave if it exists
+			// win if not
+			if(this.zombieDefense.getCurrentWaveNumber() < this.zombieDefense.getNumWaves()){
+				// next level
+				this.zombieDefense.gotoNextWave();
+				this.zombieDefense.attackers = this.zombieDefense.getWave(this.zombieDefense.getCurrentWaveNumber());
+			}
+			else {
+				// wiin!
+				this.loadLevel(this.zombieDefense.getNextLevel(),
+						this.zombieDefense.getNextLevelX(), this.zombieDefense.getNextLevelY(), this.lastDirection);
+				return;
+			}
+		}
+		else {
+			// move zig!
+			for(Attacker attacker : this.zombieDefense.attackers){
+				attacker.move(deltaTime, this.zombieDefense);
+			}
+			for(Defender defender : this.zombieDefense.defenders){
+				defender.act(this.zombieDefense.attackers, deltaTime);
+			}
+			this.zombieDefense.attackers = this.zombieDefense.handleAttackers(this.zombieDefense.attackers);
+			
+		}
 	}
 	
 	public void loadCombat(MonsterArea monsterArea){
@@ -484,6 +609,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		timeTracker.incrementTime();
 		timeTracker.addEvent("go home");
 		timeTracker.addEvent("talk with gf"); // talk
+		timeTracker.addEvent("zombie defense 1"); // first obligatory tower defense minigame
 		timeTracker.addEvent("leave home"); // leave
 		
 		timeTracker.addEvent("east house?"); // goto house
@@ -641,6 +767,14 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		fontBatch.dispose();
 		backgroundTexture.dispose();
 		texture2.dispose();
+	}
+	
+	private static LinkedList<AnimatedMissile> animatedMissiles = new LinkedList<AnimatedMissile>();
+	
+	public static void sendAnimatedMissile(Sprite s, int fromx, int tox, int fromy, int toy, float speed){
+		AnimatedMissile missile = new AnimatedMissile(s, speed, fromx, fromy, tox, toy);
+		
+		animatedMissiles.add(missile);
 	}
 	
 	public void loadLevel(Level level, int posx, int posy, int direction){
@@ -879,6 +1013,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			}
 		}
 		
+		
+		
 		if(this.fallingTexture != null){
 			if(this.falling == null){
 				this.falling = new Array<Sprite>();
@@ -958,6 +1094,18 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				
 				if(this.currentDialog.getTimeChange() != null){
 					this.timeTracker.setTime( this.currentDialog.getTimeChange()  );
+				}
+				
+				ZombieDefense zd = this.currentDialog.getZombieDefense();
+				if(zd != null){
+					// Start zombie defense by going to the correct game mode..
+					this.gameMode = MODE_ZOMBIE_DEFENSE;
+					this.loadZombieDefense(zd);
+					
+					
+					// Zombie Defense has highest priority.
+					this.currentDialog = null;
+					return;
 				}
 				
 				MonsterSetup setup = this.currentDialog.getFight();
@@ -1601,27 +1749,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				}
 				else if(state == 2){
 					// player has lost
-					waiting = true;
-					System.out.println("GAME OVER. :'(");
-					
-					
-					if(currentMusic != null)
-						currentMusic.stop();
-					
-					if(combatMusic != null)
-						combatMusic.stop();
-					
-					currentMusic = new MusicInstance("data/music/Renich_-_Rola_Z.ogg");
-					currentMusic.setLooping(true);
-					currentMusic.play();
-
-					gameMode = MODE_GAMEOVER;
-					this.combatEffects.clear();
+					this.gameOver();
 				}
-				
-				
-				
-				//TODO: render status changes (those that are visible)
 				
 				Monster readyMonster = currentCombat.getFirstReadiedMonster();
 				if(readyMonster != null && currentCombat.getLivePlayers().size() > 0){
@@ -1719,12 +1848,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			}
 			
 			leoricSprite.setRegion(0, 64*3, 64, 64);
-			camera.position.x = w/2f;
-			camera.position.y = h/2f;
-			camera.update();
 			if(!waiting){
 				currentCombat.tick(Gdx.graphics.getDeltaTime()*5*2);
 			}
+		}
+		
+		if(this.gameMode == MODE_ZOMBIE_DEFENSE || this.gameMode == MODE_FIGHT){
+			camera.position.x = w/2f;
+			camera.position.y = h/2f;
+			camera.update();
 		}
 		
 		
@@ -1749,7 +1881,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		
 		for(Sprite s : drawSprites)
-		 s.draw(batch);
+			s.draw(batch);
 		
 		
 		if(gameMode == MODE_FIGHT){
@@ -1761,7 +1893,69 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				s.draw(batch);
 		}
 		
+		if(animatedMissiles.size() > 0){
+			ListIterator<AnimatedMissile> it = animatedMissiles.listIterator();
+			while(it.hasNext()){
+				AnimatedMissile missile = it.next();
+				
+				if(missile.hasArrived()){
+					// delete it..
+					missile.sprite = null;
+					it.remove();
+					continue;
+				}
+				// TODO: use box2d to move the missiles instead?
+				float xChange = 0;
+				float yChange = 0;
+				
+				float reqX = missile.sprite.getX() - missile.toX;
+				float reqY = missile.sprite.getY() - missile.toY;
+				
+				if(reqY == 0)
+					reqY = 0.001f;
+				
+				float xyRate = Math.abs(reqX)/Math.abs(reqY);
+				
+				xChange = xyRate*missile.speed;
+				yChange = 1*missile.speed;
+				
+				if(reqX > 0)
+					xChange *= -1;
+				
+				if(reqY > 0)
+					yChange *= -1;
+
+				missile.sprite.setX(missile.sprite.getX()+xChange);
+				missile.sprite.setY(missile.sprite.getY()+yChange);
+				
+				missile.sprite.draw(batch);
+				
+			}
+		}
 		
+		if(gameMode == MODE_ZOMBIE_DEFENSE){
+			
+			// draw monies and helps
+			//fontBatch.begin();
+			
+			font.setColor(Color.WHITE);
+			font.draw(batch, "Money: "+this.zombieDefense.money+", Life: "+this.zombieDefense.getHealthLeft()+".", 3, 18);
+			
+			//fontBatch.end();
+			
+			// draw all the attackers..
+			// TODO: attacker health
+			this.tickZombieDefense(Gdx.graphics.getDeltaTime());
+			for(Attacker atk : this.zombieDefense.attackers){
+				atk.draw(batch, Gdx.graphics.getDeltaTime());
+			}
+			for(Defender def : this.zombieDefense.defenders){
+				def.draw(batch, Gdx.graphics.getDeltaTime());
+			}
+			this.zombieDefense.cursor.draw(batch);
+			
+			
+		}
 
 
 		
@@ -1904,6 +2098,44 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
+		
+		if(this.gameMode == MODE_ZOMBIE_DEFENSE){
+			// cursor control
+			if(keycode == Keys.UP){
+				if(this.zombieDefense.cursor.y >= this.zombieDefense.maxy)
+					System.out.println("nop");
+				else
+					this.zombieDefense.cursor.y ++;
+			}
+			if(keycode == Keys.DOWN){
+				if(this.zombieDefense.cursor.y <= this.zombieDefense.miny)
+					System.out.println("nop");
+				else
+					this.zombieDefense.cursor.y --;
+			}
+			if(keycode == Keys.LEFT){
+				if(this.zombieDefense.cursor.x <= this.zombieDefense.minx)
+					System.out.println("nop");
+				else
+					this.zombieDefense.cursor.x --;
+			}
+			if(keycode == Keys.RIGHT){
+				if(this.zombieDefense.cursor.x >= this.zombieDefense.maxx)
+					System.out.println("nop");
+				else
+					this.zombieDefense.cursor.x ++;
+			}
+			// cycle defender type to place
+			if(keycode == Keys.BACKSPACE){
+				this.zombieDefense.cyclePlaceableDefenders();
+			}
+			// place defender
+			if(keycode == Keys.ENTER){
+				boolean success = this.zombieDefense.addDefense();
+				if(!success)
+					System.out.println("Tile not empty or not enough money!");
+			}
+		}
 		
 		if(this.gameMode == MODE_MOVE){
 			if(keycode == Keys.I){

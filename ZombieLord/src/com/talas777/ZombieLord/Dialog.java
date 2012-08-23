@@ -19,6 +19,8 @@ package com.talas777.ZombieLord;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
+import com.talas777.ZombieLord.Minigames.ZombieDefense;
+
 /**
  * A very powerful dialog handler..
  * 
@@ -27,7 +29,6 @@ import java.util.ListIterator;
  *
  */
 public class Dialog {
-
 	
 	private final int minx;
 	private final int maxx;
@@ -64,6 +65,12 @@ public class Dialog {
 	
 	public MonsterSetup getFight(){
 		return setup;
+	}
+	
+	private ZombieDefense zombieDefense;
+	
+	public ZombieDefense getZombieDefense(){
+		return zombieDefense;
 	}
 	
 	
@@ -142,6 +149,10 @@ public class Dialog {
 	
 	public void addFight(MonsterSetup setup){
 		this.setup = setup;
+	}
+	
+	public void addZombieDefense(ZombieDefense zd){
+		this.zombieDefense = zd;
 	}
 	
 	public void addTimeChange(String time){

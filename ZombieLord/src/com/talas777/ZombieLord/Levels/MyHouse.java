@@ -37,6 +37,7 @@ import com.talas777.ZombieLord.QuestTracker;
 import com.talas777.ZombieLord.TalkScript;
 import com.talas777.ZombieLord.TimeTracker;
 import com.talas777.ZombieLord.ZombieLord;
+import com.talas777.ZombieLord.Minigames.TowerDefense.HomeTownDefense;
 
 public class MyHouse extends Level {
 
@@ -107,14 +108,30 @@ public class MyHouse extends Level {
 			talk.add("Leoric", "Yes...  ..");
 			talk.add("Tolinai", "That's good, you almost had me worried there.");
 			talk.add("Leoric", "Why is there nobody     outside? It seemed so empty out there.");
-			talk.add("Tolinai", "Rumor has it that      Zombies are coming to destroy   the village. Everyone is hiding.");
+			talk.add("Tolinai", "Rumor has it that      Zombies are coming to destroy   the town. Everyone is hiding.");
 			talk.add("Leoric", "We must do something!");
+			talk.add("Tolinai", "The town guards have   gathered at the mayors house. I vouched for you to be their     leader.");
+			talk.add("Leoric", "Leader? .. What are you saying?!?");
+			talk.add("Tolinai", "Well, you're the only  person in this town with        military experience. That's why you should lead our defensive!");
+			talk.add("Leoric", "Do the people agree?    That I should be in command?");
+			talk.add("Tolinai", "Yes! Please, Leoric.   Let's not waste more time       talking!");
+			
+			Dialog d = new Dialog(469,567,297,398, "talk with gf", talk, 0);
+			d.addZombieDefense(new HomeTownDefense());
+			d.addTimeChange("zombie defense 1");
+			
+			dialogs.add(d);
+		}
+		{
+			TalkScript talk = new TalkScript();
+			
+			talk.add("Leoric", "Well, that didn't work. But, now it's my turn!");
 			talk.add("Tolinai", "Are you sure you are   ready to fight?");
 			talk.add("Leoric", "Yes, but will you help  me with your magic?");
 			talk.add("Tolinai", "Of course! It will be  just like old times.");
 			talk.add("Tolinai", "Here, take your sword. I have my staff ready. Lets go  to each house and help fend off the zombies!");
 			
-			Dialog d = new Dialog(469,567,297,398, "talk with gf", talk, 0);
+			Dialog d = new Dialog(0,999,0,999, "zombie defense 1", talk, 0);
 			d.addTimeChange("leave home");
 			d.addMemberGain(ZombieLord.Tolinai);
 			
