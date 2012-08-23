@@ -99,7 +99,7 @@ public class HomeTownDefense extends ZombieDefense {
 
 	@Override
 	public int getMoneyForWave(int waveNumber) {
-		return waveNumber+5;
+		return Math.min(waveNumber+5,10);
 	}
 
 }

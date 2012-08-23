@@ -96,6 +96,7 @@ public abstract class ZombieDefense {
 		
 		defenderToPlace = defenders.get(x);
 		System.out.println("selected: "+defenderToPlace);
+		this.cursor.cycleSelector();
 		return defenderToPlace;
 	}
 	

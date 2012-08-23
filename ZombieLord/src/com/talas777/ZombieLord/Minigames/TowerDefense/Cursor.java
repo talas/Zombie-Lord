@@ -27,16 +27,38 @@ public class Cursor {
 	
 	private Sprite sprite;
 	
+	private Sprite selector;
+	
+	private int selected;
+	private final int maxSel = 1;
+	
 	public void draw(SpriteBatch batch){
 		sprite.setX(x*32);
 		sprite.setY(y*32);
 		sprite.draw(batch);
+		
+		selector.setX(x*32);
+		selector.setY(y*32);
+		selector.draw(batch);
 	}
 	
 	public Cursor(){
 		Texture tex = new Texture(Gdx.files.internal("data/zd/cursor.png"));
 		sprite = new Sprite(tex, 32, 32);
+		
+		Texture seltex = new Texture(Gdx.files.internal("data/zd/selector.png"));
+		selector = new Sprite(seltex, 32, 32);
+		selected = 0;
 		x = 1;
 		y = 8;
+	}
+	
+	public void cycleSelector(){
+		selected++;
+		
+		if(selected > maxSel)
+			selected = 0;
+		
+		selector.setRegion(32*selected,0,32,32);
 	}
 }
