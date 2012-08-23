@@ -190,6 +190,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private NinePatch dialogBackground;
 	private NinePatch announcementBackground;
 	
+	private NinePatch minibarHp;
+	
 	public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
 	public Sound biteSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
 	public Sound cutSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
@@ -569,7 +571,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		
 		dialogBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/dialog_background.png")), 12, 12, 12, 12);
-		announcementBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/announcement_background.png")), 12, 12, 12, 12);
+		announcementBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/announcement_background.png")), 11, 11, 11, 11);
+		
+		minibarHp = new NinePatch(new Texture(Gdx.files.internal("data/ui/minibar_hp.png")), 2, 2, 2, 2);
 		
 		camera = new OrthographicCamera(w, h);
 		camera.position.set(0, 0, 0);
@@ -1944,9 +1948,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			//fontBatch.end();
 			
 			// draw all the attackers..
-			// TODO: attacker health
 			this.tickZombieDefense(Gdx.graphics.getDeltaTime());
 			for(Attacker atk : this.zombieDefense.attackers){
+				minibarHp.draw(batch, atk.getX()*32+8, atk.getY()*32, (float)((atk.health+0.0)/atk.healthMax)*20, 4);
 				atk.draw(batch, Gdx.graphics.getDeltaTime());
 			}
 			for(Defender def : this.zombieDefense.defenders){
@@ -2102,25 +2106,25 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		if(this.gameMode == MODE_ZOMBIE_DEFENSE){
 			// cursor control
 			if(keycode == Keys.UP){
-				if(this.zombieDefense.cursor.y >= this.zombieDefense.maxy)
+				if(this.zombieDefense.cursor.y >= this.zombieDefense.maxy-1)
 					System.out.println("nop");
 				else
 					this.zombieDefense.cursor.y ++;
 			}
 			if(keycode == Keys.DOWN){
-				if(this.zombieDefense.cursor.y <= this.zombieDefense.miny)
+				if(this.zombieDefense.cursor.y <= this.zombieDefense.miny+1)
 					System.out.println("nop");
 				else
 					this.zombieDefense.cursor.y --;
 			}
 			if(keycode == Keys.LEFT){
-				if(this.zombieDefense.cursor.x <= this.zombieDefense.minx)
+				if(this.zombieDefense.cursor.x <= this.zombieDefense.minx+1)
 					System.out.println("nop");
 				else
 					this.zombieDefense.cursor.x --;
 			}
 			if(keycode == Keys.RIGHT){
-				if(this.zombieDefense.cursor.x >= this.zombieDefense.maxx)
+				if(this.zombieDefense.cursor.x >= this.zombieDefense.maxx-1)
 					System.out.println("nop");
 				else
 					this.zombieDefense.cursor.x ++;

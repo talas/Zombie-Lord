@@ -36,7 +36,7 @@ public class Cursor {
 	public Cursor(){
 		Texture tex = new Texture(Gdx.files.internal("data/zd/cursor.png"));
 		sprite = new Sprite(tex, 32, 32);
-		x = 0;
-		y = 9;
+		x = 1;
+		y = 8;
 	}
 }

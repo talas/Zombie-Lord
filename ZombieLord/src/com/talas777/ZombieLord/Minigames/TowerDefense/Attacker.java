@@ -25,6 +25,7 @@ import com.talas777.ZombieLord.Minigames.ZombieDefense;
 
 public class Attacker {
 	public int health;
+	public final int healthMax;
 	public int mana;
 	private float tileDelay;
 	//private String appearance;
@@ -127,5 +128,6 @@ public class Attacker {
 		this.mana = mana;
 		this.tileDelay = movementDelay;
 		s = new Sprite(tex, 32, 32);
+		this.healthMax = health;
 	}
 }

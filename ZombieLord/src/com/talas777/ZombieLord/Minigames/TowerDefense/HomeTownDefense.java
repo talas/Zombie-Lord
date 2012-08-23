@@ -36,7 +36,7 @@ public class HomeTownDefense extends ZombieDefense {
 		
 		this.maxx = 15-1;
 		this.maxy = 10-1;
-		this.money = 30;
+		this.money = 45;
 	}
 
 	@Override
@@ -44,7 +44,14 @@ public class HomeTownDefense extends ZombieDefense {
 		LinkedList<Attacker> attackers = new LinkedList<Attacker>();
 		for(int i = 0; i < waveNumber; i++){
 			Attacker attacker = new Attacker("data/zd/zombie.png", 10, 0, 1f);
-			attacker.setPos(i, 0);
+			
+			if(i > this.maxx*2)
+				attacker.setPos(i-this.maxx*2, -2);
+			else if(i > this.maxx)
+				attacker.setPos(i-this.maxx, -1);
+			else
+				attacker.setPos(i, 0);
+			
 			attackers.add(attacker);
 		}
 		return attackers;
@@ -78,14 +85,21 @@ public class HomeTownDefense extends ZombieDefense {
 	public LinkedList<Defender> getAvailableDefenses() {
 		// first level defenses = wall and archer
 		// TODO: traps?
-		Defender wall = new Defender("data/zd/wall.png",20,5,0,0,0,99);
 		Defender archer = new Defender("data/zd/archer.png",5,20,3,4,2,2.2f);
+		Defender wall = new Defender("data/zd/wall.png",20,5,0,0,0,99);
+		
 		
 		LinkedList<Defender> defenders = new LinkedList<Defender>();
-		defenders.add(wall);
 		defenders.add(archer);
+		defenders.add(wall);
+		
 		
 		return defenders;
+	}
+
+	@Override
+	public int getMoneyForWave(int waveNumber) {
+		return waveNumber+5;
 	}
 
 }

@@ -114,6 +114,8 @@ public abstract class ZombieDefense {
 		return false;
 	}
 	
+	public abstract int getMoneyForWave(int waveNumber);
+	
 	/**
 	 * 
 	 * @param x position of attacker
@@ -223,6 +225,8 @@ public abstract class ZombieDefense {
 	public final void gotoNextWave(){
 		if(this.currentWaveNumber >= numWaves)
 			return;
+		
+		this.money += this.getMoneyForWave(this.currentWaveNumber);
 		
 		this.currentWaveNumber++;
 		System.out.println("Wave: "+this.currentWaveNumber);
