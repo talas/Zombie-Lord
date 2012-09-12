@@ -147,17 +147,8 @@ public class SecondTownInn2 extends Level {
 			talk.add("Talas", "I'll try again then. Thanks for playing, I promise to finish the game soon. Good luck with the monsters!");
 			Dialog d = new Dialog(42,57,1880,1890, "start", "entered inn", talk, 0);
 			
-			Monster troll1 = new Monster(Monsters.Troll,5,100,19,3,1.25f);
-			Monster troll2 = new Monster(Monsters.Troll,5,100,19,3,1.25f);
-			
-			troll1.addCombatAction(ZombieLord.BITE);
-			troll1.addCombatAction(ZombieLord.PUNCH);
-			troll1.addCombatAction(ZombieLord.TWINFIST);
-			troll1.addCombatAction(ZombieLord.REGROWTH);
-			troll2.addCombatAction(ZombieLord.BITE);
-			troll2.addCombatAction(ZombieLord.PUNCH);
-			troll2.addCombatAction(ZombieLord.TWINFIST);
-			troll2.addCombatAction(ZombieLord.REGROWTH);
+			Monster troll1 = new Monster(Monsters.Troll, 9);
+			Monster troll2 = new Monster(Monsters.Troll, 9);
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(troll1);
@@ -175,12 +166,7 @@ public class SecondTownInn2 extends Level {
 
 			Dialog d = new Dialog(42,57,1880,1890, "THE END", "THE END", talk, 0);
 			
-			Monster manticore = new Monster(Monsters.Manticore,500,700,60,9,1.25f);
-			
-			manticore.addCombatAction(ZombieLord.BITE);
-			manticore.addCombatAction(ZombieLord.ROULETTE_STING);
-			manticore.addCombatAction(ZombieLord.GRAND_CLAW);
-			manticore.addCombatAction(ZombieLord.MAGIC_ARROW);
+			Monster manticore = new Monster(Monsters.Manticore, 21);
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(manticore);

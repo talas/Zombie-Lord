@@ -112,9 +112,7 @@ public class SouthWestHouse extends Level {
 			d.addTimeChange("leave sw house");
 			
 			MonsterSetup setup = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
-			Monster zombie1 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-
-			zombie1.addCombatAction(ZombieLord.BITE);
+			Monster zombie1 = new Monster(Monsters.Zombie, 3);
 
 			setup.appendMonster(zombie1);
 			setup.exp = 10;
@@ -133,6 +131,7 @@ public class SouthWestHouse extends Level {
 			
 			Dialog d = new Dialog(303,334,48,62, "leave sw house", talk, 0);
 			d.addTimeChange("west house?");
+			d.setQuestHint("Enter the house west east of your home");
 
 			d.addLevelTransfer(new HomeTownNight(), 2800, 1116, ZombieLord.DIR_SOUTH);
 			

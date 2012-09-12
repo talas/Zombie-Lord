@@ -63,20 +63,17 @@ public class HomeTownNight extends HomeTown {
 			// Zombies and stuff
 			MonsterArea area = new MonsterArea(0,3200,0,3200,0.003f);
 			
-			Monster zombie1 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			Monster zombie2 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			
-			zombie1.addCombatAction(ZombieLord.BITE);
-			zombie2.addCombatAction(ZombieLord.BITE);
+			Monster zombie1 = new Monster(Monsters.Zombie, 3);
+			Monster zombie2 = new Monster(Monsters.Zombie, 3);
 			
 			MonsterSetup setup1 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup1.appendMonster(zombie1);
-			setup1.exp = 1;
+			setup1.exp = 5;
 			
 			MonsterSetup setup2 = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
 			setup2.appendMonster(zombie1);
 			setup2.appendMonster(zombie2);
-			setup2.exp = 5;
+			setup2.exp = 8;
 			
 			area.addMonsterSetup(setup1, 0.7f);
 			area.addMonsterSetup(setup2, 0.3f);
@@ -109,6 +106,7 @@ public class HomeTownNight extends HomeTown {
 			talk.add("Leoric", "Watch out for zombies!");
 			
 			Dialog d = new Dialog(0,3200,0,3200, "east house?", talk, 0);
+			d.setQuestHint("Enter the house to the east of your home");
 			d.addTimeChange("east house!");
 			
 			dialogs.add(d);
@@ -133,6 +131,7 @@ public class HomeTownNight extends HomeTown {
 			talk.add("Tolinai", "We'll go to the house  on the left next.");
 			
 			Dialog d = new Dialog(2960,3130,1310,1329, "south east house?", talk, 0);
+			d.setQuestHint("Enter the house south of your home");
 			d.addTimeChange("south west house?");
 			
 			dialogs.add(d);
@@ -175,6 +174,7 @@ public class HomeTownNight extends HomeTown {
 			
 			Dialog d = new Dialog(0,3200,0,3200, "leave mayors house", talk, 0);
 			d.addTimeChange("leave hometown");
+			d.setQuestHint("Exit the town through the south gate");
 			
 			dialogs.add(d);
 		}
@@ -183,6 +183,7 @@ public class HomeTownNight extends HomeTown {
 			
 			Dialog d = new Dialog(2190,2500,0,17, "leave hometown", talk, 0);
 			d.addTimeChange("left hometown");
+			d.setQuestHint("TODO: where to go now???");
 			d.addLevelTransfer(new SecondTown(), 117,1949, ZombieLord.DIR_SOUTH);
 			
 			

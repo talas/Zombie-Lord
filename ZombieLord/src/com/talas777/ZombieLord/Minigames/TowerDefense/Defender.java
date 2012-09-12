@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.talas777.ZombieLord.ZombieLord;
+import com.talas777.ZombieLord.Minigames.ZombieDefense;
 
 
 public class Defender extends Attacker {
@@ -143,7 +144,44 @@ public class Defender extends Attacker {
 			return; // still 'charging' to carry out another action
 		}
 		
+		LinkedList<Attacker> wantToShoot = new LinkedList<Attacker>();
+		int northmost = 0;
+		int weakest = Integer.MAX_VALUE;
+		int nearest = 99;
+		// Defender strategy: most north, weakest, nearest
 		for(Attacker attacker : attackers){
+			if(attacker.getY() > northmost){
+				wantToShoot = new LinkedList<Attacker>();
+				northmost = attacker.getY();
+				weakest = attacker.health;
+				nearest = ZombieDefense.getDistanceTo(attacker.getX(), attacker.getY(), this.getX(), this.getY());
+				wantToShoot.add(attacker);
+			}
+			else if(attacker.getY() == northmost){
+				if(attacker.health < weakest){
+					wantToShoot = new LinkedList<Attacker>();
+					northmost = attacker.getY();
+					weakest = attacker.health;
+					nearest = ZombieDefense.getDistanceTo(attacker.getX(), attacker.getY(), this.getX(), this.getY());
+					wantToShoot.add(attacker);
+				}
+				else if(attacker.health == weakest){
+					int dist = ZombieDefense.getDistanceTo(attacker.getX(), attacker.getY(), this.getX(), this.getY());
+					if(dist < nearest){
+						wantToShoot = new LinkedList<Attacker>();
+						northmost = attacker.getY();
+						weakest = attacker.health;
+						nearest = ZombieDefense.getDistanceTo(attacker.getX(), attacker.getY(), this.getX(), this.getY());
+						wantToShoot.add(attacker);
+					}
+					else if(dist == nearest){
+						wantToShoot.add(attacker);
+					}
+				}
+			}
+		}
+		
+		for(Attacker attacker : wantToShoot){
 			if(availableTime < actionDelay)
 				return; // no more time left (have to 'charge' again..)
 			

@@ -32,6 +32,8 @@ public class ConsumeableItem extends Item {
 	 * If dead creatures must be targeted for this item, or alive
 	 */
 	public final boolean targetDead;
+
+	private boolean nonCombatAllowed;
 	
 	/**
 	 * 
@@ -40,16 +42,22 @@ public class ConsumeableItem extends Item {
 	 * @param effect
 	 * @param offensive
 	 * @param targetDead
+	 * @param nonCombatAllowed
 	 */
-	public ConsumeableItem(String name, boolean isCombatItem, CombatAction effect, boolean offensive, boolean targetDead) {
-		super(name, isCombatItem);
+	public ConsumeableItem(String name, boolean isCombatItem, String description, CombatAction effect, boolean offensive, boolean targetDead, boolean nonCombatAllowed) {
+		super(name, isCombatItem, description);
 		this.effect = effect;
 		this.offensive = offensive;
 		this.targetDead = targetDead;
+		this.nonCombatAllowed = nonCombatAllowed;
 	}
 	
 	public CombatAction getEffect(){
 		return effect;
+	}
+
+	public boolean nonCombatAllowed() {
+		return nonCombatAllowed;
 	}
 
 }

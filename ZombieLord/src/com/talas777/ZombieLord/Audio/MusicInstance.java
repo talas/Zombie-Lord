@@ -14,10 +14,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-package com.talas777.ZombieLord;
+package com.talas777.ZombieLord.Audio;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
+import com.talas777.ZombieLord.ZombieLord;
 
 public class MusicInstance {
 

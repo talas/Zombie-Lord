@@ -45,12 +45,10 @@ public class HomeTownDefense extends ZombieDefense {
 		for(int i = 0; i < waveNumber; i++){
 			Attacker attacker = new Attacker("data/zd/zombie.png", 10, 0, 1f);
 			
-			if(i > this.maxx*2)
-				attacker.setPos(i-this.maxx*2, -2);
-			else if(i > this.maxx)
-				attacker.setPos(i-this.maxx, -1);
-			else
-				attacker.setPos(i, 0);
+			int row = 0;
+			for(int j = 0; i < this.maxx*j; j++)
+				row = j;
+			attacker.setPos(i-this.maxx*row, -row);
 			
 			attackers.add(attacker);
 		}
@@ -100,6 +98,11 @@ public class HomeTownDefense extends ZombieDefense {
 	@Override
 	public int getMoneyForWave(int waveNumber) {
 		return Math.min(waveNumber+5,10);
+	}
+
+	@Override
+	public String getMusic() {
+		return "data/music/A.K.1974_-_Flight_Over_The_Green_Fields.ogg";
 	}
 
 }

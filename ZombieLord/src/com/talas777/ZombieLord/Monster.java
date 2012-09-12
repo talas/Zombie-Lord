@@ -39,12 +39,6 @@ public class Monster extends Combatant{
 
 	
 	/**
-	 * strength of monsters physical attack, for calculations
-	 */
-	public float attackStrength;
-
-	
-	/**
 	 * The chance of carrying out each action in combat
 	 */
 	private LinkedList<Float> combatActionWeights;
@@ -59,16 +53,21 @@ public class Monster extends Combatant{
 	 * @param level
 	 * @param attack
 	 */
-	public Monster(MonsterType monsterType, int exp, int health_max, int mana_max, int level, float attack){
-		super(monsterType.getName(), health_max, health_max, mana_max, mana_max, exp, level,
+	public Monster(MonsterType monsterType, int level){
+		super(monsterType.getName(), monsterType.getHealth(level), monsterType.getHealth(level),
+				monsterType.getMana(level), monsterType.getMana(level), monsterType.getExperience(level), level,
 				monsterType.getStrength(level), monsterType.getVitality(level), monsterType.getAgility(level),
 				monsterType.getIntelligence(level), monsterType.getWisdom(level), monsterType.getSpirit(level),
 				monsterType.getLuck(level));
 		this.textureName = monsterType.getImageFileName();
 		this.monsterType = monsterType;
 		this.combatActionWeights = new LinkedList<Float>();
+		for(CombatAction action : monsterType.getCombatActions(level)){
+			super.addCombatAction(action);
+		}
 	}
-	/**
+	
+	/*
 	 * Constructor for monsters that doesnt start with full health and/or mana
 	 * @param name
 	 * @param textureName
@@ -80,7 +79,7 @@ public class Monster extends Combatant{
 	 * @param level
 	 * @param attack
 	 */
-	public Monster(MonsterType monsterType, int exp, int health, int mana, int health_max, int mana_max, int level, float attack){
+	/*public Monster(MonsterType monsterType, int exp, int health, int mana, int health_max, int mana_max, int level, float attack){
 		super(monsterType.getName(), health, health_max, mana, mana_max, exp, level,
 				monsterType.getStrength(level), monsterType.getVitality(level), monsterType.getAgility(level),
 				monsterType.getIntelligence(level), monsterType.getWisdom(level), monsterType.getSpirit(level),
@@ -88,29 +87,8 @@ public class Monster extends Combatant{
 		this.textureName = monsterType.getImageFileName();
 		this.monsterType = monsterType;
 		this.combatActionWeights = new LinkedList<Float>();
-	}
+	}*/
 	
-
-	
-	/**
-	 * 
-	 * @param action
-	 * @param chance, Note that this is a weight for picking a random action.
-	 */
-	public void addCombatAction(CombatAction action, float chance){
-		super.addCombatAction(action);
-		this.combatActionWeights.add(chance);
-	}
-	
-	/**
-	 * Adds an action with a default weight of 1
-	 * @param action
-	 */
-	@Override
-	public void addCombatAction(CombatAction action){
-		super.addCombatAction(action);
-		this.combatActionWeights.add(1f);
-	}
 	
 	public CurrentAction getMonsterAction(Party party, Combat combat){
 		// Uses all the information available to make a decission for the monster.
@@ -126,7 +104,7 @@ public class Monster extends Combatant{
 		boolean wantHealing = false;
 		boolean singleEnemy = false;
 		
-		if(this.health < this.health_max/2){
+		if(this.health < this.getHealthMax()/2){
 			// less than 50% health.. should heal if possible?
 			wantHealing = true;
 			System.out.println("heal me!");
@@ -163,7 +141,7 @@ public class Monster extends Combatant{
 						case Targeting.TARGET_RANDOM:
 							// Found a "mediocre one"
 							// check if VERY desperate..
-							if(combat.getLiveMonsters().size() == 1 && this.health < this.health_max/4f){// last enemy and with critical health = critical measures
+						    if(combat.getLiveMonsters().size() == 1 && this.health < this.getHealthMax()/4f){// last enemy and with critical health = critical measures
 								// TODO: decide if monsters should be suicidal.
 								// if they are, it makes the game harder.. as monster could suicide to trigger a game over..
 								mediocreChoice = current;
@@ -205,7 +183,7 @@ public class Monster extends Combatant{
 							case Targeting.TARGET_RANDOM:
 								// Found a "mediocre one"
 								// check if VERY desperate..
-								if(combat.getLiveMonsters().size() == 1 || this.health < this.health_max/4f){// last enemy and with critical health = critical measures
+							    if(combat.getLiveMonsters().size() == 1 || this.health < getHealthMax()/4f){// last enemy and with critical health = critical measures
 									mediocreChoice = current;
 									mediocreTarget = this;
 								}
@@ -213,7 +191,7 @@ public class Monster extends Combatant{
 							case Targeting.TARGET_ALL:
 								// Found a "mediocre one"
 								// check if VERY desperate..
-								if(Math.random()*100 > 80 || (combat.getLiveMonsters().size() == 1 && this.health > this.health_max/3f)){
+							    if(Math.random()*100 > 80 || (combat.getLiveMonsters().size() == 1 && this.health > getHealthMax()/3f)){
 									mediocreChoice = current;
 									mediocreTarget = this;
 								}

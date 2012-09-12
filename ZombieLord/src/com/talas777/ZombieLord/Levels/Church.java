@@ -104,6 +104,7 @@ public class Church extends Level {
 			
 			Dialog d = new Dialog(0,600,0,600, "zero", talk, 0);
 			d.addTimeChange("start");
+			d.setQuestHint("Find out where you live");
 			dialogs.add(d);
 		}
 		{

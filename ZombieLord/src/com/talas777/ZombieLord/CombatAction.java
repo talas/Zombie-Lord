@@ -20,11 +20,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class CombatAction {
-
-	/*
-	 * Because there will be few actions but many animations, all animations
-	 * will be hard-coded somewhere else (?) 
-	 */
 	
 	/*
 	public static final int TARGET_ENEMY_SINGLE = 0;

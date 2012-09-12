@@ -126,14 +126,10 @@ public class MayorHouse extends Level {
 			d.addTimeChange("mayors house!");
 			
 			MonsterSetup setup = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
-			Monster zombie1 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			Monster zombie2 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			Monster zombie3 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			Monster zombie4 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			zombie1.addCombatAction(ZombieLord.BITE);
-			zombie2.addCombatAction(ZombieLord.BITE);
-			zombie3.addCombatAction(ZombieLord.BITE);
-			zombie4.addCombatAction(ZombieLord.BITE);
+			Monster zombie1 = new Monster(Monsters.Zombie, 3);
+			Monster zombie2 = new Monster(Monsters.Zombie, 3);
+			Monster zombie3 = new Monster(Monsters.Zombie, 3);
+			Monster zombie4 = new Monster(Monsters.Zombie, 3);
 			setup.appendMonster(zombie1);
 			setup.appendMonster(zombie2);
 			setup.appendMonster(zombie3);

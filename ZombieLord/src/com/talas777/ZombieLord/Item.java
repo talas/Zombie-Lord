@@ -20,17 +20,55 @@ import com.talas777.ZombieLord.Items.*;
 
 public abstract class Item {
 	
-	private static final CombatEffect heal50effect = new CombatEffect(CombatEffect.TYPE_ITEM,50,false);
-	private static final CombatEffect heal250effect = new CombatEffect(CombatEffect.TYPE_ITEM,250,false);
+	private static final CombatEffect heal50effect = new CombatEffect(CombatEffect.TYPE_ITEM,50,false, ZombieLord.ELEM_HOLY);
+	private static final CombatEffect heal250effect = new CombatEffect(CombatEffect.TYPE_ITEM,250,false, ZombieLord.ELEM_HOLY);
+	
+	private static final CombatEffect mana20effect = new CombatEffect(CombatEffect.TYPE_ITEM,0,20,false,false, ZombieLord.ELEM_NULL);
+	private static final CombatEffect mana100effect = new CombatEffect(CombatEffect.TYPE_ITEM,0,100,false,false, ZombieLord.ELEM_NULL);
+	private static final CombatEffect mana9999effect = new CombatEffect(CombatEffect.TYPE_ITEM,0,9999,false,false, ZombieLord.ELEM_NULL);
+	
+	private static final CombatEffect revive10effect = new CombatEffect(CombatEffect.TYPE_ITEM,10,true, ZombieLord.ELEM_HOLY);
+	
 	private static final CombatEffect antidoteEffect = new CombatEffect(CombatEffect.TYPE_ITEM);
+	private static final CombatEffect grenadeEffect = new CombatEffect(CombatEffect.TYPE_ITEM, -70, false, ZombieLord.ELEM_FIRE);
+	
+	
 	
 	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,heal50effect,Targeting.TARGET_SINGLE);
 	private static final CombatAction heal250 = new CombatAction("Hi-Potion",ZombieLord.ITEM_ACTION,0,heal250effect,Targeting.TARGET_SINGLE);
-	private static final CombatAction antidote = new CombatAction("Antidote", ZombieLord.ITEM_ACTION,0,antidoteEffect, Targeting.TARGET_SINGLE);
-	public static final Item Potion = new ConsumeableItem("Potion",true,heal50,false,false);
-	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,heal250,false,false);
-	public static final Item Antidote = new ConsumeableItem("Antidote",true, antidote, false, false);
 	
+	private static final CombatAction mana20 = new CombatAction("Ether", ZombieLord.ITEM_ACTION,0,mana20effect,Targeting.TARGET_SINGLE);
+	private static final CombatAction mana100 = new CombatAction("Hi-Ether", ZombieLord.ITEM_ACTION,0,mana100effect,Targeting.TARGET_SINGLE);
+	private static final CombatAction mana9999 = new CombatAction("Super-Ether", ZombieLord.ITEM_ACTION,0,mana9999effect, Targeting.TARGET_SINGLE);
+	
+	private static final CombatAction revive10 = new CombatAction("Revive", ZombieLord.ITEM_ACTION,0,revive10effect,Targeting.TARGET_SINGLE);
+	
+	private static final CombatAction antidote = new CombatAction("Antidote", ZombieLord.ITEM_ACTION,0,antidoteEffect, Targeting.TARGET_SINGLE);
+	private static final CombatAction grenade = new CombatAction("Grenade", ZombieLord.ITEM_ACTION, 0, grenadeEffect, Targeting.TARGET_SINGLE);
+	
+	public static final Item Potion = new ConsumeableItem("Potion",true,"Heals one character by 50 hp",heal50,false,false,true);
+	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,"Heals one character by 250 hp",heal250,false,false,true);
+	
+	public static final Item Ether = new ConsumeableItem("Ether",true,"Gives one character 20 mp",mana20,false,false,true);
+	public static final Item Hi_Ether = new ConsumeableItem("Hi-Ether",true,"Gives one character 100 mp",mana100,false,false,true);
+	public static final Item Super_Ether = new ConsumeableItem("Super-Ether",true,"Gives one character 9999 mp",mana9999,false,false,true);
+	
+	public static final Item Phoenix_Feather = new ConsumeableItem("Phoenix Feather", true,"Revives a dead character", revive10, false, true, true);
+	
+	
+	
+	public static final Item Antidote = new ConsumeableItem("Antidote",true, "Cures poison status", antidote, false, false,true);
+	
+	
+	public static final Item Grenade = new ConsumeableItem("Grenade",true,"Deals fire damage to one opponent",grenade,true,false,false);
+	
+	public static final Item Tissue = new UselessItem("Tissue", "This is a tough one..");
+	public static final Item Panties = new UselessItem("Panties", "You found, you keep");
+	public static final Item Buster_Sword = new UselessItem("Buster Sword", "Too big to fight with, maybe for LARPing?");
+	public static final Item Cloud = new UselessItem("Cloud","Keep it in the bottle");
+	public static final Item Ash = new UselessItem("Ash", "Maybe its from somones dead relatives?");
+	public static final Item Banana = new UselessItem("Banana", "It's not edible");
+	public static final Item Hot_Soup = new UselessItem("Hot Soup", "Everhot soup, unfortunately to hot to eat");
 	
 	protected final static void initiate(){
 		antidoteEffect.addStatusChange(Combat.STATE_POISONED, 1.0f, false, 0);
@@ -65,13 +103,13 @@ public abstract class Item {
 	public final byte maxStack;
 	
 	
-	public Item(String name, boolean isCombatItem){
+	public Item(String name, boolean isCombatItem, String description){
 		this.name = name;
 		this.combat = isCombatItem;
 		this.maxStack = 99;
 	}
 	
-	public Item(String name, boolean isCombatItem, byte maxStack){
+	public Item(String name, boolean isCombatItem, String description, byte maxStack){
 		this.name = name;
 		this.combat = isCombatItem;
 		this.maxStack = maxStack;

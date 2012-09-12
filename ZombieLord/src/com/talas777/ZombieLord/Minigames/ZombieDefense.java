@@ -49,7 +49,7 @@ public abstract class ZombieDefense {
 	
 	public Cursor cursor;
 	
-	private int getDistanceTo(int fromx, int fromy, int tox, int toy){
+	public static final int getDistanceTo(int fromx, int fromy, int tox, int toy){
 		// square distance, since nothing can move diagonally
 		// Note, if something can move diagonally one day, this method might require an update
 		
@@ -204,6 +204,8 @@ public abstract class ZombieDefense {
 		
 		return dir;
 	}
+	
+	public abstract String getMusic();
 	
 	public ZombieDefense(int numWaves, Level nextLevel, int nextPosX, int nextPosY){
 		this.numWaves = numWaves;

@@ -109,10 +109,8 @@ public class EastHouse extends Level {
 			d.addTimeChange("leave east house");
 			
 			MonsterSetup setup = new MonsterSetup(MonsterSetup.FORMATION_SIMPLE);
-			Monster zombie1 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			Monster zombie2 = new Monster(Monsters.Zombie,5,20,15,3,1.25f);
-			zombie1.addCombatAction(ZombieLord.BITE);
-			zombie2.addCombatAction(ZombieLord.BITE);
+			Monster zombie1 = new Monster(Monsters.Zombie, 3);
+			Monster zombie2 = new Monster(Monsters.Zombie, 3);
 			setup.appendMonster(zombie1);
 			setup.appendMonster(zombie2);
 			setup.exp = 25;
@@ -130,6 +128,7 @@ public class EastHouse extends Level {
 			
 			Dialog d = new Dialog(223,256,103,123, "leave east house", talk, 0);
 			d.addTimeChange("south east house?");
+			d.setQuestHint("Enter the house south east of your home");
 
 			d.addLevelTransfer(new HomeTownNight(), 3120, 1401, ZombieLord.DIR_SOUTH);
 			

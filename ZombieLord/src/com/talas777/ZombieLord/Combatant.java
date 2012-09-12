@@ -17,6 +17,7 @@
 package com.talas777.ZombieLord;
 
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
@@ -29,14 +30,166 @@ public abstract class Combatant {
 	// Stats / atributes. These are used in combat calculations
 	private int strength; // strength increase atk
 	private int vitality; // vitality increase health and defense
-	private int agility; // agility increase chance to dodge (evasion)
+	private int agility; // agility increase chance to hit(accuracy) and dodge (evasion)
 	private int intelligence; // intelligence gives magic atk power
 	private int wisdom; // wisdom gives mana
 	private int spirit; // spirit increase magic defense
-	private int luck; // luck increase combat speed
+	private int luck; // luck increase chance of critical hit
+	
+	public int getStrength(){
+		int var = strength;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 0)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getVitality(){
+		int var = vitality;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 1)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getAgility(){
+		int var = agility;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 2)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getIntelligence(){
+		int var = intelligence;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 3)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getWisdom(){
+		int var = wisdom;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 4)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getSpirit(){
+		int var = spirit;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 5)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	public int getLuck(){
+		int var = luck;
+		for(TemporaryAttribute t : this.temporaryAttributes){
+			if(t.attribute == 6)
+				var += t.change;
+		}
+		return var;
+	}
+	
+	private class ElementEffect {
+		public final Element element;
+		public float effect;
+		
+		public ElementEffect(Element element, float effect){
+			this.element = element;
+			this.effect = effect;
+		}
+	}
+	
+	private final LinkedList<ElementEffect> elementStrength;
+	private final LinkedList<ElementEffect> elementDefense;
+	
+	private final LinkedList<TemporaryAttribute> temporaryAttributes;
+	
+	/**
+	 * 1 = 100% effect
+	 * 0.5 = 50% effect
+	 * 0 = 0% effect
+	 * 2 = 200% effect
+	 * @param element
+	 * @return
+	 */
+	public void setElementStrength(Element element, float strength){
+		for(ElementEffect e : this.elementStrength){
+			if(e.element == element){
+				e.effect = strength;
+				return;
+			}
+		}
+		elementStrength.add(new ElementEffect(element, strength));
+	}
+	
+	public float getCriticalHitChance(){
+		return this.getLuck()*0.1f;
+	}
+	
+	/**
+	 * 
+	 *  def 1 -> *= 0 -> 0 effect (no effect)
+	 *	def 0.5 -> *= 0.5 -> 50% effect (halve)
+	 * 	def 0 -> *= 1 -> 100% effect (normal)
+	 *	def -1 -> *= 2 -> 200% effect (double effect)
+	 *	def 1.5 -> *= -1.5 -> -50% effect (absorb)
+	 * @param element
+	 * @return
+	 */
+	public void setElementDefense(Element element, float defense){
+		for(ElementEffect e : this.elementDefense){
+			if(e.element == element){
+				e.effect = defense;
+				return;
+			}
+		}
+		elementDefense.add(new ElementEffect(element, defense));
+	}
+	
+	/**
+	 * 1 = 100% effect
+	 * 0.5 = 50% effect
+	 * 0 = 0% effect
+	 * 2 = 200% effect
+	 * @param element
+	 * @return
+	 */
+	public float getElementStrength(Element element){
+		for(ElementEffect e : this.elementStrength){
+			if(e.element == element)
+				return e.effect;
+		}
+		return 1f;
+	}
 	
 	
-	
+	/**
+	 * 
+	 *  def 1 -> *= 0 -> 0 effect (no effect)
+	 *	def 0.5 -> *= 0.5 -> 50% effect (halve)
+	 * 	def 0 -> *= 1 -> 100% effect (normal)
+	 *	def -1 -> *= 2 -> 200% effect (double effect)
+	 *	def 1.5 -> *= -1.5 -> -50% effect (absorb)
+	 * @param element
+	 * @return
+	 */
+	public float getElementDefense(Element element){
+		for(ElementEffect e : this.elementDefense){
+			if(e.element == element)
+				return e.effect;
+		}
+		return 0f;
+	}
 	
 	
 	
@@ -78,6 +231,9 @@ public abstract class Combatant {
 		this.drawSprite = null;
 		
 		this.statusChanges = new LinkedList<Status>();
+		this.temporaryAttributes = new LinkedList<TemporaryAttribute>();
+		this.elementStrength = new LinkedList<ElementEffect>();
+		this.elementDefense = new LinkedList<ElementEffect>();
 		
 		
 		// set all states to normal.
@@ -131,7 +287,22 @@ public abstract class Combatant {
 		public float delta;
 	}
 	
+	/**
+	 * Ticks status changes and temporary attribute changes.
+	 * removing changes that have dissolved and applying damage and effects
+	 * @param time
+	 */
 	public void tickStatusChanges(float time){
+		ListIterator<TemporaryAttribute> lia = this.temporaryAttributes.listIterator();
+		while(lia.hasNext()){
+			TemporaryAttribute a = lia.next();
+			if(a.timeLeft != 0){
+				a.timeLeft -= time;
+				if(a.timeLeft <= 0)
+					lia.remove();
+			}
+		}
+		
 		for(Status s : this.statusChanges){
 			if(s.state){
 				switch(s.id){
@@ -234,8 +405,6 @@ public abstract class Combatant {
 				}
 			}
 		}
-		// TODO: this is what you're working on.
-		// TODO: stop with your new bright idea and finish this first.
 	}
 	
 	public LinkedList<Integer> getActiveStatusChanges(){
@@ -333,7 +502,7 @@ public abstract class Combatant {
 	/**
 	 * max health
 	 */
-	public int health_max;
+	private int health_max;
 	
 	/**
 	 * mana at the start of battle
@@ -342,7 +511,7 @@ public abstract class Combatant {
 	/**
 	 * max mana
 	 */
-	public int mana_max;
+	private int mana_max;
 	
 	/**
 	 * experience given when defeated
@@ -369,6 +538,14 @@ public abstract class Combatant {
 	
 	public String getName(){
 		return this.name;
+	}
+
+        public int getHealthMax() {
+	    return this.health_max;
+	}
+
+        public int getManaMax() {
+	    return this.mana_max;
 	}
 	
 	public LinkedList<CombatAction> getCombatActions(){
@@ -408,19 +585,19 @@ public abstract class Combatant {
 	}
 	
 	public int getMATK(){
-		return this.intelligence;
+		return this.getIntelligence();
 	}
 	
 	public int getMDEF(){
-		return this.spirit;
+		return this.getSpirit();
 	}
 	
 	public int getATK(){
-		return this.strength;
+		return this.getStrength();
 	}
 	
 	public int getDEF(){
-		return this.vitality;
+		return this.getVitality();
 	}
 	
 	public abstract int getBaseDelay();
@@ -442,8 +619,68 @@ public abstract class Combatant {
 			this.movedAhead = state;
 		}
 	}
+
+	/**
+	 * 
+	 * @return (3+agility)
+	 */
+	public float getDodgeChance() {
+		return 3+this.getAgility();
+	}
+
+	/**
+	 * 
+	 * @return (90+agility)
+	 */
+	public float getHitChance() {
+		return 90+this.getAgility();
+	}
+
+	public void addStrength(int change) {
+		this.strength += change;
+	}
+
+	public void addVitality(int change) {
+		this.vitality += change;
+	}
+
+	public void addAgility(int change) {
+		this.agility += change;
+	}
+
+	public void addIntelligence(int change) {
+		this.intelligence += change;
+	}
+
+	public void addWisdom(int change) {
+		this.wisdom += change;
+	}
+
+	public void addSpirit(int change) {
+		this.spirit += change;
+	}
+
+	public void addLuck(int change) {
+		this.luck += change;
+	}
 	
-	/*public float getX(){
-		return this.posx;
-	}*/
+	private class TemporaryAttribute {
+		public final int attribute;
+		public final int change;
+		public float timeLeft;
+		public TemporaryAttribute(int attribute, int change, float duration){
+			if(duration <= 0){
+				System.err.println("[WARN] Temporary attribute "+attribute+" duration <= 0!");
+			}
+			this.attribute = attribute;
+			this.change = change;
+			this.timeLeft = duration;
+		}
+	}
+	
+
+
+	public void addTemporaryAttribute(int attribute, int change, float duration) {
+		temporaryAttributes.add(new TemporaryAttribute(attribute, change, duration));
+	}
 }

@@ -16,6 +16,8 @@
 
 package com.talas777.ZombieLord;
 
+import java.util.LinkedList;
+
 /**
  * 
  * @author talas
@@ -23,15 +25,28 @@ package com.talas777.ZombieLord;
  */
 public class MonsterType
 {
-	private int strength; // strength increase atk
-	private int vitality; // vitality increase health and defense
-	private int agility; // agility increase chance to dodge (evasion)
-	private int intelligence; // intelligence gives magic atk power
-	private int wisdom; // wisdom gives mana
-	private int spirit; // spirit increase magic defense
-	private int luck; // luck increase combat speed
+	private final int strength; // strength increase atk
+	private final int vitality; // vitality increase health and defense
+	private final int agility; // agility increase chance to dodge (evasion)
+	private final int intelligence; // intelligence gives magic atk power
+	private final int wisdom; // wisdom gives mana
+	private final int spirit; // spirit increase magic defense
+	private final int luck; // luck increase combat speed
 	
 	private final String name;
+	private final float healthPerLevel;
+	private final float expPerLevel;
+	
+	private final LinkedList<CA> combatActions;
+	
+	private class CA {
+		public final CombatAction action;
+		public final int minLevel;
+		public CA(CombatAction action, int minLevel){
+			this.action = action;
+			this.minLevel = minLevel;
+		}
+	}
 	
 	
 	public String getName(){
@@ -48,7 +63,7 @@ public class MonsterType
 	 * @param spirit
 	 * @param luck
 	 */
-	public MonsterType(String name, int strength, int vitality, int agility, int intelligence, int wisdom, int spirit, int luck){
+	public MonsterType(String name, int strength, int vitality, int agility, int intelligence, int wisdom, int spirit, int luck, float healthPerLevel, float expPerLevel){
 		this.name = name;
 		this.strength = strength;
 		this.vitality = vitality;
@@ -59,6 +74,36 @@ public class MonsterType
 		this.luck = luck;
 		this.setAttributeGrowth(0.5f, 0.5f, 0.1f, 0.2f, 0.2f, 0.3f, 0.05f);
 		this.setImage("data/monsters/missing.png",128,8);
+		this.expPerLevel = expPerLevel;
+		this.healthPerLevel = healthPerLevel;
+		this.combatActions = new LinkedList<CA>();
+	}
+	
+	public int getHealth(int level){
+		return (int)(level*healthPerLevel);
+	}
+	
+	public LinkedList<CombatAction> getCombatActions(int level){
+		LinkedList<CombatAction> actions = new LinkedList<CombatAction>();
+		
+		for(CA ca : this.combatActions){
+			if(level >= ca.minLevel)
+				actions.add(ca.action);
+		}
+		
+		return actions;
+	}
+	
+	public void addCombatAction(CombatAction action, int minLevel){
+		this.combatActions.add(new CA(action, minLevel));
+	}
+	
+	public int getExperience(int level){
+		return (int)(level*expPerLevel);
+	}
+	
+	public int getMana(int level){
+		return (int)Math.floor((wisdom+wisGrowth*level)*2.5f);
 	}
 	
 	private String imageFileName;

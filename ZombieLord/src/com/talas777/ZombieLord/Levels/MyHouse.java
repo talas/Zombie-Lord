@@ -97,6 +97,7 @@ public class MyHouse extends Level {
 
 	@Override
 	public LinkedList<Dialog> getLevelDialogs() {
+		
 		LinkedList<Dialog> dialogs = new LinkedList<Dialog>();
 		
 		{
@@ -133,6 +134,7 @@ public class MyHouse extends Level {
 			
 			Dialog d = new Dialog(0,999,0,999, "zombie defense 1", talk, 0);
 			d.addTimeChange("leave home");
+			d.setQuestHint("Leave home");
 			d.addMemberGain(ZombieLord.Tolinai);
 			
 			dialogs.add(d);
@@ -161,8 +163,14 @@ public class MyHouse extends Level {
 	
 	@Override
 	public LinkedList<LevelObject> getLevelObjects(QuestTracker tracker){
-		ZombieLord.playSound("data/sound/darkBell.wav",2f);
-		ZombieLord.pauseMusic(2);
+		
+		if(!tracker.isCompleted("home1")){
+			ZombieLord.playSound("data/sound/darkBell.wav",2f);
+			ZombieLord.pauseMusic(2);
+			tracker.setCompleted("home1");
+		}
+		
+		
 		LinkedList<LevelObject> objects = new LinkedList<LevelObject>();
 		
 		if(!tracker.isCompleted("First potion.")){

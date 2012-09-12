@@ -29,6 +29,10 @@ public class Inventory {
 		this.maxSize = size;
 	}
 	
+	public int getNumItems(){
+		return items.size();
+	}
+	
 	/**
 	 * Tries to add count of type item to this inventory.
 	 * If any amount of the item could be added, then this function returns true.

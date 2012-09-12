@@ -51,17 +51,31 @@ public class Attacker {
 		this.posy = y;
 	}
 	
-	/**
+	/*
 	 * Limits the rate at which the pathfinding algorithm is called to find a nice path.
 	 * No matter how nice the pathfinding algorithm gets, it will probably eat cpu as number of attackers increase.
 	 * Higher limit = less cpu usage, but maybe dumber mobs.
 	 * Note: this limit needs tweaking, maybe even platform dependent..
 	 */
-	private static final float pathFindRate = 1f;
+	//private static final float pathFindRate = 1f;
 	
 	public void draw(SpriteBatch batch, float deltaTime){
 		float screenPosX = posx*32;
 		float screenPosY = posy*32;
+		switch(lastDir){
+			case ZombieLord.DIR_EAST:
+				s.setRegion(0, 32*3, 32, 32);
+				break;
+			case ZombieLord.DIR_NORTH:
+				s.setRegion(0, 32*0, 32, 32);
+				break;
+			case ZombieLord.DIR_WEST:
+				s.setRegion(0, 32*1, 32, 32);
+				break;
+			default:
+				s.setRegion(0, 32*2, 32, 32);
+				break;
+		}
 		s.setPosition(screenPosX, screenPosY);
 		s.draw(batch);
 	}
@@ -71,7 +85,6 @@ public class Attacker {
 	}
 	
 	public byte nextDir(){
-		
 		return ZombieLord.DIR_NORTH;
 	}
 	
@@ -103,6 +116,8 @@ public class Attacker {
 		}
 		else
 			return;
+		
+		this.lastDir = direction;
 		
 		System.out.println("atk("+posx+","+posy+") moving: "+direction);
 		

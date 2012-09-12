@@ -100,6 +100,7 @@ public class WestHouse extends Level {
 			
 			Dialog d = new Dialog(0,770,170,300, "west house!", talk, 0);
 			d.addTimeChange("mayors house?");
+			d.setQuestHint("Go to the mayors house");
 			
 			dialogs.add(d);
 		}

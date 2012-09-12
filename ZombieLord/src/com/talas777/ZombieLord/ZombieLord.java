@@ -16,7 +16,10 @@
 
 package com.talas777.ZombieLord;
 
+import com.talas777.ZombieLord.Audio.MusicInstance;
+import com.talas777.ZombieLord.Audio.SoundInstance;
 import com.talas777.ZombieLord.Items.ConsumeableItem;
+import com.talas777.ZombieLord.Items.Weapons;
 import com.talas777.ZombieLord.Levels.*;
 import com.talas777.ZombieLord.Minigames.ZombieDefense;
 import com.talas777.ZombieLord.Minigames.TowerDefense.Attacker;
@@ -63,6 +66,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.badlogic.gdx.utils.Array;
 
 public class ZombieLord implements ApplicationListener, InputProcessor {
+	
+	public static final int MAX_PLAYER_LEVEL = 99;
+	
+	public String questHint = "???";
 	
 	// Global Graphics stuff
 	private OrthographicCamera camera;
@@ -170,8 +177,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private MusicInstance currentMusic;
 	private MusicInstance combatMusic;
 	
-	private String announcement;
-	private float announcementTimeout;
+	private static String announcement;
+	private static float announcementTimeout;
 
 	
 
@@ -189,6 +196,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 
 	private NinePatch dialogBackground;
 	private NinePatch announcementBackground;
+	private NinePatch menuBackground;
 	
 	private NinePatch minibarHp;
 	
@@ -217,6 +225,18 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	 */
 	private Level returnLevel;
 	
+	public static final Element ELEM_PHYSICAL = new Element("physical");
+	public static final Element ELEM_FIRE = new Element("fire");
+	public static final Element ELEM_ICE = new Element("ice");
+	public static final Element ELEM_LIGHTNING = new Element("lightning");
+	public static final Element ELEM_EARTH = new Element("earth");
+	public static final Element ELEM_WATER = new Element("water");
+	public static final Element ELEM_WIND = new Element("wind");
+	public static final Element ELEM_POISON = new Element("poison");
+	public static final Element ELEM_HOLY = new Element("holy");
+	public static final Element ELEM_EVIL = new Element("evil");
+	public static final Element ELEM_NULL = new Element("non-elemental");
+	
 
 	// Player characters
 	public static PartyMember Leoric;
@@ -236,16 +256,16 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	
 	// Combat Effects
 	
-	public static final CombatEffect biteEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-4f,false);
-	public static final CombatEffect punchEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false);
-	public static final CombatEffect twinFistEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-10f,false);
-	public static final CombatEffect regrowthEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,50f,false);
-	public static final CombatEffect slashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-3f,false);
-	public static final CombatEffect cycloneSlashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-20f,false);
-	public static final CombatEffect magicArrowEffect = new CombatEffect(CombatEffect.TYPE_MAGICAL,-12f,false);
-	public static final CombatEffect staffStrikeEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-1f,false);
-	public static final CombatEffect rouletteStingEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-50f,false);
-	public static final CombatEffect grandClawEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false);
+	public static final CombatEffect biteEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-4f,false, ELEM_PHYSICAL);
+	public static final CombatEffect punchEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false, ELEM_PHYSICAL);
+	public static final CombatEffect twinFistEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-10f,false, ELEM_PHYSICAL);
+	public static final CombatEffect regrowthEffect = new CombatEffect(CombatEffect.TYPE_MAGICAL,50f,false, ELEM_NULL);
+	public static final CombatEffect slashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-3f,false, ELEM_PHYSICAL);
+	public static final CombatEffect cycloneSlashEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-20f,false, ELEM_PHYSICAL);
+	public static final CombatEffect magicArrowEffect = new CombatEffect(CombatEffect.TYPE_MAGICAL,-12f,false, ELEM_NULL);
+	public static final CombatEffect staffStrikeEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-1f,false, ELEM_PHYSICAL);
+	public static final CombatEffect rouletteStingEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-50f,false, ELEM_POISON);
+	public static final CombatEffect grandClawEffect = new CombatEffect(CombatEffect.TYPE_PHYSICAL,-5f,false, ELEM_EARTH);
 	
 	// Combat Actions
 	public static final CombatAction BITE = new CombatAction("Bite",MONSTER_ABILITY,0, biteEffect, Targeting.TARGET_ENEMY_SINGLE);
@@ -313,11 +333,12 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		if(this.currentMusic != null){
 			this.currentMusic.pause();
-			this.combatMusic = new MusicInstance("data/music/Vadim_Danilenko_-_Lunapark.ogg");
-			
-			this.combatMusic.setLooping(true);
-			this.combatMusic.play();
 		}
+		this.combatMusic = new MusicInstance("data/music/Vadim_Danilenko_-_Lunapark.ogg");
+			
+		this.combatMusic.setLooping(true);
+		this.combatMusic.play();
+		
 		
 		if(party.isActive(Tolinai)){
 			Texture texture2 = new Texture(Gdx.files.internal("data/princess.png"));
@@ -398,6 +419,18 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		for(SoundInstance s : sounds)
 			s.dispose();
 		sounds.clear();
+		
+		
+		if(this.currentMusic != null){
+			this.currentMusic.pause();
+		}
+		this.combatMusic = new MusicInstance(zd.getMusic());
+		
+		this.combatMusic.setLooping(true);
+		this.combatMusic.setVolume(0.7f);
+		this.combatMusic.play();
+		
+		
 		this.gameMode = MODE_ZOMBIE_DEFENSE;
 		
 		
@@ -438,13 +471,13 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		// TODO: moving targeting cursor around with arrow keys
 		// TODO: target cursor snaps to 32x32 grid? 480/32 = 16.87, 320/32 = 10
 		
-		// TODO: selecting things using the targeting cursor and an eaction button (enter?)
-		// TODO: chosing actions for the selected thing in a menu
+		// TODO: selecting things using the targeting cursor and an action button (enter?)
+		// TODO: choosing actions for the selected thing in a menu
 		
 		// TODO: spawn zombies from the edge that try to get to the gate.
 		// TODO: zombie lord magically destroys walls that completely block zombie access.
 		
-		// TODO: earn random ammount of monies from killing zombies..
+		// TODO: earn random amount of monies from killing zombies..
 		// TODO: go back to gamemode MODE_MOVE after winning
 		// TODO: go to gamemode MODE_GAMEOVER after losing
 		
@@ -531,7 +564,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		for(PartyMember m : activeMembers){
 			
-			int healthPerdeca = Math.max(0, Math.round(((m.getHealth()+0.0f) / m.health_max)*10));
+		    int healthPerdeca = Math.max(0, Math.round(((m.getHealth()+0.0f) / m.getHealthMax())*10));
 			
 			Sprite myHp = new Sprite(hpTex,0,0+19*healthPerdeca,106,19);
 			myHp.setX(102);
@@ -539,7 +572,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			
 			list.add(myHp);
 			
-			int manaPerdeca = Math.max(0, Math.round(((m.getMana()+0.0f) / m.mana_max)*10));
+			int manaPerdeca = Math.max(0, Math.round(((m.getMana()+0.0f) / m.getManaMax())*10));
 			
 			Sprite myMp = new Sprite(mpTex,0,0+19*manaPerdeca,106,19);
 			myMp.setX(230);
@@ -572,6 +605,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		dialogBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/dialog_background.png")), 12, 12, 12, 12);
 		announcementBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/announcement_background.png")), 11, 11, 11, 11);
+		menuBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/menu_background.png")), 11, 11, 11, 11);
 		
 		minibarHp = new NinePatch(new Texture(Gdx.files.internal("data/ui/minibar_hp.png")), 2, 2, 2, 2);
 		
@@ -679,37 +713,58 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		timeTracker.addEvent("THE END"); // Keep this last or bugs be onto ye!
 		
 		questTracker = new QuestTracker();
+		questTracker.registerQuest("home1");
 		questTracker.registerQuest("First potion.");
 		
 		questTracker.registerQuest("MyHouse-ChestN");
 		questTracker.registerQuest("MyHouse-ChestW");
 		
-		Leoric = new PartyMember(0,"Leoric",100,100,10,10,0,
+		
+		Leoric = new PartyMember(0,"Leoric",100,5,200,
 				20, 20, 10, 10, 10, 10, 15); // Male hero (swordsman)
 		Leoric.addCombatAction(SLASH);
 		Leoric.addCombatAction(CYCLONE_SLASH);
+		Leoric.equipWeapon(Weapons.shortSword);
 		
 		party.addMember(Leoric);
 		
-		Tolinai = new PartyMember(1,"Tolinai",50,50,40,40,0,
+		Tolinai = new PartyMember(1,"Tolinai",30,20,175,
 				6, 10, 10, 20, 15, 17, 5); // Female, hero gf (offensive mage)
 		Tolinai.addCombatAction(STAFF_STRIKE);
 		Tolinai.addCombatAction(MAGIC_ARROW);
+		Tolinai.equipWeapon(Weapons.woodenStick);
 		
-		Bert = new PartyMember(2,"Bert",250,250,5,5,0,
+		Bert = new PartyMember(2,"Bert",150,50,0,
 				15, 12, 20, 13, 12, 12, 10); // Male, archer
 		Bert.addCombatAction(PUNCH);
 		
-		Berzenor = new PartyMember(3,"Berzenor",250,250,5,5,0,
+		//party.addMember(Bert);
+		
+		Berzenor = new PartyMember(3,"Berzenor",50,50,0,
 				5, 10, 10, 18, 16, 20, 10); // Male, defensive mage
 		Berzenor.addCombatAction(PUNCH);
 		
-		Kuriko = new PartyMember(4,"Kuriko",250,250,5,5,0,
+		Kuriko = new PartyMember(4,"Kuriko",100,50,0,
 				16, 12, 20, 13, 14, 14, 16); // Female, rogue
 		Kuriko.addCombatAction(PUNCH);
 		
 		
 		party.giveItem(Item.Potion, (byte)3); // give some potions, to make the start easier
+		
+		party.giveItem(Item.Antidote, (byte)1);
+		/*party.giveItem(Item.Hi_Potion, (byte)20);
+		party.giveItem(Item.Grenade, (byte)2);
+		party.giveItem(Item.Ash, (byte)1);
+		party.giveItem(Item.Banana, (byte)1);
+		party.giveItem(Item.Buster_Sword, (byte)1);
+		party.giveItem(Item.Cloud, (byte)1);
+		party.giveItem(Item.Ether, (byte)1);
+		party.giveItem(Item.Hi_Ether, (byte)1);
+		party.giveItem(Item.Hot_Soup, (byte)1);
+		party.giveItem(Item.Panties, (byte)1);
+		party.giveItem(Item.Phoenix_Feather, (byte)1);
+		party.giveItem(Item.Super_Ether, (byte)1);
+		party.giveItem(Item.Tissue, (byte)1);*/
 		
 		loadLevel(new Church(),522,414,1);// church the real start point
 		
@@ -985,6 +1040,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	@Override
 	public void render() {
 		
+		if(this.menu != null){
+			if(this.menu.isDead()){
+				// menu is scheduled for deletion, so carry it out
+				this.menu.dispose();
+				this.menu = null;
+				this.gameMode = MODE_MOVE;
+			}
+		}
+		
 		if(musicVolume < 1f){
 			musicVolume += Gdx.graphics.getDeltaTime()/10f;
 			if(musicVolume > 1f){
@@ -1065,91 +1129,105 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		
 		if(gameMode == MODE_DIALOG){
-			// a Dialog is active;
-			if(this.dialogWait > 0){
-				if(Gdx.input.isButtonPressed(Keys.ENTER))// Speed up the dialog a bit
-					dialogWait = 0;
-				else
-					dialogWait -= Gdx.graphics.getDeltaTime();
-				
-			}
-			else if(this.currentDialog.hasNextUtterance()){
-				//TODO: this has to be done more nicely somehow..
-				
-				Utterance u = this.currentDialog.getNextUtterance();
-				
-				System.out.print(u.speaker+": ");
-				System.out.println(u.sentence);
-				
-				this.curSpeaker = u.speaker;
-				this.curSentence = u.sentence;
-
-				dialogWait = (u.sentence.length()*0.07f); // TODO: hum hum
-				if(dialogWait < 1.7f)
-					dialogWait = 1.7f;
-
+			// a Dialog is active or using the menus?
+			
+			if(this.currentDialog == null){
+				// menu
+				// TODO: ???
 			}
 			else {
-				// apply secondary effects and change gameMode back to whatever normal is
-				// TODO: would be nice if dialogs could be had inside combat also..
-				// but not strictly required.
-				this.curSpeaker = null;
-				this.curSentence = null;
-				
-				if(this.currentDialog.getTimeChange() != null){
-					this.timeTracker.setTime( this.currentDialog.getTimeChange()  );
-				}
-				
-				ZombieDefense zd = this.currentDialog.getZombieDefense();
-				if(zd != null){
-					// Start zombie defense by going to the correct game mode..
-					this.gameMode = MODE_ZOMBIE_DEFENSE;
-					this.loadZombieDefense(zd);
+				// dialog
+				if(this.dialogWait > 0){
+					if(Gdx.input.isButtonPressed(Keys.ENTER))// Speed up the dialog a bit
+						dialogWait = 0;
+					else
+						dialogWait -= Gdx.graphics.getDeltaTime();
 					
-					
-					// Zombie Defense has highest priority.
-					this.currentDialog = null;
-					return;
 				}
-				
-				MonsterSetup setup = this.currentDialog.getFight();
-				
+				else if(this.currentDialog.hasNextUtterance()){
+					//TODO: this has to be done more nicely somehow..
+					
+					Utterance u = this.currentDialog.getNextUtterance();
+					
+					System.out.print(u.speaker+": ");
+					System.out.println(u.sentence);
+					
+					this.curSpeaker = u.speaker;
+					this.curSentence = u.sentence;
 
-				for(PartyMember joiner : this.currentDialog.getMemberJoins()){
-					this.party.addMember(joiner);
-				}
+					dialogWait = (u.sentence.length()*0.07f); // TODO: hum hum
+					if(dialogWait < 1.7f)
+						dialogWait = 1.7f;
 
-				
-				if(this.currentDialog.nextLevel != null){
-					// Level change..
-					
-					if(setup != null){
-						// after fight..
-						this.returnLevel = this.currentDialog.nextLevel;
-						this.posx = this.currentDialog.posx;
-						this.posy = this.currentDialog.posy;
-						this.lastDirection = this.currentDialog.direction;
-					}
-				}
-				if(setup != null){
-					// fight!
-					this.loadCombat(setup);
-				}
-				else if(this.currentDialog.nextLevel != null){
-					// change level
-					
-					this.loadLevel(this.currentDialog.nextLevel, this.currentDialog.posx, this.currentDialog.posy,
-							this.currentDialog.direction);
 				}
 				else {
-					// No combat, no Level change..
-					// Guess we just have to go back to normal then :<
-					this.gameMode = MODE_MOVE;
+					// apply secondary effects and change gameMode back to whatever normal is
+					// TODO: would be nice if dialogs could be had inside combat also..
+					// but not strictly required.
+					this.curSpeaker = null;
+					this.curSentence = null;
+					
+					if(this.currentDialog.questHint != null){
+						this.questHint = this.currentDialog.questHint;
+					}
+					
+					if(this.currentDialog.getTimeChange() != null){
+						this.timeTracker.setTime( this.currentDialog.getTimeChange()  );
+					}
+					
+					ZombieDefense zd = this.currentDialog.getZombieDefense();
+					if(zd != null){
+						// Start zombie defense by going to the correct game mode..
+						this.gameMode = MODE_ZOMBIE_DEFENSE;
+						this.loadZombieDefense(zd);
+						
+						
+						// Zombie Defense has highest priority.
+						this.currentDialog = null;
+						return;
+					}
+					
+					MonsterSetup setup = this.currentDialog.getFight();
+					
+
+					for(PartyMember joiner : this.currentDialog.getMemberJoins()){
+						this.party.addMember(joiner);
+					}
+
+					
+					if(this.currentDialog.nextLevel != null){
+						// Level change..
+						
+						if(setup != null){
+							// after fight..
+							this.returnLevel = this.currentDialog.nextLevel;
+							this.posx = this.currentDialog.posx;
+							this.posy = this.currentDialog.posy;
+							this.lastDirection = this.currentDialog.direction;
+						}
+					}
+					if(setup != null){
+						// fight!
+						this.loadCombat(setup);
+					}
+					else if(this.currentDialog.nextLevel != null){
+						// change level
+						
+						this.loadLevel(this.currentDialog.nextLevel, this.currentDialog.posx, this.currentDialog.posy,
+								this.currentDialog.direction);
+					}
+					else {
+						// No combat, no Level change..
+						// Guess we just have to go back to normal then :<
+						this.gameMode = MODE_MOVE;
+						return;
+					}
 					this.currentDialog = null;
-					return;
+					
 				}
-				
 			}
+			
+
 		}
 		
 		
@@ -1649,7 +1727,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 									this.cutSound.play();
 								}
 								
-								this.announce(myAction.action.name);
+								announce(myAction.action.name);
 								myAction.caster.setMoveAhead(true);
 								
 								if(myAction.action.effect != null && affected != null){
@@ -1766,7 +1844,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					if(myAction.action != null){
 						// Move monster against player to represent the attack
 						
-						this.announce(myAction.action.name);
+						announce(myAction.action.name);
 						myAction.caster.setMoveAhead(true);
 						
 						if(myAction.action.effect != null && affected != null){
@@ -1950,8 +2028,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			// draw all the attackers..
 			this.tickZombieDefense(Gdx.graphics.getDeltaTime());
 			for(Attacker atk : this.zombieDefense.attackers){
-				minibarHp.draw(batch, atk.getX()*32+8, atk.getY()*32, (float)((atk.health+0.0)/atk.healthMax)*20, 4);
 				atk.draw(batch, Gdx.graphics.getDeltaTime());
+				minibarHp.draw(batch, atk.getX()*32+8, atk.getY()*32, (float)((atk.health+0.0)/atk.healthMax)*20, 4);
 			}
 			for(Defender def : this.zombieDefense.defenders){
 				def.draw(batch, Gdx.graphics.getDeltaTime());
@@ -1985,8 +2063,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		batch.end();
 		
 
-		if(this.announcement != null){
-			if(this.announcementTimeout > 0){
+		if(announcement != null){
+			if(announcementTimeout > 0){
 				fontBatch.begin();
 				announcementBackground.draw(fontBatch, w/2-announcement.length()*6-4, h-24-13, announcement.length()*13, 20+2);
 				font.setColor(Color.WHITE);
@@ -2077,6 +2155,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			fontBatch.end();
 			
 		}
+		else if(this.menu != null){
+			fontBatch.begin();
+			menu.draw(fontBatch);
+			fontBatch.end();
+		}
 		
 		if(debug && world != null && debugRenderer != null)
 			debugRenderer.render(world, camera.combined.scale(
@@ -2085,6 +2168,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					PIXELS_PER_METER));
 	}
 	
+	private Menu menu;
 
 
 	@Override
@@ -2102,6 +2186,18 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
+		
+		if(this.menu != null){
+			// inside a menu, allow moving the selection cursor..
+			if(keycode == Keys.UP)
+				menu.selectPrevious();
+			if(keycode == Keys.DOWN)
+				menu.selectNext();
+			if(keycode == Keys.ENTER)
+				menu.confirmChoice(this);
+			if(keycode == Keys.BACKSPACE)
+				menu.exit(this);
+		}
 		
 		if(this.gameMode == MODE_ZOMBIE_DEFENSE){
 			// cursor control
@@ -2142,6 +2238,12 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		}
 		
 		if(this.gameMode == MODE_MOVE){
+			if(keycode == Keys.M){
+				// bring up the fabled catch-all menu
+				this.currentDialog = null;
+				this.gameMode = MODE_DIALOG;
+				menu = new Menu(this.menuBackground,this.font,20, "data/ui/selectionhand.png",party);
+			}
 			if(keycode == Keys.I){
 				// bring up inventory.
 				// TODO: I guess its a shortcut, there will be a catch-all menu one day.
@@ -2164,14 +2266,14 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 							if(object.shouldBeDeleted()){
 								// TODO: play sound to confirm the player got some items
 								// TODO: draw some text that tells the player he acquired some items (ingame).
-								this.announce("Acquired a " + ((LevelItem)object).getItemType().name+"!");
+								announce("Acquired a " + ((LevelItem)object).getItemType().name+"!");
 								System.out.println("Acquired a " + ((LevelItem)object).getItemType().name+"!");
 								ZombieLord.playSound("data/sound/pickupItem.wav",1.5f);
 								iter.remove();
 							}
 							else {
 								// TODO: draw some text to tell the player he can't carry more (ingame)..
-								this.announce("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
+								announce("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
 								System.out.println("Can't pick up the " + ((LevelItem)object).getItemType().name+", inventory is full!");
 							}
 						}
@@ -2180,7 +2282,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 							String msg = chest.getDialogString();
 							if(msg != null){
 								// TODO: proper ingame announcement
-								this.announce(msg);
+								announce(msg);
 								ZombieLord.playSound("data/sound/pickupItem.wav",1.5f);
 								System.out.println(msg);
 							}
@@ -2279,9 +2381,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		return false;
 	}
 	
-	private void announce(String text){
-		this.announcement = text;
-		this.announcementTimeout = 2f;
+	public static void announce(String text){
+		announcement = text;
+		announcementTimeout = 2f;
 	}
 
 	@Override

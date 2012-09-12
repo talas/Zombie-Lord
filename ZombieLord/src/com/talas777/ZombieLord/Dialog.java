@@ -181,4 +181,10 @@ public class Dialog {
 	public void addMemberLoss(PartyMember member){
 		this.quits.add(member);
 	}
+	
+	public String questHint;
+	
+	public void setQuestHint(String questHint){
+		this.questHint = questHint;
+	}
 }

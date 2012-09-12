@@ -14,23 +14,21 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-package com.talas777.ZombieLord;
+package com.talas777.ZombieLord.Items;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
+import com.talas777.ZombieLord.Items.Equipment;
+import com.talas777.ZombieLord.PartyMember;
 
-public class SoundInstance {
-	private Sound s;
+public abstract class Weapon extends Equipment {
 	
-	public SoundInstance(String fileName, float volume){
-		s = Gdx.audio.newSound(Gdx.files.internal(fileName));
-		
-		s.play(volume);
+	public Weapon(String name, String description, int attack, int defense, int mAttack, int mDefense) {
+		super(name, description, attack, defense, mAttack, mDefense);
 	}
-	
-	public void dispose(){
-		s.stop();
-		s.dispose();
+
+	@Override
+	public String[] getDetails() {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
+
 }

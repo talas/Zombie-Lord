@@ -28,9 +28,12 @@ public class CombatEffect {
 	private byte effectType;
 	private double baseHealthChange;
 	private double baseManaChange;
-	private LinkedList<StatusChange> statusChanges;
+	private final LinkedList<StatusChange> statusChanges;
+	private final LinkedList<AttributeChange> attributeChanges;
 	private boolean healthPercent;
 	private boolean manaPercent;
+	
+	private final Element element;
 	
 	/**
 	 * 
@@ -47,8 +50,9 @@ public class CombatEffect {
 	 * @param baseManaChange note that this is not the casting cost! this is mana drain on the target.
 	 * @param healthPercent if this attack changes health based on a percentage
 	 * @param manaPercent if this attack changes mana based on a percentage
+	 * @param element which element to use for this attack
 	 */
-	public CombatEffect(byte effectType, double baseHealthChange, double baseManaChange, boolean healthPercent, boolean manaPercent){
+	public CombatEffect(byte effectType, double baseHealthChange, double baseManaChange, boolean healthPercent, boolean manaPercent, Element element){
 		this.effectType = effectType;
 		this.baseHealthChange = baseHealthChange;
 		this.baseManaChange = baseManaChange;
@@ -56,6 +60,8 @@ public class CombatEffect {
 		this.manaPercent = manaPercent;
 		
 		this.statusChanges = new LinkedList<StatusChange>();
+		this.attributeChanges = new LinkedList<AttributeChange>();
+		this.element = element;
 	}
 	
 	/**
@@ -63,9 +69,10 @@ public class CombatEffect {
 	 * @param effectType what type of effect this is, can be physical, magical or item.
 	 * @param baseHealthChange the base health change (affected by atk and def). For percent based this number is the percent change (-0.15 = 15% loss of health)
 	 * @param healthPercent if this attack changes health based on a percentage
+	 * @param element which element to use for this attack
 	 */
-	public CombatEffect(byte effectType, double baseHealthChange, boolean healthPercent){
-		this(effectType, baseHealthChange, 0, healthPercent, false);
+	public CombatEffect(byte effectType, double baseHealthChange, boolean healthPercent, Element element){
+		this(effectType, baseHealthChange, 0, healthPercent, false, element);
 	}
 
 	/**
@@ -74,9 +81,10 @@ public class CombatEffect {
 	 * @param baseManaChange the base mana change (affected by atk and def). For percent based this number is the percent change (-0.72 = 72% loss of mana)
 	 * @param manaPercent if this attack changes mana based on a percentage
 	 * @param nothing not used
+	 * @param element which element to use for this attack
 	 */
-	public CombatEffect(byte effectType, double baseManaChange, boolean manaPercent, boolean nothing){
-		this(effectType, 0, baseManaChange, false, manaPercent);
+	public CombatEffect(byte effectType, double baseManaChange, boolean manaPercent, boolean nothing, Element element){
+		this(effectType, 0, baseManaChange, false, manaPercent, element);
 	}
 	
 	/**
@@ -91,39 +99,123 @@ public class CombatEffect {
 	}
 	
 	/**
+	 * Attribute change alters the primary attribute (str, vit, etc.) of a Combatant.
+	 * It can be either temporary (for the current combat) or permanent.
+	 * @param attribute which attribute to affect (strength=0,vit,agi,int,wis,spr,luck=6)
+	 * @param change how much to increase the attribute, negative = decrease
+	 * @param duration how long the change lasts, 0 = permanent
+	 * @param chance the chance of afflicting the attribute change on each attack
+	 */
+	public void addAttributeChange(int attribute, int change, float duration, float chance){
+		this.attributeChanges.add(new AttributeChange(attribute, change, duration, chance));
+	}
+	
+	/**
 	 * Constructor for attacks that doesnt change health or mana (but could change status)
 	 * @param effectType what type of effect this is, can be physical, magical or item.
 	 */
 	public CombatEffect(byte effectType){
-		this(effectType, 0, 0, false, false);
+		this(effectType, 0, 0, false, false, ZombieLord.ELEM_NULL);
 	}
 	
 	public void applyEffect(Combatant caster, Combatant target){
 		float multiplier = 1f;
 		float divisor = 1f;
+		boolean critical = false;
+		
 		if(this.effectType == TYPE_MAGICAL){
 			multiplier = caster.getMATK()/10f;
-			divisor = target.getMDEF()/10f;
+			// NOTE: cant dodge or luck magical stuffs
+			
+			if(this.element == ZombieLord.ELEM_PHYSICAL){
+				// spell that deal physical damage use DEF instead of MDEF.
+				// but still no dodge or luck
+				divisor = target.getDEF()/10f;
+			}
+			else {
+				divisor = target.getMDEF()/10f;
+			}
 		}
 		else if(this.effectType == TYPE_PHYSICAL){
-			// TODO: account for luck..
 			// luck has a chance to cause 'critical hit', which is double damage (only physical attacks)
-			// TODO: account for agi..
+			
+			if(caster.getCriticalHitChance() > Math.random()){
+				// critical hit!
+				critical = true;
+			}
+			
 			// agi can help dodge the attacker. agi also helps counter the enemys dodge attempt
+			// dodging a critical hit -> normal hit
+			
+			float dodgeChance = target.getDodgeChance();
+			float hitChance = caster.getHitChance();
+			
+			if(Math.random()*dodgeChance > Math.random()*hitChance){
+				// dodge!
+				if(critical){
+					// hit normal
+					ZombieLord.announce("Deflect!");
+				}
+				else {
+					// completely dodged the attack, no damage or status changes.
+					ZombieLord.announce("Dodge!");
+					return;
+				}
+			}
+			else if(critical){
+				// double damage
+				multiplier *= 2;
+				ZombieLord.announce("Critical hit!");
+			}
+			
 			multiplier = caster.getATK()/10f;
 			divisor = target.getDEF()/10f;
 		}
+		
 		// else, TYPE_ITEM is not affected by atk and def
+		
+		
 		
 		if(divisor < 1)
 			divisor = 1f;
 		
-		// TODO: element skill multiplier
 		
 		
+		float elemMult = 1;
 		
-		double healthChange = baseHealthChange*multiplier/divisor;
-		double manaChange = baseManaChange*multiplier/divisor;
+		if(this.effectType != TYPE_ITEM)
+			caster.getElementStrength(this.element);
+		
+		float elemDefense = target.getElementDefense(this.element);
+		
+		
+		double healthChange = baseHealthChange*multiplier/divisor*elemMult;
+		double manaChange = baseManaChange*multiplier/divisor*elemMult;
+		
+		
+		// def 1 -> *= 0 -> 0 effect (no effect)
+		// def 0.5 -> *= 0.5 -> 50% effect (halve)
+		// def 0 -> *= 1 -> 100% effect (normal)
+		// def -1 -> *= 2 -> 200% effect (double effect)
+		// def 1.5 -> *= -1.5 -> -50% effect (absorb)
+		healthChange *= 1-elemDefense;
+		manaChange *= 1-elemDefense;
+		
+		if(elemDefense == 1){
+			// no effect
+			healthChange = 0;
+			manaChange = 0;
+		}
+		else if(elemDefense > 1){
+			// absorb (reverse)
+			healthChange = -healthChange;
+			manaChange = -manaChange;
+		}
+		else if (elemDefense > 0){
+			// remove some amount of damage
+			healthChange *= 1-elemDefense;
+			manaChange *= 1-elemDefense;
+		}
 		
 		System.out.println("mul:"+multiplier+", div:"+divisor+", dmg: "+healthChange);
 		
@@ -139,24 +231,96 @@ public class CombatEffect {
 		
 		if(target.health < 0)
 			target.health = 0;
-		if(target.health > target.health_max)
-			target.health = target.health_max;
+		if(target.health > target.getHealthMax())
+		    target.health = target.getHealthMax();
 		
 		if(target.mana < 0)
 			target.mana = 0;
-		if(target.mana > target.mana_max)
-			target.mana = target.mana_max;
+		   if(target.mana > target.getManaMax())
+		    target.mana = target.getManaMax();
 		
 		for(StatusChange statusChange : statusChanges){
-			if(Math.random() < statusChange.chance){
+			if(Math.random() < (critical?statusChange.chance*2:statusChange.chance)){
 				// apply status change..
-				target.addStatusChange(statusChange.status, statusChange.state, statusChange.strength);
+				
+				if(critical && statusChange.status == Combat.STATE_POISONED){
+					// critical hit + poison -> double strength poison
+					target.addStatusChange(statusChange.status, statusChange.state, statusChange.strength*2);
+				}
+				else
+					target.addStatusChange(statusChange.status, statusChange.state, statusChange.strength);
 			}
 		}
 		
-		// TODO: Temporary attributes / changes
-		
-		// TODO: Permanent attribute changes.
+		for(AttributeChange change : attributeChanges){
+			if(Math.random() < (critical?change.chance*2:change.chance)){
+				// apply attribute change
+				
+				
+				
+				if(change.duration == 0){
+					// permanent
+					switch(change.attribute){
+						case 0:
+							// str
+							target.addStrength(change.change);
+							break;
+						case 1:
+							// vit
+							target.addVitality(change.change);
+							break;
+						case 2:
+							// agi
+							target.addAgility(change.change);
+							break;
+						case 3:
+							// int
+							target.addIntelligence(change.change);
+							break;
+						case 4:
+							// wis
+							target.addWisdom(change.change);
+							break;
+						case 5:
+							// spr
+							target.addSpirit(change.change);
+							break;
+						case 6:
+							// luck
+							target.addLuck(change.change);
+							break;
+						default:
+							// error
+							System.err.println("ERROR: status change "+change.attribute+" does not exist (yet)[1]!");
+							break;
+					}
+				}
+				else {
+					target.addTemporaryAttribute(change.attribute, change.change, change.duration);
+				}
+			}
+		}
+	}
+	
+	private class AttributeChange {
+		public final float duration;
+		public final int attribute;
+		public final int change;
+		public final float chance;
+		/**
+		 * Attribute change alters the primary attribute (str, vit, etc.) of a Combatant.
+		 * It can be either temporary (for the current combat) or permanent.
+		 * @param attribute which attribute to affect (strength=0,vit,agi,int,wis,spr,luck=6)
+		 * @param change how much to increase the attribute, negative = decrease
+		 * @param duration how long the change lasts, 0 = permanent
+		 * @param chance the chance of afflicting the attribute change on each attack
+		 */
+		public AttributeChange(int attribute, int change, float duration, float chance){
+			this.attribute = attribute;
+			this.change = change;
+			this.duration = duration;
+			this.chance = chance;
+		}
 	}
 	
 	private class StatusChange {

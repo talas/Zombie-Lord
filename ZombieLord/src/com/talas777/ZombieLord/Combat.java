@@ -420,8 +420,8 @@ public class Combat {
 	public void cleanUp(){
 		for(Combatant c : combatants){
 			if(c instanceof Monster){
-				c.health = c.health_max;
-				c.mana = c.mana_max;
+			        c.health = c.getHealthMax();
+			        c.mana = c.getManaMax();
 			}
 		}
 	}

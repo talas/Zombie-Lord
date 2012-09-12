@@ -16,12 +16,132 @@
 
 package com.talas777.ZombieLord.Items;
 
+import java.util.LinkedList;
+
+import com.talas777.ZombieLord.Element;
 import com.talas777.ZombieLord.Item;
+import com.talas777.ZombieLord.PartyMember;
 
 public abstract class Equipment extends Item {
 
-	public Equipment(String name) {
-		super(name, false,(byte)1);
+	private final int attack;
+	private final int defense;
+	private final int mAttack;
+	private final int mDefense;
+	
+	/**
+	 * Element attack multipliers
+	 * Duplicate elements allowed
+	 */
+	private final LinkedList<ElementAffection> elementOffense;
+	
+	/**
+	 * Element defense multipliers
+	 * Duplicate elements allowed
+	 */
+	private final LinkedList<ElementAffection> elementDefense;
+	
+	public Equipment(String name, String description, int attack, int defense, int mAttack, int mDefense) {
+		super(name, false,description,(byte)1);
+		this.attack = attack;
+		this.defense = defense;
+		this.mAttack = mAttack;
+		this.mDefense = mDefense;
+		this.elementDefense = new LinkedList<ElementAffection>();
+		this.elementOffense = new LinkedList<ElementAffection>();
+	}
+	
+	private class ElementAffection {
+		public final Element element;
+		public final float strength;
+		public ElementAffection(Element e, float s){
+			this.element = e;
+			this.strength = s;
+		}
+	}
+	
+	/**
+	 * @see Combatant.getElementDefense
+	 */
+	protected void addElementDefense(Element element, float strength){
+		this.elementDefense.add(new ElementAffection(element,strength));
+	}
+	
+	/**
+	 * @see Combatant.getElementStrength
+	 */
+	protected void addElementOffense(Element element, float strength){
+		this.elementOffense.add(new ElementAffection(element,strength));
+	}
+	
+	/**
+	 * @see Combatant.getElementDefense
+	 */
+	public float getElementDefense(Element e){
+		float defense = 0f;
+		for(ElementAffection a : this.elementDefense){
+			if(a.element == e)
+				defense += a.strength;
+		}
+		return defense;
+	}
+	
+	/**
+	 * @see Combatant.getElementStrength
+	 */
+	public float getElementOffense(Element e){
+		float defense = 0f;
+		for(ElementAffection a : this.elementOffense){
+			if(a.element == e)
+				defense += a.strength;
+		}
+		return defense;
+	}
+	
+	/**
+	 * Details of how this equipment affects the player
+	 * Note that equipment are allowed to have hidden properties
+	 * @return
+	 */
+	public abstract String[] getDetails();
+	
+	
+	/**
+	 * Apply the effects of equipping this piece of equipment to given member.
+	 * @param member
+	 */
+	public void equip(PartyMember member) {
+		member.atk += attack;
+		member.def += defense;
+		member.matk += mAttack;
+		member.mdef += mDefense;
+		for(ElementAffection a : this.elementDefense){
+			float oldValue = member.getElementDefense(a.element);
+			member.setElementDefense(a.element, oldValue + a.strength);
+		}
+		for(ElementAffection a : this.elementOffense){
+			float oldValue = member.getElementStrength(a.element);
+			member.setElementStrength(a.element, oldValue + a.strength);
+		}
+	}
+	
+	/**
+	 * Remove the effects from having equipped this equipment on the member
+	 * @param member
+	 */
+	public void unEquip(PartyMember member) {
+		member.atk -= attack;
+		member.def -= defense;
+		member.matk -= mAttack;
+		member.mdef -= mDefense;
+		for(ElementAffection a : this.elementDefense){
+			float oldValue = member.getElementDefense(a.element);
+			member.setElementDefense(a.element, oldValue - a.strength);
+		}
+		for(ElementAffection a : this.elementOffense){
+			float oldValue = member.getElementStrength(a.element);
+			member.setElementStrength(a.element, oldValue - a.strength);
+		}
 	}
 
 }
