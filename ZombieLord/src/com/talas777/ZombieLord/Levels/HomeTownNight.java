@@ -127,8 +127,8 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			talk.add("Leoric", "It's barricaded..");
-			talk.add("Tolinai", "I can hear zombies     inside, I guess we can't help   them.");
-			talk.add("Tolinai", "We'll go to the house  on the left next.");
+			talk.add("Tolinai", "I can hear zombies inside, I guess we can't help them.");
+			talk.add("Tolinai", "We'll go to the house on the left next.");
 			
 			Dialog d = new Dialog(2960,3130,1310,1329, "south east house?", talk, 0);
 			d.setQuestHint("Enter the house south of your home");
@@ -170,7 +170,7 @@ public class HomeTownNight extends HomeTown {
 			TalkScript talk = new TalkScript();
 			
 			talk.add("Leoric", "What do we do now?");
-			talk.add("Tolinai", "There are still hordes of zombies coming, we have to   flee the town!");
+			talk.add("Tolinai", "There are still hordes of zombies coming, we have to flee the town!");
 			
 			Dialog d = new Dialog(0,3200,0,3200, "leave mayors house", talk, 0);
 			d.addTimeChange("leave hometown");

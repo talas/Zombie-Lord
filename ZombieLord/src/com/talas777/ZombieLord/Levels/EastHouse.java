@@ -124,7 +124,7 @@ public class EastHouse extends Level {
 		{
 			TalkScript talk = new TalkScript();
 			
-			talk.add("Tolinai","Let's go to the house  south of here next.");
+			talk.add("Tolinai","Let's go to the house south of here next.");
 			
 			Dialog d = new Dialog(223,256,103,123, "leave east house", talk, 0);
 			d.addTimeChange("south east house?");

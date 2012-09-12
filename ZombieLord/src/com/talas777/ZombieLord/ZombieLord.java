@@ -123,10 +123,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	// Dialog Stuff
 	BitmapFont font;
 	
-	private String curSentence = null;
+	private String[] curSentence = null;
 	private String curSpeaker = null;
 	public Dialog currentDialog;
 	public float dialogWait = 0;
+        public double dialogTicker = 1.0;
 	
 	// Combat Stuff
 	public LinkedList<CombatOption> currentCombatOptions;
@@ -1138,6 +1139,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			else {
 				// dialog
 				if(this.dialogWait > 0){
+				        this.dialogTicker += Gdx.graphics.getDeltaTime()*20;
 					if(Gdx.input.isButtonPressed(Keys.ENTER))// Speed up the dialog a bit
 						dialogWait = 0;
 					else
@@ -1150,12 +1152,15 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					Utterance u = this.currentDialog.getNextUtterance();
 					
 					System.out.print(u.speaker+": ");
-					System.out.println(u.sentence);
+					//System.out.println(u.sentence);
 					
 					this.curSpeaker = u.speaker;
-					this.curSentence = u.sentence;
+					this.curSentence = u.getSentence();
+					this.dialogTicker = 1;
+					for(int i = 0; i < this.curSentence.length; i++)
+						System.out.println("_"+this.curSentence[i]+"_");
 
-					dialogWait = (u.sentence.length()*0.07f); // TODO: hum hum
+					dialogWait = (u.length*0.07f); // TODO: hum hum
 					if(dialogWait < 1.7f)
 						dialogWait = 1.7f;
 
@@ -2125,32 +2130,103 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			// Ongoing dialog, draw the talkstuffs
 			// TODO: char by char?
 			
-			
-			int length = this.curSpeaker.length()+2+this.curSentence.length();
+			int slength = -1;
+			for (int i = 0; i < this.curSentence.length; i++){
+				slength += this.curSentence[i].length()+1;
+				//System.out.println("_"+this.curSentence[i]+"_");
+			}
+			int length = this.curSpeaker.length()+2+slength;
 			float cposx = w/2;
 			float cposy = h/2;
 			
 			
 			if(length > 32){
 				// needs to be split
-				int remain = length;
-				int num = 0;
-				int start = 0;
-				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(int)Math.floor(length/32)), 32*13, 20+(16*(length/32))+2 );
+				//int remain = length;
+				//int num = 0;
+				//int start = 0;
+				int startWord = 0;
+				int maxLength = 0;
+				int remainWords = this.curSentence.length;
+				LinkedList<StringBuilder> sbl = new LinkedList<StringBuilder>();
+
 				
-				while(remain > 0){
-					int printed = Math.min(32, remain);
+				while(remainWords > 0){
+					/*int printed = Math.min(32, remain);
 					
-					font.draw(fontBatch, this.curSpeaker+": "+this.curSentence, cposx-w/2+(num==0?0:30), cposy+h/2-h/4-(num*16), start, start+printed);
-					remain -= printed;
-					start += printed;
-					num ++;
+					int first = start;
+					int lastMinusOne = start+printed;*/
+					StringBuilder sb = new StringBuilder();
+					
+					int numLetters = 0;
+					int numWords = 0;
+					for(int i = startWord; i < this.curSentence.length; i++){
+						if(numLetters+this.curSentence[i].length()+(startWord == 0? this.curSpeaker.length():1) > 32){
+							break;
+						}
+						else {
+							if(i != 0 && numWords != 0)
+								sb.append(" ");
+							sb.append(this.curSentence[i]);
+							numLetters = sb.length();
+							numWords++;
+						}
+					}
+					
+					sbl.add(sb);
+
+					
+					/*remain -= printed;
+					start += printed;*/
+					remainWords -= numWords;
+					startWord += numWords;
+
+					if(numLetters > maxLength)
+					    maxLength = numLetters;
+					
+				}
+
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(int)Math.floor(length/32)), 32*13+5, 20+(16*(length/32))+2 );
+				int tickerLimit = (int)this.dialogTicker;
+				for(int i = 0; i < sbl.size(); i++){
+				    if(tickerLimit <= 0){
+					break;
+				    }
+				    String mystr = sbl.get(i).toString();
+				    if(mystr.length() > tickerLimit){
+					// delete overflowing text
+					StringBuilder tmp = new StringBuilder();
+					for(int j = 0; j < tickerLimit; j++){
+					    tmp.append(mystr.charAt(j));
+					}
+					mystr = tmp.toString();
+					tickerLimit = 0;
+				    }
+				    tickerLimit -= mystr.length();
+				    font.draw(fontBatch, (i == 0?this.curSpeaker+": ":"")+mystr, cposx-w/2+(i==0?0:30), cposy+h/2-h/4-(i*16));
 				}
 			}
 			else {
 				// print everything in one go
+				StringBuilder all = new StringBuilder();
+				for(int i = 0; i < this.curSentence.length; i++){
+				        if(i > 0){
+						all.append(" ");
+					}
+					all.append(curSentence[i]);
+				}
 				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16, length*13, 20+2);
-				font.draw(fontBatch, this.curSpeaker+": "+this.curSentence, cposx-w/2, cposy+h/2-h/4);
+				int tickerLimit = (int)this.dialogTicker;
+				String mystr = all.toString();
+				if(mystr.length() > tickerLimit){
+				    // delete overflowing text
+				    StringBuilder tmp = new StringBuilder();
+				    for(int j = 0; j < tickerLimit; j++){
+					tmp.append(mystr.charAt(j));
+				    }
+				    mystr = tmp.toString();
+				}
+				font.draw(fontBatch, this.curSpeaker+": "+mystr, cposx-w/2, cposy+h/2-h/4);
 			}
 			fontBatch.end();
 			

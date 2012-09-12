@@ -96,7 +96,7 @@ public class WestHouse extends Level {
 		{
 			TalkScript talk = new TalkScript();
 			talk.add("Leoric", "Nobody?");
-			talk.add("Tolinai", "They must be hiding at the Mayors house west of here.  Let's go there!");
+			talk.add("Tolinai", "They must be hiding at the Mayors house west of here. Let's go there!");
 			
 			Dialog d = new Dialog(0,770,170,300, "west house!", talk, 0);
 			d.addTimeChange("mayors house?");

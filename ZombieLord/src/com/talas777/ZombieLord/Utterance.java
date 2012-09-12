@@ -16,13 +16,36 @@
 
 package com.talas777.ZombieLord;
 
+import java.util.LinkedList;
+
 public class Utterance {
 
 	public final String speaker;
-	public final String sentence;
+    private final String[] sentence;
+    public final int length;
 	
 	public Utterance(String speaker, String sentence){
 		this.speaker = speaker;
-		this.sentence = sentence;
+		LinkedList<String> s = new LinkedList<String>();
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < sentence.length(); i++) {
+		    
+		    char c = sentence.charAt(i);
+		    if(c == ' '){
+		    	s.add(sb.toString());
+		    	sb = new StringBuilder();
+		    }
+		    else {
+		    	sb.append(c);
+		    }
+		}
+		if(sb.length() > 0)
+			s.add(sb.toString());
+		this.length = sentence.length();
+		this.sentence = s.toArray(new String[0]);
+	}
+	
+	public String[] getSentence() {
+		return sentence;
 	}
 }

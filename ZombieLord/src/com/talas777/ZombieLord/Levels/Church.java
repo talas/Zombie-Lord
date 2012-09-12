@@ -100,7 +100,7 @@ public class Church extends Level {
 			
 			talk.add("Leoric", "Huh, what happened?");
 			talk.add("Leoric", "Why am I ... here?");
-			talk.add("Leoric", "It's late, I should go  home and talk to ... my .. Wife");
+			talk.add("Leoric", "It's late, I should go home and talk to ... my .. Wife");
 			
 			Dialog d = new Dialog(0,600,0,600, "zero", talk, 0);
 			d.addTimeChange("start");
