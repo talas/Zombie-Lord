@@ -16,6 +16,9 @@
 
 package com.talas777.ZombieLord;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+
 import java.util.LinkedList;
 
 public class CombatEffect {
@@ -218,7 +221,9 @@ public class CombatEffect {
 		}
 		
 		System.out.println("mul:"+multiplier+", div:"+divisor+", dmg: "+healthChange);
-		
+		Sprite s = target.getSprite();
+		int posOffset = 32;
+		ZombieLord.addFloatingNumbers((int)(Math.abs(healthChange)), s.getX()+posOffset ,s.getY()+posOffset, (healthChange <= 0? Color.WHITE : Color.GREEN));
 		if(healthPercent){ // percent changes are not affected by atk and def
 			healthChange *= baseHealthChange;
 		}

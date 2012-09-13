@@ -721,7 +721,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		questTracker.registerQuest("MyHouse-ChestW");
 		
 		
-		Leoric = new PartyMember(0,"Leoric",100,5,200,
+		Leoric = new PartyMember(0,"Leoric",50,1,200,
 				20, 20, 10, 10, 10, 10, 15); // Male hero (swordsman)
 		Leoric.addCombatAction(SLASH);
 		Leoric.addCombatAction(CYCLONE_SLASH);
@@ -729,7 +729,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		party.addMember(Leoric);
 		
-		Tolinai = new PartyMember(1,"Tolinai",30,20,175,
+		Tolinai = new PartyMember(1,"Tolinai",5,5,175,
 				6, 10, 10, 20, 15, 17, 5); // Female, hero gf (offensive mage)
 		Tolinai.addCombatAction(STAFF_STRIKE);
 		Tolinai.addCombatAction(MAGIC_ARROW);
@@ -1157,8 +1157,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					this.curSpeaker = u.speaker;
 					this.curSentence = u.getSentence();
 					this.dialogTicker = 1;
-					for(int i = 0; i < this.curSentence.length; i++)
-						System.out.println("_"+this.curSentence[i]+"_");
+					//for(int i = 0; i < this.curSentence.length; i++)
+					//	System.out.println("_"+this.curSentence[i]+"_");
 
 					dialogWait = (u.length*0.07f); // TODO: hum hum
 					if(dialogWait < 1.7f)
@@ -2067,6 +2067,27 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		batch.end();
 		
+		if(!floatingNumbers.isEmpty()){
+		    ListIterator<FloatingNumber> lit = floatingNumbers.listIterator();
+		    fontBatch.begin();
+		    while(lit.hasNext()){
+			FloatingNumber f = lit.next();
+			// draw, then tick, then maybe delete
+			Color myColor = new Color(f.color);
+			
+			// TODO: fade when timeleft is close to zero
+			if(f.timeLeft < 1)
+			    myColor.a = f.timeLeft;
+			
+			font.setColor(myColor);
+			font.draw(fontBatch, ""+f.number, (int)f.posx, (int)f.posy);
+			f.tick(Gdx.graphics.getDeltaTime());
+			font.setColor(Color.WHITE);
+			if(f.deleteNow)
+			    lit.remove();
+		    }
+		    fontBatch.end();
+		}
 
 		if(announcement != null){
 			if(announcementTimeout > 0){
@@ -2460,6 +2481,38 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public static void announce(String text){
 		announcement = text;
 		announcementTimeout = 2f;
+	}
+
+        private static class FloatingNumber {
+	    public int number;
+	    public float timeLeft;
+	    public float posx;
+	    public float posy;
+	    public Color color;
+	    public boolean deleteNow;
+	    
+	    public void tick(float delta){
+		// move the numbers upwards
+
+		posy += delta*12;
+		timeLeft -= delta*1.5;
+		
+		if(this.timeLeft <= 0)
+		    this.deleteNow = true;
+	    }
+	}
+
+        private static LinkedList<FloatingNumber> floatingNumbers = new LinkedList<FloatingNumber>();
+        
+        public static void addFloatingNumbers(int number, float posx, float posy, Color color){
+	    FloatingNumber num = new FloatingNumber();
+	    num.number = number;
+	    num.timeLeft = 3;
+	    num.posx = posx;
+	    num.posy = posy;
+	    num.color = color;
+	    num.deleteNow = false;
+	    floatingNumbers.add(num);
 	}
 
 	@Override
