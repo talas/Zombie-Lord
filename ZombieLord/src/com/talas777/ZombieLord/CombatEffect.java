@@ -28,11 +28,20 @@ public class CombatEffect {
 	public static final byte TYPE_MAGICAL = 1;
 	public static final byte TYPE_ITEM = 2;
 	
+    public static final int STAT_STR = 0;
+    public static final int STAT_VIT = 1;
+    public static final int STAT_AGI = 2;
+    public static final int STAT_INT = 3;
+    public static final int STAT_WIS = 4;
+    public static final int STAT_SPR = 5;
+    public static final int STAT_LUCK = 6;
+    
+    
 	private byte effectType;
 	private double baseHealthChange;
 	private double baseManaChange;
-	private final LinkedList<StatusChange> statusChanges;
-	private final LinkedList<AttributeChange> attributeChanges;
+	private LinkedList<StatusChange> statusChanges;
+	private LinkedList<AttributeChange> attributeChanges;
 	private boolean healthPercent;
 	private boolean manaPercent;
 	
@@ -195,7 +204,9 @@ public class CombatEffect {
 		double healthChange = baseHealthChange*multiplier/divisor*elemMult;
 		double manaChange = baseManaChange*multiplier/divisor*elemMult;
 		
-		
+		if(healthChange < 0.0 && this.effectType == TYPE_PHYSICAL) // minimum 1 damage physical attack (unless element immune).. so just inc by 1
+		    healthChange -= 1;
+
 		// def 1 -> *= 0 -> 0 effect (no effect)
 		// def 0.5 -> *= 0.5 -> 50% effect (halve)
 		// def 0 -> *= 1 -> 100% effect (normal)
@@ -204,7 +215,7 @@ public class CombatEffect {
 		healthChange *= 1-elemDefense;
 		manaChange *= 1-elemDefense;
 		
-		if(elemDefense == 1){
+		/*if(elemDefense == 1){
 			// no effect
 			healthChange = 0;
 			manaChange = 0;
@@ -218,12 +229,13 @@ public class CombatEffect {
 			// remove some amount of damage
 			healthChange *= 1-elemDefense;
 			manaChange *= 1-elemDefense;
-		}
+		}*/
 		
 		System.out.println("mul:"+multiplier+", div:"+divisor+", dmg: "+healthChange);
 		Sprite s = target.getSprite();
 		int posOffset = 32;
-		ZombieLord.addFloatingNumbers((int)(Math.abs(healthChange)), s.getX()+posOffset ,s.getY()+posOffset, (healthChange <= 0? Color.WHITE : Color.GREEN));
+		if(s != null)
+		    ZombieLord.addFloatingNumbers((int)(Math.abs(healthChange)), s.getX()+posOffset ,s.getY()+posOffset, (healthChange <= 0? Color.WHITE : Color.GREEN));
 		if(healthPercent){ // percent changes are not affected by atk and def
 			healthChange *= baseHealthChange;
 		}
@@ -241,13 +253,13 @@ public class CombatEffect {
 		
 		if(target.mana < 0)
 			target.mana = 0;
-		   if(target.mana > target.getManaMax())
+		if(target.mana > target.getManaMax())
 		    target.mana = target.getManaMax();
-		
+
 		for(StatusChange statusChange : statusChanges){
 			if(Math.random() < (critical?statusChange.chance*2:statusChange.chance)){
 				// apply status change..
-				
+			    
 				if(critical && statusChange.status == Combat.STATE_POISONED){
 					// critical hit + poison -> double strength poison
 					target.addStatusChange(statusChange.status, statusChange.state, statusChange.strength*2);
@@ -257,40 +269,38 @@ public class CombatEffect {
 			}
 		}
 		
-		for(AttributeChange change : attributeChanges){
+		for(AttributeChange change : this.attributeChanges){
 			if(Math.random() < (critical?change.chance*2:change.chance)){
 				// apply attribute change
-				
-				
 				
 				if(change.duration == 0){
 					// permanent
 					switch(change.attribute){
-						case 0:
+						case STAT_STR:
 							// str
 							target.addStrength(change.change);
 							break;
-						case 1:
+						case STAT_VIT:
 							// vit
 							target.addVitality(change.change);
 							break;
-						case 2:
+						case STAT_AGI:
 							// agi
 							target.addAgility(change.change);
 							break;
-						case 3:
+						case STAT_INT:
 							// int
 							target.addIntelligence(change.change);
 							break;
-						case 4:
+						case STAT_WIS:
 							// wis
 							target.addWisdom(change.change);
 							break;
-						case 5:
+						case STAT_SPR:
 							// spr
 							target.addSpirit(change.change);
 							break;
-						case 6:
+						case STAT_LUCK:
 							// luck
 							target.addLuck(change.change);
 							break;

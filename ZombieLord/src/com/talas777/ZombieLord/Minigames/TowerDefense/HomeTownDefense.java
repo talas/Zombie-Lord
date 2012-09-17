@@ -42,12 +42,17 @@ public class HomeTownDefense extends ZombieDefense {
 	@Override
 	public LinkedList<Attacker> getWave(int waveNumber) {
 		LinkedList<Attacker> attackers = new LinkedList<Attacker>();
+		// every wave, 1 more zombie and slightly +speed
+		// every 5 wave hp += 2
+		int addhp = (int)(Math.floor(waveNumber/5)*2);
+		float speed = (float)(1f - (0.01f*waveNumber));
+
 		for(int i = 0; i < waveNumber; i++){
-			Attacker attacker = new Attacker("data/zd/zombie.png", 10, 0, 1f);
+		    Attacker attacker = new Attacker("data/zd/zombie.png", 10+addhp, 0, speed);
 			
-			int row = 0;
-			for(int j = 0; i < this.maxx*j; j++)
-				row = j;
+		    int row = (int)(Math.floor(i/this.maxx));
+			/*for(int j = 0; i < this.maxx*j; j++)
+			  row = j;*/
 			attacker.setPos(i-this.maxx*row, -row);
 			
 			attackers.add(attacker);
@@ -83,8 +88,8 @@ public class HomeTownDefense extends ZombieDefense {
 	public LinkedList<Defender> getAvailableDefenses() {
 		// first level defenses = wall and archer
 		// TODO: traps?
-		Defender archer = new Defender("data/zd/archer.png",5,20,3,4,2,2.2f);
-		Defender wall = new Defender("data/zd/wall.png",20,5,0,0,0,99);
+		Defender archer = new Defender("data/zd/archer.png",5,20,6,4,2,2.2f);
+		Defender wall = new Defender("data/zd/wall.png",70,5,0,0,0,99);
 		
 		
 		LinkedList<Defender> defenders = new LinkedList<Defender>();

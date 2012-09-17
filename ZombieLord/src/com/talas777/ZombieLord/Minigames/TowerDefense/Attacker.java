@@ -17,11 +17,14 @@
 package com.talas777.ZombieLord.Minigames.TowerDefense;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.talas777.ZombieLord.ZombieLord;
 import com.talas777.ZombieLord.Minigames.ZombieDefense;
+import com.talas777.ZombieLord.ZombieLord;
+
+import java.util.ListIterator;
 
 public class Attacker {
 	public int health;
@@ -37,6 +40,9 @@ public class Attacker {
 	private byte lastDir;
 	private float lastPathFind;
 	private float moveTime;
+        private float attackChance = 0.3f;
+        private float attackStrength = 1;
+        private int chargeLevel = 0;
 	
 	public int getX(){
 		return posx;
@@ -77,7 +83,25 @@ public class Attacker {
 				break;
 		}
 		s.setPosition(screenPosX, screenPosY);
+		// 'charged' zombies have a malevolent glow
+		s.setColor(1f,1f-this.chargeLevel*0.1f,1f-this.chargeLevel*0.1f,1f);
+		
 		s.draw(batch);
+		if(this.chargeLevel >= 10){
+		        // draw nice halo effect, to signify great evil
+		        Texture t = new Texture(Gdx.files.internal("data/zd/zhalo.png"));
+			Sprite halo1 = new Sprite(t);
+			halo1.setColor(1f,1f,1f,0.35f);
+			halo1.setPosition(screenPosX, screenPosY);
+			halo1.draw(batch);
+		        Texture f = new Texture(Gdx.files.internal("data/flash64.png"));
+			Sprite halo2 = new Sprite(f);
+			halo2.setColor(1f,0.5f,0.5f,0.15f);
+			halo2.setPosition(screenPosX-32+16, screenPosY-32+16);
+			halo2.draw(batch);
+		}
+
+		
 	}
 	
 	public int getMoneyReward(){
@@ -93,9 +117,45 @@ public class Attacker {
 	}
 	
 	public void move(float deltaTime, ZombieDefense zd){
+	        
 		byte direction = 0;
 		
-		moveTime += deltaTime;
+		moveTime += deltaTime;		
+
+		if(moveTime >= tileDelay && Math.random() < attackChance){
+		    // try to attack instead of moving
+		    boolean hasAttacked = false;
+		    ListIterator<Defender> dlit = zd.defenders.listIterator();
+		    while(dlit.hasNext()){
+			Defender d = dlit.next();
+			if(zd.getDistanceTo(this.posx, this.posy, d.getX(), d.getY()) <= 1){
+			    d.health -= this.attackStrength;
+			    if(d.health <= 0){
+				// baleet eet
+				dlit.remove();
+				// TODO: some sort of effect..
+			    }
+				
+			    hasAttacked = true;
+			    // TODO: draw the zbite sprite..
+			    
+			}
+		    }
+
+		    if(hasAttacked){
+			// every time the z has attacked, increase attack by 50%
+			// yep, scary but true
+			// TODO: 'charged' zombies glow..
+			if(this.chargeLevel < 10){
+			    this.attackStrength *= 1.5;
+			    this.chargeLevel ++;
+			}
+			moveTime = -tileDelay;
+			return;
+		    }
+		}
+		
+
 		
 		if(moveTime > tileDelay){
 			moveTime -= tileDelay;
@@ -119,7 +179,7 @@ public class Attacker {
 		
 		this.lastDir = direction;
 		
-		System.out.println("atk("+posx+","+posy+") moving: "+direction);
+		//System.out.println("atk("+posx+","+posy+") moving: "+direction);
 		
 		switch(direction){
 			case ZombieLord.DIR_EAST:

@@ -122,6 +122,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	
 	// Dialog Stuff
 	BitmapFont font;
+        BitmapFont smallFont;
 	
 	private String[] curSentence = null;
 	private String curSpeaker = null;
@@ -167,8 +168,16 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	public int maxFallDist = 500;
 	public Texture fallingTexture;
 	public int fallingDensity = 100;
-	
+
+        // debugging vars
 	private boolean debug = false;
+        private boolean debugStart = false;
+
+
+        /** the volume of music globally, 1 = 100%, 0 = 0% */
+        private static float globalMusicVolume = 0f;
+       /** the volume of sound globally, 1 = 100%, 0 = 0% */
+        private static float globalSoundVolume = 0f;
 	
 	
 	private World world;
@@ -200,11 +209,14 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private NinePatch menuBackground;
 	
 	private NinePatch minibarHp;
+        private NinePatch barHp;
+        private NinePatch barMp;
+        private NinePatch barTime;
 	
-	public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
+    /*public Sound hitSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
 	public Sound biteSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
 	public Sound cutSound; // = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
-	
+    */
 	public TimeTracker timeTracker;
 	public QuestTracker questTracker;
 	
@@ -295,7 +307,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 	private static LinkedList<SoundInstance> sounds = new LinkedList<SoundInstance>();
 	
 	public static void playSound(String file, float volume){
-		sounds.add(new SoundInstance(file,volume));
+		sounds.add(new SoundInstance(file,volume*globalSoundVolume));
 	}
 	
 	private static double musicPause = 0;
@@ -338,6 +350,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		this.combatMusic = new MusicInstance("data/music/Vadim_Danilenko_-_Lunapark.ogg");
 			
 		this.combatMusic.setLooping(true);
+		this.combatMusic.setVolume(this.globalMusicVolume);
 		this.combatMusic.play();
 		
 		
@@ -349,7 +362,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			//princess.setSize(64, 64);
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
-			tolinai.setPosition(bposx-32, bposy+50);
+			tolinai.setPosition(bposx-32, bposy);
 			Tolinai.setSprite(tolinai);
 			drawSprites.add(tolinai);
 		}
@@ -364,7 +377,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			//princess.setSize(64, 64);
 			//sprite.setSize(sprite.getWidth(),sprite.getHeight());
 			//sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
-			leoricSprite.setPosition(bposx-32, bposy);
+			leoricSprite.setPosition(bposx-32, bposy+50);
 			Leoric.setSprite(leoricSprite);
 			drawSprites.add(leoricSprite);
 		}
@@ -426,9 +439,9 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			this.currentMusic.pause();
 		}
 		this.combatMusic = new MusicInstance(zd.getMusic());
-		
+
 		this.combatMusic.setLooping(true);
-		this.combatMusic.setVolume(0.7f);
+		this.combatMusic.setVolume(0.7f*this.globalMusicVolume);
 		this.combatMusic.play();
 		
 		
@@ -461,6 +474,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		currentMusic = new MusicInstance("data/music/Renich_-_Rola_Z.ogg");
 		currentMusic.setLooping(true);
+		currentMusic.setVolume(this.globalMusicVolume);
 		currentMusic.play();
 
 		gameMode = MODE_GAMEOVER;
@@ -553,8 +567,8 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 	}
 	
-	public LinkedList<Sprite> getCombatUISprites(){
-		LinkedList<Sprite> list = new LinkedList<Sprite>();
+	public void drawCombatUISprites(SpriteBatch batch){
+	    //LinkedList<Sprite> list = new LinkedList<Sprite>();
 		
 		//first make sprites for leoric.. hes always there and always nr.1 (atleast for now)
 		
@@ -562,38 +576,64 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		PartyMember[] activeMembers = this.party.getActiveMembers();
 		
 		int num = 0;
+		int fontOffset = 14;
 		
 		for(PartyMember m : activeMembers){
 			
-		    int healthPerdeca = Math.max(0, Math.round(((m.getHealth()+0.0f) / m.getHealthMax())*10));
+		        // draw characters name
+		    
+		    
+		        int healthPercent = (int)Math.min(100,Math.max(0, Math.ceil(((m.getHealth()+0.0f) / m.getHealthMax())*100)));
+		        Color fontColor = Color.WHITE;
+			if(m.getHealth() == 0)
+			    fontColor = Color.GRAY;
+			else if(healthPercent <= 10)
+			    fontColor = Color.YELLOW;
 			
-			Sprite myHp = new Sprite(hpTex,0,0+19*healthPerdeca,106,19);
+
+			font.setColor(fontColor);
+			smallFont.setColor(fontColor);
+			font.draw(batch, m.getName(), 10,67-32*num+fontOffset);
+		        
+			
+			// draw the red inside the hp bar
+		        if(m.getHealth() > 0)
+			    barHp.draw(batch,102+4,67-32*num+1,healthPercent,17);
+
+		    //Sprite myHp = new Sprite(hpTex,0,0+19*healthPerdeca,106,19);
+		        Sprite myHp = new Sprite(hpTex,0,0,106,19);
 			myHp.setX(102);
 			myHp.setY(67-32*num);
+			myHp.draw(batch);
+			String healthstr = m.getHealth()+"/"+m.getHealthMax();
+			smallFont.draw(batch, healthstr, 102+60-(healthstr.length()/2)*13,67-32*num+fontOffset+2);
 			
-			list.add(myHp);
+
 			
-			int manaPerdeca = Math.max(0, Math.round(((m.getMana()+0.0f) / m.getManaMax())*10));
-			
-			Sprite myMp = new Sprite(mpTex,0,0+19*manaPerdeca,106,19);
+			int manaPercent = (int)Math.min(100,Math.max(0, Math.ceil(((m.getMana()+0.0f) / m.getManaMax())*100)));
+			if(m.getMana() > 0)
+			    barMp.draw(batch,230+4,67-32*num+1,manaPercent,17);
+			Sprite myMp = new Sprite(mpTex,0,0,106,19);
 			myMp.setX(230);
 			myMp.setY(67-32*num);
+			myMp.draw(batch);
+			String manastr = m.getMana()+"/"+m.getManaMax();
+			smallFont.draw(batch, manastr, 230+60-(manastr.length()/2)*13,67-32*num+fontOffset+2);
 			
-			list.add(myMp);
 			
 			
-			
-			int timePerdeca = (int) Math.max(0, Math.round(((m.actionTimer+0.0f) / 100f)*10));
-			
-			Sprite myTime = new Sprite(tmTex,0,0+19*timePerdeca,106,19);
+			int timePercent = (int) Math.min(100,Math.max(0, Math.round(((m.actionTimer+0.0f) / 100f)*100)));
+			if(m.getHealth() > 0)
+			    barTime.draw(batch,358+4,67-32*num+1,100-timePercent,17);			
+			Sprite myTime = new Sprite(tmTex,0,19*10,106,19);
 			myTime.setX(358);
 			myTime.setY(67-32*num);
-			
-			list.add(myTime);
+			myTime.draw(batch);
+
 			num++;
 		}
-		
-		return list;
+		font.setColor(Color.WHITE);
+		smallFont.setColor(Color.WHITE);
 	}
 	
 	@Override
@@ -602,6 +642,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		h = Gdx.graphics.getHeight();
 		
 		Monsters.initiate();
+		Item.initiate();
 		
 		
 		dialogBackground = new NinePatch(new Texture(Gdx.files.internal("data/ui/dialog_background.png")), 12, 12, 12, 12);
@@ -610,23 +651,28 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		
 		minibarHp = new NinePatch(new Texture(Gdx.files.internal("data/ui/minibar_hp.png")), 2, 2, 2, 2);
 		
+		barHp = new NinePatch(new Texture(Gdx.files.internal("data/ui/microbar_hp.png")), 1, 1, 1, 1);
+		barMp = new NinePatch(new Texture(Gdx.files.internal("data/ui/microbar_mp.png")), 1, 1, 1, 1);
+		barTime = new NinePatch(new Texture(Gdx.files.internal("data/ui/microbar_time.png")), 1, 1, 1, 1);
+
 		camera = new OrthographicCamera(w, h);
 		camera.position.set(0, 0, 0);
 		batch = new SpriteBatch();
 		fontBatch = new SpriteBatch();
 		drawSprites = new LinkedList<Sprite>();
 		
-		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
+		/*hitSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/woodenstickattack.wav"));
 		biteSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/zombiebite.wav"));
 		cutSound = Gdx.audio.newSound(Gdx.files.internal("data/sound/cut.wav"));
-
+		*/
 		
 		Gdx.input.setInputProcessor(this);
 		
-		// Load up the font
+		// Load up the fonts
 		
 		//fontAtlas = new TextureAtlas("data");
 		font = new BitmapFont(Gdx.files.internal("data/fonts/PressStart2P/PressStart2P.fnt"),false);
+		smallFont = new BitmapFont(Gdx.files.internal("data/fonts/Consola Mono/ConsolaMono.fnt"),false);
 		//fontAtlas.findRegion("PressStart2P"), false);
 		
 		loadCombatEffects();
@@ -726,7 +772,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		Leoric.addCombatAction(SLASH);
 		Leoric.addCombatAction(CYCLONE_SLASH);
 		Leoric.equipWeapon(Weapons.shortSword);
-		
+		//Leoric.mana = 1;
 		party.addMember(Leoric);
 		
 		Tolinai = new PartyMember(1,"Tolinai",5,5,175,
@@ -766,7 +812,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		party.giveItem(Item.Phoenix_Feather, (byte)1);
 		party.giveItem(Item.Super_Ether, (byte)1);
 		party.giveItem(Item.Tissue, (byte)1);*/
-		
+		//party.giveItem(Item.StrUp, (byte) 10);
 		loadLevel(new Church(),522,414,1);// church the real start point
 		
 		/*
@@ -774,10 +820,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		this.addMember(new PartyMember(3,"Berzenor",40,40,60,60,0)); // Male, defensive mage
 		this.addMember(new PartyMember(4, "Kiriko",70,70,30,30,0)); // Female, rogue*/
 		
-		//loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
-		//party.addMember(Tolinai); // TODO: remove this!!
-		//timeTracker.setTime("east house?"); // TODO: remove debug test
-		
+		if(debugStart){
+		    loadLevel(new HomeTownNight(), 3005, 1326,1); //TODO: remove debugging stuffs
+		    party.addMember(Tolinai); // TODO: remove this!!
+		    timeTracker.setTime("east house?"); // TODO: remove debug test
+		}
 		
 		//loadLevel(new SecondTown(),117,1949,this.DIR_SOUTH);// second town
 		//loadLevel(new SecondTownInn1(),177,1814,this.DIR_NORTH);// second town inn
@@ -835,6 +882,12 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		AnimatedMissile missile = new AnimatedMissile(s, speed, fromx, fromy, tox, toy);
 		
 		animatedMissiles.add(missile);
+	}
+
+        private static LinkedList<TemporaryAnimation> animations = new LinkedList<TemporaryAnimation>();
+
+        public static void addAnimation(Sprite s, int x, int y, int time){
+	    animations.add(new TemporaryAnimation(s,x,y,time/10f));
 	}
 	
 	public void loadLevel(Level level, int posx, int posy, int direction){
@@ -929,6 +982,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				
 				if(level.getMusic() != null){
 					this.currentMusic = new MusicInstance(newMusic);
+					this.currentMusic.setVolume(this.globalMusicVolume);
 					this.currentMusic.setLooping(true);
 					this.currentMusic.play();
 				}
@@ -938,6 +992,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			if(level.getMusic() != null){
 				this.currentMusic = new MusicInstance(newMusic);
 				this.currentMusic.setLooping(true);
+				this.currentMusic.setVolume(this.globalMusicVolume);
 				this.currentMusic.play();
 			}
 		}
@@ -1056,7 +1111,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				musicVolume = 1f;
 				System.out.println("Done fading..");
 			}
-			fadingMusic.setVolume(musicVolume);
+			fadingMusic.setVolume(musicVolume*this.globalMusicVolume);
 		}
 		
 		
@@ -1102,15 +1157,16 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			while(iter.hasNext()){
 				Sprite s = iter.next();
 				s.setY(s.getY()-this.fallSpeed*Gdx.graphics.getDeltaTime());
-				if(h-s.getY() > this.minFallDist){
+				if(posy+h/2-s.getY() > this.minFallDist){
 					// OK to delete?
-					if(h-s.getY() >= this.maxFallDist){
+					if(posy+h/2-s.getY() >= this.maxFallDist){
 						this.drawSprites.remove(s);
 						iter.remove();
 					}
 					else if(Math.random()*100 > 90){
+					    addAnimation(new Sprite(new Texture(Gdx.files.internal("data/rain_splash.png"))), (int)s.getX(), (int)s.getY(), 3);
 						this.drawSprites.remove(s);
-						iter.remove();
+						iter.remove();						
 					}
 					
 				}
@@ -1726,10 +1782,10 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 								
 								
 								if(myAction.caster == Tolinai){ // TODO: simple hack to get sound..
-									this.hitSound.play();
+								    ZombieLord.playSound("data/sound/woodenstickattack.wav", 1f);
 								}
 								if(myAction.caster == Leoric){ // TODO: simple hack to get sound..
-									this.cutSound.play();
+								    ZombieLord.playSound("data/sound/cut.wav", 1f);
 								}
 								
 								announce(myAction.action.name);
@@ -1855,10 +1911,10 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 						if(myAction.action.effect != null && affected != null){
 							
 							if(myAction.action == BITE){ // TODO: simple hack to get sound..
-								this.biteSound.play();
+							    ZombieLord.playSound("data/sound/zombiebite.wav", 1f);
 							}
 							if(myAction.action == PUNCH){ // TODO: simple hack to get sound..
-								this.hitSound.play();
+							    ZombieLord.playSound("data/sound/woodenstickattack.wav", 1f);
 							}
 							
 							for(Combatant c : affected){
@@ -1974,12 +2030,28 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		if(gameMode == MODE_FIGHT){
 			
 			this.battleWindow.draw(batch);
-			
-			LinkedList<Sprite> uiElements = this.getCombatUISprites();
-			for(Sprite s : uiElements)
-				s.draw(batch);
+			this.drawCombatUISprites(batch);
+			//LinkedList<Sprite> uiElements = this.getCombatUISprites();
+			//for(Sprite s : uiElements)
+			//	s.draw(batch);
 		}
 		
+		if(animations.size() > 0) {
+		    ListIterator<TemporaryAnimation> lit = animations.listIterator();
+		    while(lit.hasNext()) {
+			    TemporaryAnimation ta = lit.next();
+			    
+			    if(ta.timeLeft <= 0){
+				lit.remove();
+				continue;
+			    }
+
+			    ta.sprite.setPosition(ta.x,ta.y);
+			    ta.sprite.draw(batch);
+			    ta.timeLeft -= Gdx.graphics.getDeltaTime();
+		    }
+		}
+
 		if(animatedMissiles.size() > 0){
 			ListIterator<AnimatedMissile> it = animatedMissiles.listIterator();
 			while(it.hasNext()){
@@ -2026,7 +2098,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			//fontBatch.begin();
 			
 			font.setColor(Color.WHITE);
-			font.draw(batch, "Money: "+this.zombieDefense.money+", Life: "+this.zombieDefense.getHealthLeft()+".", 3, 18);
+			font.draw(batch, "Money: "+this.zombieDefense.money+", Life: "+this.zombieDefense.getHealthLeft()+", Wave: "+this.zombieDefense.getCurrentWaveNumber()+".", 3, 18);
 			
 			//fontBatch.end();
 			
@@ -2034,10 +2106,11 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			this.tickZombieDefense(Gdx.graphics.getDeltaTime());
 			for(Attacker atk : this.zombieDefense.attackers){
 				atk.draw(batch, Gdx.graphics.getDeltaTime());
-				minibarHp.draw(batch, atk.getX()*32+8, atk.getY()*32, (float)((atk.health+0.0)/atk.healthMax)*20, 4);
+				barHp.draw(batch, atk.getX()*32+8, atk.getY()*32, (float)((atk.health+0.0)/atk.healthMax)*20, 3);
 			}
 			for(Defender def : this.zombieDefense.defenders){
 				def.draw(batch, Gdx.graphics.getDeltaTime());
+				barHp.draw(batch, def.getX()*32+8, def.getY()*32, (float)((def.health+0.0)/def.healthMax)*20, 3);
 			}
 			this.zombieDefense.cursor.draw(batch);
 			
@@ -2149,7 +2222,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 		if(gameMode == MODE_DIALOG && this.curSpeaker != null){
 			fontBatch.begin();
 			// Ongoing dialog, draw the talkstuffs
-			// TODO: char by char?
+			// TODO: draw current speakers portrait?
 			
 			int slength = -1;
 			for (int i = 0; i < this.curSentence.length; i++){
@@ -2158,8 +2231,20 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 			}
 			int length = this.curSpeaker.length()+2+slength;
 			float cposx = w/2;
-			float cposy = h/2;
-			
+			float cposy = h/3;
+
+			if(this.curSpeaker.equals("Leoric")){
+			    Sprite face = new Sprite(Leoric.getFace());
+			    //face.scale(-0.4f);
+			    face.setPosition(5,cposy+32+32);
+			    face.draw(fontBatch);
+			}
+			else if(this.curSpeaker.equals("Tolinai")){
+			    Sprite face = new Sprite(Tolinai.getFace());
+			    //face.scale(-0.4f);
+			    face.setPosition(5,cposy+32+32);
+			    face.draw(fontBatch);
+			}
 			
 			if(length > 32){
 				// needs to be split
@@ -2207,7 +2292,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					
 				}
 
-				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16-(16*(int)Math.floor(length/32)), 32*13+5, 20+(16*(length/32))+2 );
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/3-16-(16*(int)Math.floor(length/32)), 32*13+5, 20+(16*(length/32))+2 );
 				int tickerLimit = (int)this.dialogTicker;
 				for(int i = 0; i < sbl.size(); i++){
 				    if(tickerLimit <= 0){
@@ -2224,7 +2309,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					tickerLimit = 0;
 				    }
 				    tickerLimit -= mystr.length();
-				    font.draw(fontBatch, (i == 0?this.curSpeaker+": ":"")+mystr, cposx-w/2+(i==0?0:30), cposy+h/2-h/4-(i*16));
+				    font.draw(fontBatch, (i == 0?this.curSpeaker+": ":"")+mystr, cposx-w/2+(i==0?0:30), cposy+h/2-h/3-(i*16));
 				}
 			}
 			else {
@@ -2236,7 +2321,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 					}
 					all.append(curSentence[i]);
 				}
-				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/4-16, length*13, 20+2);
+				dialogBackground.draw(fontBatch, 0, cposy+h/2-h/3-16, length*13, 20+2);
 				int tickerLimit = (int)this.dialogTicker;
 				String mystr = all.toString();
 				if(mystr.length() > tickerLimit){
@@ -2247,7 +2332,7 @@ public class ZombieLord implements ApplicationListener, InputProcessor {
 				    }
 				    mystr = tmp.toString();
 				}
-				font.draw(fontBatch, this.curSpeaker+": "+mystr, cposx-w/2, cposy+h/2-h/4);
+				font.draw(fontBatch, this.curSpeaker+": "+mystr, cposx-w/2, cposy+h/2-h/3);
 			}
 			fontBatch.end();
 			

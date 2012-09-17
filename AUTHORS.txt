@@ -315,22 +315,32 @@ Tunicate
  - Wheelbot and Blobbert (2D art)
 
 Mark Subbotin
----------------------
+-------------
  - Mark_Subbotin_-_Phoenix.mp3
 http://www.jamendo.comalbum/100643/
 
 Renich
-----------
+------
  - Renich_-_Rola_Z.mp3
 www.jamendo.comalbum/9831/
 
 Nébur Maik
-----------------
+----------
  - Nebur_Maik_-_Pretty_Baby__only_bells_.mp3
 http://www.jamendo.comalbum/80088/
  
 Vadim Danilenko
-------------------------
+---------------
  - Vadim_Danilenko_-_Lunapark.mp3
 http://www.jamendo.comalbum/88291/
+
+Cody Boisclair
+--------------
+ - Press Start 2P font
+http://openfontlibrary.org/en/font/press-start-2p
+
+wmk69
+-----------------
+ - Consola Mono font
+http://openfontlibrary.org/en/font/consolamono
 

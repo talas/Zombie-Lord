@@ -58,7 +58,14 @@ public abstract class ZombieDefense {
 		
 		return (diffx+diffy);
 	}
-	
+        private Defender getTileDefender(int x, int y){
+	    for(Defender d : defenders){
+		if(d.getX() == x && d.getY() == y)
+		    return d;
+	    }
+	    return null;
+	}
+
 	private boolean isTileEmpty(int x, int y){
 		for(Attacker a : attackers){
 			if(a.getX() == x && a.getY() == y)
@@ -111,6 +118,31 @@ public abstract class ZombieDefense {
 				money -= d.cost;
 				return true;
 			}
+			Defender old = getTileDefender(x,y);
+			if(old != null){
+			    // replacing?
+			    if(!old.equals(d)){
+				// cost normal
+				defenders.remove(old);
+				d.setPos(x,y);
+				defenders.add(d);
+				money -= d.cost;
+				return true;
+			    }			
+			}
+			
+		}
+		if(d.cost/2 <= money){
+		    Defender old = getTileDefender(x,y);
+		    if(old != null){
+			// repairing?
+			if(old.equals(d) && old.health < d.health){
+			    // cost 1/2 of normal
+			    old.health = d.health;
+			    money -= d.cost/2;
+			    return true;
+			}			
+		    }
 		}
 		return false;
 	}
@@ -124,7 +156,6 @@ public abstract class ZombieDefense {
 	 * @return direction that the attacker should go next. -1 = dont move.
 	 */
 	public byte findPath(int x, int y, Attacker atk){
-		// TODO: consider hindrances(defenders)
 		// TODO: actual smart algorithm here.. has to be very fast or doing lookups instead of calculations
 		// TODO: zombies learn which paths hold merit (homemade <ant colony optimization + evolutionary algorithms>)
 		
@@ -136,10 +167,16 @@ public abstract class ZombieDefense {
 		boolean canGoSouth = true;
 		
 		
-		if(x <= minx)
+		if(x <= minx){
 			canGoWest = false;
-		if(x >= maxx)
+			if(x < minx)
+			    canGoNorth = false;
+		}
+		if(x >= maxx){
 			canGoEast = false;
+			if(x > maxx)
+			    canGoNorth = false;
+		}
 		if(y <= miny)
 			canGoSouth = false;
 		if(y > maxy)

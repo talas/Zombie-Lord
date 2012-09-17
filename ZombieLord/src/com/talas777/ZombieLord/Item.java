@@ -31,7 +31,7 @@ public abstract class Item {
 	
 	private static final CombatEffect antidoteEffect = new CombatEffect(CombatEffect.TYPE_ITEM);
 	private static final CombatEffect grenadeEffect = new CombatEffect(CombatEffect.TYPE_ITEM, -70, false, ZombieLord.ELEM_FIRE);
-	
+        private static final CombatEffect add1strEffect = new CombatEffect(CombatEffect.TYPE_ITEM);
 	
 	
 	private static final CombatAction heal50 = new CombatAction("Potion",ZombieLord.ITEM_ACTION,0,heal50effect,Targeting.TARGET_SINGLE);
@@ -45,7 +45,8 @@ public abstract class Item {
 	
 	private static final CombatAction antidote = new CombatAction("Antidote", ZombieLord.ITEM_ACTION,0,antidoteEffect, Targeting.TARGET_SINGLE);
 	private static final CombatAction grenade = new CombatAction("Grenade", ZombieLord.ITEM_ACTION, 0, grenadeEffect, Targeting.TARGET_SINGLE);
-	
+        private static final CombatAction add1str = new CombatAction("UNDEF", ZombieLord.ITEM_ACTION,0, add1strEffect, Targeting.TARGET_SINGLE);
+
 	public static final Item Potion = new ConsumeableItem("Potion",true,"Heals one character by 50 hp",heal50,false,false,true);
 	public static final Item Hi_Potion = new ConsumeableItem("Hi-Potion",true,"Heals one character by 250 hp",heal250,false,false,true);
 	
@@ -70,8 +71,11 @@ public abstract class Item {
 	public static final Item Banana = new UselessItem("Banana", "It's not edible");
 	public static final Item Hot_Soup = new UselessItem("Hot Soup", "Everhot soup, unfortunately to hot to eat");
 	
+        public static final Item StrUp = new ConsumeableItem("Str Up", false, "Permanently increases Strength stat of a character by 1", add1str, false, false, true);
+
 	protected final static void initiate(){
 		antidoteEffect.addStatusChange(Combat.STATE_POISONED, 1.0f, false, 0);
+		add1strEffect.addAttributeChange(CombatEffect.STAT_STR, 1, 0, 100);
 	}
 	
 	@Override
